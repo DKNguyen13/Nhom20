@@ -26,6 +26,7 @@ import ResourceDetail from "../pages/Resource/ResourceDetail";
 import DashboardPage from "../pages/Admin/Dashboard/Dashboard";
 import UserManagementPage from "../pages/Admin/UserManagement/UserManagement";
 import TestManagementPage from "../pages/Admin/TestManagement/TestManagement";
+import MockDetailTests from "../pages/Detail/mockDetailTests";
 const isAuthenticated = false; // Kiểm tra trạng thái đăng nhập
 
 // Cấu hình routes
@@ -128,6 +129,14 @@ const routes = [
 					skippedQuestions={0}
 					score={90}
 				/>
+			</MainLayout>
+		),
+	},
+	{
+		path: "/tests/:id",
+		element: (
+			<MainLayout>
+				<MockDetailTests />
 			</MainLayout>
 		),
 	},
