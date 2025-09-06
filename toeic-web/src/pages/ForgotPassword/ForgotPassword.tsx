@@ -1,20 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Link } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
+import api from "../../config/axios.js";
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const recaptchaRef = useRef<InstanceType<typeof ReCAPTCHA> | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Thực hiện logic gửi yêu cầu quên mật khẩu (API gửi email hoặc token reset)
-    setMessage("Hãy kiểm tra email để đặt lại mật khẩu!");
+    const token = recaptchaRef.current?.getValue(); // Lấy token ReCAPTCHA
+    if (!token) {
+      setMessage("Vui lòng xác thực CAPTCHA trước khi gửi.");
+      return;
+    }
+
+    try {
+      const res = await api.post("/auth/forgot-password", { email, token });
+      setMessage(res.data.message);
+      recaptchaRef.current?.reset(); // Reset ReCAPTCHA
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || "Có lỗi xảy ra");
+      recaptchaRef.current?.reset();
+    }
   };
 
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
       <div className="flex max-w-4xl bg-white rounded-lg w-full overflow-hidden items-center">
-        {/* Left Side - Welcome message and image */}
+        {/* Left Side */}
         <div className="flex-1 p-8 max-sm:hidden">
           <h2 className="text-xl font-bold text-gray-800">
             Ups, quay lại nào, bạn ơi!
@@ -51,12 +67,22 @@ const ForgotPassword: React.FC = () => {
                 required
               />
             </div>
+
+            {/* ReCAPTCHA */}
+            <div className="mt-2">
+              <ReCAPTCHA
+                sitekey="6LcPecArAAAAAOUVjIYmkFx3uaXw-HbomQYjCtqE"
+                ref={recaptchaRef}
+              />
+            </div>
+
             <button
               type="submit"
               className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-lg shadow-lg hover:opacity-90 transition">
-              Gửi mã OTP
+              Reset mật khẩu
             </button>
           </form>
+
           <div className="mt-4 text-center">
             <p className="text-sm">
               Bạn chưa có tài khoản?{" "}

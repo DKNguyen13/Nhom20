@@ -1,5 +1,7 @@
 import AuthService from '../services/authService.js';
+import { config } from "../config/env.js";
 import { generateToken } from '../utils/jwt.js';
+import axios from "axios";
 
 class AuthController {
 
@@ -62,6 +64,25 @@ class AuthController {
             });
         } catch (error) {
             res.status(400).json({ success: false, message: error.message });
+        }
+    }
+
+    static async resetPassword(req, res) {
+        const { email, token } = req.body;
+
+        try {
+            //Verify CAPTCHA với Google
+            const secretKey = config.recaptchaSecret;
+            const response = await axios.post(
+                `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`
+            );
+
+            if (!response.data.success) throw new Error("CAPTCHA không hợp lệ");
+
+            const result = await AuthService.resetPassword({ email });
+            res.json(result);
+        } catch (err) {
+            res.status(400).json({ message: err.message });
         }
     }
 }

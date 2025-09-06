@@ -9,6 +9,7 @@ export const config = {
     mailHost: process.env.MAIL_HOST,
     mailPort: process.env.MAIL_PORT,
     mailUser: process.env.MAIL_USER,
-    mailPass: process.env.MAIL_PASS
+    mailPass: process.env.MAIL_PASS,
+    recaptchaSecret: process.env.RECAPTCHA_SECRET_KEY
 }
 

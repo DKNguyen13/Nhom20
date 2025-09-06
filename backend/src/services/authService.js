@@ -47,6 +47,24 @@ class AuthService {
 
         return user;
     }
+    
+    static async resetPassword({ email }) {
+        const user = await User.findOne({ email });
+        if (!user) throw new Error('Mật khẩu mới đã được gửi nếu email tồn tại');
+
+        const newPassword = crypto.randomBytes(4).toString('hex');
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        user.password = hashedPassword;
+        await user.save();
+
+        await sendOTPEmail(email, `Mật khẩu mới của bạn là: ${newPassword}`);
+
+        return { message: 'Mật khẩu mới đã được gửi nếu email tồn tại' };
+    }
+
 }
 
 export default AuthService;
