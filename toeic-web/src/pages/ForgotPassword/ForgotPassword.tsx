@@ -1,14 +1,14 @@
 import React, { useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 import api from "../../config/axios.js";
 
 const ForgotPassword: React.FC = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const recaptchaRef = useRef<InstanceType<typeof ReCAPTCHA> | null>(null);
-
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = recaptchaRef.current?.getValue(); // Lấy token ReCAPTCHA
@@ -21,6 +21,7 @@ const ForgotPassword: React.FC = () => {
       const res = await api.post("/auth/forgot-password", { email, token });
       setMessage(res.data.message);
       recaptchaRef.current?.reset(); // Reset ReCAPTCHA
+      //navigate("/login");
     } catch (err: any) {
       setMessage(err.response?.data?.message || "Có lỗi xảy ra");
       recaptchaRef.current?.reset();

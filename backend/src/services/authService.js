@@ -2,7 +2,7 @@ import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import redisClient from '../config/redis.js';
 import crypto from 'crypto';
-import { sendOTPEmail } from './mailService.js';
+import { sendOTPEmail, sendResetPasswordEmail } from './mailService.js';
 
 class AuthService {
     static async sendOTP(email) {
@@ -60,7 +60,7 @@ class AuthService {
         user.password = hashedPassword;
         await user.save();
 
-        await sendOTPEmail(email, `Mật khẩu mới của bạn là: ${newPassword}`);
+        await sendResetPasswordEmail(email, `Mật khẩu mới của bạn là: ${newPassword}`);
 
         return { message: 'Mật khẩu mới đã được gửi nếu email tồn tại' };
     }
