@@ -27,7 +27,7 @@ const Header: React.FC = () => {
     <header className="bg-white shadow-md px-4 flex items-center justify-between py-5">
       {/* Logo Section */}
       <Link to={"/"} className="flex items-center">
-        <span className="text-blue-600 font-bold text-lg">LOGO</span>
+        <span className="text-blue-600 font-bold text-lg">TOEIC MASTER</span>
       </Link>
 
       {/* Navigation Links */}
@@ -125,17 +125,16 @@ const Header: React.FC = () => {
           <div className="relative">
             <button
               onClick={() => setOpenMenu(!openMenu)}
-              className="flex items-center space-x-2 hover:text-blue-600"
-            >
-              <CiUser className="text-2xl" />
+              className="flex items-center space-x-2 hover:text-blue-600">
               <span className="font-medium text-gray-700">{fullname}</span>
+              <CiUser className="text-2xl" />
             </button>
 
             {/* Dropdown */}
             {openMenu && (
               <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-lg py-2 z-50">
                 <Link
-                  to="/profile"
+                  to="/settings"
                   onClick={() => setOpenMenu(false)}
                   className="block px-4 py-2 hover:bg-gray-100"
                 >
