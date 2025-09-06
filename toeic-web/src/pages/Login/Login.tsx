@@ -35,7 +35,7 @@ const Login: React.FC = () => {
             Chào mừng bạn đến với TOEIC MASTER! 
           </h2>
           <div className="mt-4">
-            <img src="src\assets\images\login-image.png"  alt="illustration"  className="w-full"/>
+            <img src="src\assets\images\ai-image.png"  alt="illustration"  className="w-full"/>
           </div>
         </div>
 

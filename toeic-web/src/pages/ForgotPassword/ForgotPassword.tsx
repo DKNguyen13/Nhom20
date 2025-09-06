@@ -12,7 +12,7 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center min-h-[80vh]">
       <div className="flex max-w-4xl bg-white rounded-lg w-full overflow-hidden items-center">
         {/* Left Side - Welcome message and image */}
         <div className="flex-1 p-8 max-sm:hidden">
@@ -21,7 +21,7 @@ const ForgotPassword: React.FC = () => {
           </h2>
           <div className="mt-4">
             <img
-              src="src/assets/images/login-image.png"
+              src="src/assets/images/forgot_pass_img.jpg"
               alt="illustration"
               className="w-full"
             />

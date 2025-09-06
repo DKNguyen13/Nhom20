@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import api from "../../config/axios.js";
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -9,17 +10,29 @@ const Register: React.FC = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [name, setName] = useState("");
+  const [fullname, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [otp, setOtp] = useState("");
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       alert("Mật khẩu không khớp!");
       return;
     }
-    // registration logic
+    try {
+      const res = await api.post("/auth/register", { fullname, email, password, phone, dob, otp });
+
+      if (res.data.success) {
+        alert("Register successfull!");
+        window.location.href = "/login";
+      } else {
+        alert(res.data.message);
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || "Server error");
+    }
   };
 
   return (
@@ -31,11 +44,7 @@ const Register: React.FC = () => {
           <div className="text-white text-center">
             <h2 className="text-3xl font-bold mb-6">Chào mừng bạn!</h2>
             <p className="mb-4">Hãy đăng ký ngay và khám phá các tính năng tuyệt vời!</p>
-            <img
-              src="src/assets/images/login-image.png"
-              alt="illustration"
-              className="mx-auto w-3/4 rounded-lg shadow-lg"
-            />
+            <img src="src/assets/images/personalization-image.png" alt="illustration" className="mx-auto w-3/4 rounded-lg shadow-lg"/>
           </div>
         </div>
 
@@ -49,9 +58,10 @@ const Register: React.FC = () => {
               <label className="block text-gray-700 font-medium mb-1">Tên</label>
               <input
                 type="text"
-                value={name}
+                value={fullname}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Nhập tên của bạn"
+                maxLength={60}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
                 required
               />
@@ -61,8 +71,7 @@ const Register: React.FC = () => {
             <div>
               <label className="block text-gray-700 font-medium mb-1">Email</label>
               <input
-                type="email"
-                value={email}
+                type="email" maxLength={80} value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Nhập email của bạn"
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
@@ -88,7 +97,7 @@ const Register: React.FC = () => {
                     setPhoneError("");
                   }
                 }}
-                placeholder="Nhập số điện thoại"
+                placeholder="Nhập số điện thoại" maxLength={10}
                 className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 shadow-sm
                   ${phoneError ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-blue-500"}`}
                 required
@@ -114,7 +123,7 @@ const Register: React.FC = () => {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  value={password}
+                  value={password} maxLength={30} 
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Nhập mật khẩu" minLength={5}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
@@ -136,7 +145,7 @@ const Register: React.FC = () => {
               <div className="relative">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
+                  value={confirmPassword} maxLength={30}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Nhập lại mật khẩu" minLength={5}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
@@ -151,6 +160,40 @@ const Register: React.FC = () => {
                 </button>
               </div>
             </div>
+            
+            {/* OTP Section */}
+          <div>
+            <label className="block text-gray-600 font-medium mb-1">OTP</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))} // chỉ số
+                placeholder="Nhập mã OTP"
+                className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                maxLength={6}
+                required
+              />
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                  if (!email) {
+                    alert("Vui lòng nhập email trước khi gửi OTP");
+                    return;
+                  }
+                    await api.post("/auth/send-otp", { email });
+                    alert("OTP đã được gửi đến email của bạn!");
+                  } catch (error: any) {
+                    alert(error.response?.data?.message || "Lỗi server khi gửi OTP");
+                  }
+                }}
+                className=" bg-gradient-to-r  from-blue-500 shadow-lg to-purple-500 rounded-lg hover:opacity-90 text-white px-4 py-2 font-medium transition"
+              >
+                Gửi OTP
+              </button>
+            </div>
+          </div>
 
             {/* Remember */}
             <div className="flex items-center justify-between text-sm text-gray-600">

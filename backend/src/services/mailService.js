@@ -13,7 +13,7 @@ export const sendOTPEmail = async (to, otp) => {
     });
 
     await transporter.sendMail({
-        from: `"Your App" <${config.mailUser}>`,
+        from: `"Toeic Master" <${config.mailUser}>`,
         to,
         subject: "OTP Xác Thực Tài Khoản",
         html: `<p>Mã OTP của bạn là: <b>${otp}</b></p><p>Hết hạn sau 10 phút</p>`
