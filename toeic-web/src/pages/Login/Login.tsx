@@ -16,6 +16,10 @@ const Login: React.FC = () => {
       if (res.data.success) {
         localStorage.setItem("token", res.data.data.token);
         localStorage.setItem("fullname", res.data.data.user.fullname);
+        localStorage.setItem("email", res.data.data.user.email);
+        localStorage.setItem("phone", res.data.data.user.phone);
+        localStorage.setItem("avatarUrl", res.data.data.user.avatarUrl);
+        localStorage.setItem("role", res.data.data.user.role);
         alert("Login successfull! Hello " + res.data.data.user.fullname);
         window.location.href = "/";
       } else {

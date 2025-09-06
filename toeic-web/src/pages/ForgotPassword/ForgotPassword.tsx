@@ -21,6 +21,7 @@ const ForgotPassword: React.FC = () => {
       const res = await api.post("/auth/forgot-password", { email, token });
       setMessage(res.data.message);
       recaptchaRef.current?.reset(); // Reset ReCAPTCHA
+      setEmail("")
       //navigate("/login");
     } catch (err: any) {
       setMessage(err.response?.data?.message || "Có lỗi xảy ra");
