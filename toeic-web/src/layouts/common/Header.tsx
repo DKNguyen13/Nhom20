@@ -127,8 +127,8 @@ const Header: React.FC = () => {
         ) : (
           <Link
             to="/login"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full font-medium transition"
-          >
+            className="bg-gradient-to-r from-blue-500 shadow-lg to-purple-500 hover:opacity-90 text-white px-4 py-2 rounded-full font-medium transition">
+                
             Login
           </Link>
         )}

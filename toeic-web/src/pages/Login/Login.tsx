@@ -32,7 +32,7 @@ const Login: React.FC = () => {
         {/* Left Side - Welcome message and image */}
         <div className="flex-1 p-8 max-sm:hidden">
           <h2 className="text-xl font-bold text-gray-800">
-            Welcome back, let's get ready!
+            Chào mừng bạn đến với TOEIC MASTER! 
           </h2>
           <div className="mt-4">
             <img src="src\assets\images\login-image.png"  alt="illustration"  className="w-full"/>
@@ -62,7 +62,7 @@ const Login: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Nhập mật khẩu"
-                className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"  required />
+                className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" minLength={5} required />
               <button type="button" onClick={() => setShowPassword((prev) => !prev)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"> {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />} </button>
               </div>
@@ -70,13 +70,13 @@ const Login: React.FC = () => {
             <div className="flex items-center justify-between mt-4">
               <label className="flex items-center text-sm text-gray-600">
                 <input type="checkbox" className="mr-2" /> Nhớ mật khẩu </label>
-              <Link to={"/forgot-password"} className="text-sm text-blue-600 hover:underline">Quên mật khẩu?</Link>
+              <Link to={"/forgot-password"} className="text-sm text-blue-500 font-medium hover:underline">Quên mật khẩu?</Link>
             </div>
-            <button type="submit" className="w-full py-3 mt-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Đăng nhập</button>
+            <button type="submit" className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-lg shadow-lg hover:opacity-90 transition">Đăng nhập</button>
           </form>
           <div className="mt-4 text-center">
             <p className="text-sm"> Bạn chưa có tài khoản?{" "}
-              <Link className="text-blue-600 hover:underline" to={"/register"}> Đăng ký </Link>
+              <Link className="text-blue-500 font-medium hover:underline" to={"/register"}> Đăng ký </Link>
             </p>
           </div>
         </div>

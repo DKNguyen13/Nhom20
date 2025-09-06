@@ -17,7 +17,7 @@ const ForgotPassword: React.FC = () => {
         {/* Left Side - Welcome message and image */}
         <div className="flex-1 p-8 max-sm:hidden">
           <h2 className="text-xl font-bold text-gray-800">
-            Oops, let's get you back in!
+            Ups, quay lại nào, bạn ơi!
           </h2>
           <div className="mt-4">
             <img
@@ -30,7 +30,7 @@ const ForgotPassword: React.FC = () => {
 
         {/* Right Side - Forgot Password Form */}
         <div className="flex-1 p-8 bg-blue-100">
-          <h2 className="text-3xl font-bold mb-6">Quên mật khẩu</h2>
+          <h2 className="text-3xl font-bold mb-6 text-center">Quên mật khẩu</h2>
           {message && (
             <div className="bg-green-100 text-green-700 p-3 mb-4 rounded">
               {message}
@@ -53,21 +53,20 @@ const ForgotPassword: React.FC = () => {
             </div>
             <button
               type="submit"
-              className="w-full py-3 mt-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              Gửi yêu cầu đặt lại mật khẩu
+              className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-lg shadow-lg hover:opacity-90 transition">
+              Gửi mã OTP
             </button>
           </form>
           <div className="mt-4 text-center">
             <p className="text-sm">
               Bạn chưa có tài khoản?{" "}
-              <Link className="text-blue-600 hover:underline" to={"/register"}>
+              <Link className="text-blue-500 font-medium hover:underline" to={"/register"}>
                 Đăng ký
               </Link>
             </p>
             <p className="text-sm mt-2">
               Quay lại{" "}
-              <Link className="text-blue-600 hover:underline" to={"/login"}>
+              <Link className="text-blue-500 font-medium hover:underline" to={"/login"}>
                 Đăng nhập
               </Link>
             </p>
