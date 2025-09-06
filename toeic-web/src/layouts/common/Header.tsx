@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { CiUser } from "react-icons/ci";
 import {
   FaHome,
@@ -7,11 +7,21 @@ import {
   FaSearch,
   FaCrown,
 } from "react-icons/fa"; // Import icons for each tab
-import { Link, useLocation } from "react-router-dom";
+
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const Header: React.FC = () => {
   const location = useLocation();
-  console.log(location);
+  const navigate = useNavigate();
+  const fullname = localStorage.getItem("fullname");
+  const [openMenu, setOpenMenu] = useState(false);
+    
+  const handleLogout = () => {
+    localStorage.removeItem("fullname");
+    localStorage.removeItem("token");
+    setOpenMenu(false);
+    navigate("/login");
+  };
 
   return (
     <header className="bg-white shadow-md px-4 flex items-center justify-between py-5">
@@ -109,18 +119,45 @@ const Header: React.FC = () => {
         </Link>
       </nav>
 
-      {/* Login Button */}
-      <div className="flex items-center space-x-4">
-        <Link to={"/settings"}>
-          <CiUser size={20} />
-        </Link>
+      {/* Login / User Section */}
+      <div className="flex items-center space-x-4 relative">
+        {fullname ? (
+          <div className="relative">
+            <button
+              onClick={() => setOpenMenu(!openMenu)}
+              className="flex items-center space-x-2 hover:text-blue-600"
+            >
+              <CiUser className="text-2xl" />
+              <span className="font-medium text-gray-700">{fullname}</span>
+            </button>
 
-        <Link
-          to={"/login"}
-          className="bg-blue-600 text-white px-4 py-2 rounded-full"
-        >
-          Login
-        </Link>
+            {/* Dropdown */}
+            {openMenu && (
+              <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-lg py-2 z-50">
+                <Link
+                  to="/profile"
+                  onClick={() => setOpenMenu(false)}
+                  className="block px-4 py-2 hover:bg-gray-100"
+                >
+                  Profile
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <Link
+            to={"/login"}
+            className="bg-blue-600 text-white px-4 py-2 rounded-full"
+          >
+            Login
+          </Link>
+        )}
       </div>
     </header>
   );

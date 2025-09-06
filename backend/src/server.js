@@ -16,8 +16,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 
-app.use('/exams', examRouter)
-app.use('/exams', examRouter);
+app.use('/api/exams', examRouter)
 app.use('/api/auth', authRoutes);
 
 await connectDB()

@@ -25,7 +25,7 @@ class AuthController {
                 data: {
                     user: {
                         id: user._id,
-                        fullname: user.name,
+                        fullname: user.fullname,
                         email: user.email,
                         phone: user.phone,
                         avatar: user.avatar,
@@ -51,7 +51,7 @@ class AuthController {
                 data: {
                     user: {
                         id: user._id,
-                        name: user.name,
+                        fullname: user.fullname,
                         email: user.email,
                         phone: user.phone,
                         avatar: user.avatar,

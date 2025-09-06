@@ -1,13 +1,29 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import api from "../../config/axios.js";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
+    try {
+      // dùng api instance
+      const res = await api.post("/auth/login", { email, password });
+
+      if (res.data.success) {
+        localStorage.setItem("token", res.data.data.token);
+        localStorage.setItem("fullname", res.data.data.user.fullname);
+        alert("Login successfull! Hello " + res.data.data.user.fullname);
+        window.location.href = "/";
+      } else {
+        alert(res.data.message);
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || "Login error");
+    }
   };
 
   return (
@@ -56,21 +72,20 @@ const Login: React.FC = () => {
                 Mật khẩu
               </label>
               <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Nhập mật khẩu"
-                  className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
-                >
-                  {showPassword ? "Ẩn" : "Hiện"}
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Nhập mật khẩu"
+                className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600">
+                {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
                 </button>
               </div>
             </div>

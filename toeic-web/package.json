@@ -15,7 +15,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@react-spring/web": "^9.7.5",
     "aos": "^2.3.4",
-    "axios": "^1.7.9",
+    "axios": "^1.11.0",
     "chart.js": "^4.4.8",
     "class-variance-authority": "^0.7.1",
     "device-detector-js": "^3.0.3",
