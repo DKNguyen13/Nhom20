@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ExamCard from "../Home/component/ExamCard";
-import { getExam } from "../../service/examService.js";
+import { getExam, addToWishList } from "../../service/examService.js";
 
 interface Exam {
   _id: string;
@@ -12,6 +12,7 @@ interface Exam {
   audio: string;
   views: number;
   solves: number;
+  isInWishlist?: boolean;
 }
 
 interface ApiResponse {
@@ -42,6 +43,39 @@ export const Practice = () => {
       console.error('Error fetching exams:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleWishlistToggle = async (examId: string) => {
+    try {
+      const examIndex = examData.findIndex(exam => exam._id === examId);
+      if (examIndex === -1) return;
+
+      const isCurrentlyInWishlist = examData[examIndex].isInWishlist;
+      
+      // Optimistically update UI
+      setExamData(prev => prev.map(exam => 
+        exam._id === examId 
+          ? { ...exam, isInWishlist: !isCurrentlyInWishlist }
+          : exam
+      ));
+
+      // Here you would call the actual API
+      if (isCurrentlyInWishlist) {
+        // await removeFromWishlist(examId);
+      } else {
+        await addToWishList(examId);
+      }
+      
+      console.log(`${isCurrentlyInWishlist ? 'Removed from' : 'Added to'} wishlist: ${examId}`);
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
+      // Revert the optimistic update on error
+      setExamData(prev => prev.map(exam => 
+        exam._id === examId 
+          ? { ...exam, isInWishlist: !exam.isInWishlist }
+          : exam
+      ));
     }
   };
 
@@ -96,15 +130,41 @@ export const Practice = () => {
         <div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 gap-y-12 mb-12 max-w-[1000px] justify-center items-center">
             {examData.map((item, index) => (
-              <ExamCard
-                key={item._id}
-                id={item._id}
-                title={item.title}
-                image={item.image}
-                questions={item.questions}
-                students={item.students}
-                level={item.level}
-              />
+              <div key={item._id} className="relative">
+                <ExamCard
+                  id={item._id}
+                  title={item.title}
+                  image={item.image}
+                  questions={item.questions}
+                  students={item.students}
+                  level={item.level}
+                />
+                {/* Heart Icon for Wishlist */}
+                <button
+                  onClick={() => handleWishlistToggle(item._id)}
+                  className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md transition-all duration-200 z-10"
+                  title={item.isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                >
+                  <svg
+                    className={`w-5 h-5 transition-colors duration-200 ${
+                      item.isInWishlist 
+                        ? 'text-red-500 fill-current' 
+                        : 'text-gray-400 hover:text-red-500'
+                    }`}
+                    fill={item.isInWishlist ? "currentColor" : "none"}
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    />
+                  </svg>
+                </button>
+              </div>
             ))}
           </div>
         </div>
