@@ -20,12 +20,12 @@ class AuthService {
     }
     
     static async register({ fullname, email, password, phone, avatar, otp }) {
-        const storedOtp = await redisClient.get(`otp:${email}`);
-        if (!storedOtp) throw new Error('OTP not exits or expired');
-        if (storedOtp !== otp) throw new Error('OTP incorrect');
-
-        if (await User.findOne({ email })) throw new Error('Email exists');
-        if (phone && await User.findOne({ phone })) throw new Error('Phone exists');
+        // const storedOtp = await redisClient.get(`otp:${email}`);
+        // if (!storedOtp) throw new Error('OTP not exits or expired');
+        // if (storedOtp !== otp) throw new Error('OTP incorrect');
+        //
+        // if (await User.findOne({ email })) throw new Error('Email exists');
+        // if (phone && await User.findOne({ phone })) throw new Error('Phone exists');
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
