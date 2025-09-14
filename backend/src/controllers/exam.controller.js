@@ -1,5 +1,6 @@
 import Exam from '../models/exam.models.js';
 import {parsePaginate} from '../helpers/parsePaginate.js';
+import {isInWishList} from "./wishlist.controller.js";
 
 export const getRecentExam = async (req, res) => {
     let { page, limit } = parsePaginate(req.query);
@@ -47,6 +48,10 @@ export const getMostSolvedExam = async (req, res) => {
 }
 
 export const getExam = async (req, res) => {
+    let userId = null
+    if (req.user){
+        userId = req.user.id;
+    }
     let { sortBy, page, limit } = parsePaginate(req.query);
     if (!limit){
         limit = 6;
@@ -77,5 +82,19 @@ export const getExam = async (req, res) => {
             .lean(),
         Exam.countDocuments({}),
     ]);
-    return res.json({ page, limit, total, items });
+    let list = [];
+    if (userId){
+        for (const item of items) {
+            if (await isInWishList(item._id, userId)) {
+                list.push({...item, isInWishlist: true});
+            }
+            else{
+                list.push({...item, isInWishlist: false});
+            }
+        }
+    }
+    else{
+        list = items;
+    }
+    return res.json({ page, limit, total, items: list });
 }

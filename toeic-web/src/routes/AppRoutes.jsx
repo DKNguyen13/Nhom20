@@ -27,6 +27,7 @@ import DashboardPage from "../pages/Admin/Dashboard/Dashboard";
 import UserManagementPage from "../pages/Admin/UserManagement/UserManagement";
 import TestManagementPage from "../pages/Admin/TestManagement/TestManagement";
 import MockDetailTests from "../pages/Detail/mockDetailTests";
+import { Wishlist } from "../pages/Wishlist/Wishlist";
 const isAuthenticated = false; // Kiểm tra trạng thái đăng nhập
 
 // Cấu hình routes
@@ -226,6 +227,14 @@ const routes = [
 		element: (
 			<MainLayout>
 				<TestManagementPage />
+			</MainLayout>
+		),
+	},
+	{
+		path: "/wishlist",
+		element: (
+			<MainLayout>
+				<Wishlist />
 			</MainLayout>
 		),
 	},

@@ -1,6 +1,7 @@
 // LeftSidebar.tsx
 import React from "react";
 import { Link } from "react-router-dom";
+import { MdFavorite } from "react-icons/md";
 import { FaUser, FaHistory, FaCog, FaSignOutAlt } from "react-icons/fa";
 
 interface LeftSidebarUserProps {
@@ -39,6 +40,15 @@ const LeftSidebarUser: React.FC<LeftSidebarUserProps> = ({ customHeight }) => {
             >
               <FaHistory className="mr-3" />
               Lịch sử làm bài
+            </Link>
+          </li>
+          <li className="mb-2">
+            <Link
+              to="/wishlist"
+              className="flex items-center p-2 text-gray-700 hover:bg-blue-100 rounded"
+            >
+              <MdFavorite className="mr-3" />
+              Danh sách yêu thích
             </Link>
           </li>
           <li className="mb-2">
