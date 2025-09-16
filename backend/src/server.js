@@ -4,6 +4,7 @@ import { config } from "./config/env.js";
 import connectDB from './config/db.js';
 import examRouter from './routes/exam.routes.js';
 import authRoutes from './routes/authRoutes.js';
+import TestRoutes from './routes/TestRoutes.js';
 
 
 const app = express()
@@ -18,6 +19,7 @@ app.use(express.json());
 
 app.use('/api/exams', examRouter)
 app.use('/api/auth', authRoutes);
+app.use('/api/test', TestRoutes);
 
 await connectDB()
 
