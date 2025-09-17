@@ -1,31 +1,42 @@
 import Test from "../models/Test.js";
 
-export const getAllTest = (req, res) => {
-    res.send('Tất cả đề thi');
+// [GET] /api/test
+export const getAllTest = async (req, res) => {
+    try {
+        const tests = await Test.find();
+        res.json(tests);
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };
 
-export const getTestDetail = (req, res) => {
-    res.send('Đây là trang chi tiết đề thi');
+// [GET] /api/test/detail/:slug
+export const getTestDetail = async (req, res) => {
+    try {
+        const test = await Test.findOne({ slug: req.params.slug });
+
+        if (!test) {
+            return res.status(500).json({ message: 'Test not found' });
+        }
+
+        return res.status(200).json({ test })
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
 };
 
+// [POST] /api/test/create
 export const createTest = async (req, res, userId) => {
     try {
-        
-        const newTest = await Test.create({
-            title: 'TOEIC test 1',
-            testCode: 'T001',
-            level: 'beginner',
-            category: 'practice',
-            createdBy: userId,
-            metadata: { source: 'Custom' }
-        });
 
-        await newTest.save();
+        const test = new Test(req.body);
 
-        res.status(200).json({ newTest });
+        await test.save();
+
+        res.status(200).json({ test });
     } catch (error) {
-        console.error('Lỗi khi gọi Create Test', error);
-        res.status(500).json({ message: 'Lỗi hệ thống' });
+        res.status(500).json({ message: error.message });
     }
 };
 
