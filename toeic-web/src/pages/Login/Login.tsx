@@ -1,26 +1,26 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import api from "../../config/axios.js";
+import api, { setAccessToken } from "../../config/axios.js";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // dùng api instance
       const res = await api.post("/auth/login", { email, password });
 
       if (res.data.success) {
-        localStorage.setItem("token", res.data.data.token);
+        // Lưu access token vào memory
+        setAccessToken(res.data.data.accessToken);
+
         localStorage.setItem("fullname", res.data.data.user.fullname);
         localStorage.setItem("email", res.data.data.user.email);
-        localStorage.setItem("phone", res.data.data.user.phone);
-        localStorage.setItem("avatarUrl", res.data.data.user.avatarUrl);
-        localStorage.setItem("role", res.data.data.user.role);
-        alert("Login successfull! Hello " + res.data.data.user.fullname);
+
+        alert("Login successful! Hello " + res.data.data.user.fullname);
         window.location.href = "/";
       } else {
         alert(res.data.message);

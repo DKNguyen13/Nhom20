@@ -10,6 +10,7 @@ const app = express()
 
 const corsOptions = {
     origin: "http://localhost:3000", // chỉ cho phép frontend ở port 3000
+    credentials: true,// bắt buộc để gửi cookie
 };
 
 app.use(cors(corsOptions));

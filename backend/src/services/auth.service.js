@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import redisClient from '../config/redis.js';
 import crypto from 'crypto';
 import { sendOTPEmail, sendResetPasswordEmail } from './mail.service.js';
-import { generateToken } from '../utils/jwt.js';
+import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
 
 export const sendOTP = async (email) => {
     if (await User.findOne({ email })) throw new Error('Email đã tồn tại');
@@ -37,15 +37,16 @@ export const register = async ({ fullname, email, password, phone, avatar, otp }
 };
 
 export const login = async ({ email, password }) => {
-    const user = await User.findOne({ email });
-    if (!user) throw new Error('Email không tồn tại');
+  const user = await User.findOne({ email });
+  if (!user) throw new Error('Email không tồn tại');
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) throw new Error('Mật khẩu không đúng');
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) throw new Error('Mật khẩu không đúng');
 
-    const token = generateToken({ id: user._id, role: user.role });
+  const accessToken = generateAccessToken({ id: user._id, role: user.role });
+  const refreshToken = generateRefreshToken({ id: user._id });
 
-    return { user, token };
+  return { user, accessToken, refreshToken };
 };
 
 export const resetPassword = async ({ email }) => {
