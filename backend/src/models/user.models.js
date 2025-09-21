@@ -8,6 +8,12 @@ const userSchema = new mongoose.Schema({
     dob: { type: Date },
     avatarUrl: { type: String, default: '' },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
+    isActive: { type: Boolean, default: true },
+    vip: {
+        isActive: { type: Boolean, default: false },
+        endDate: { type: Date, default: null },
+        type: { type: String, enum: ['basic','pro','premium'], default: null }
+    }
 }, { timestamps: true });
 
 export default mongoose.model('User', userSchema);

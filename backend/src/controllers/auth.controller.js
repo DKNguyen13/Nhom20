@@ -18,11 +18,10 @@ export const sendOTP = async (req, res) => {
 export const register = async (req, res) => {
     try {
         const { fullname, email, password, phone, avatar, otp } = req.body;
-        const { user, token } = await AuthService.register({ fullname, email, password, phone, avatar, otp });
+        const { user } = await AuthService.register({ fullname, email, password, phone, avatar, otp });
 
         return success(res, 'Đăng ký thành công', { 
-            user: { id: user._id, fullname: user.fullname, email: user.email, phone: user.phone, avatar: user.avatar, role: user.role },
-            token
+            user: { id: user._id, fullname: user.fullname, email: user.email, phone: user.phone, avatar: user.avatar, role: user.role }
         });
     } catch (err) {
         return error(res, err.message, 400);

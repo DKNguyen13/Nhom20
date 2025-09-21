@@ -31,9 +31,7 @@ export const register = async ({ fullname, email, password, phone, avatar, otp }
     await user.save();
     await redisClient.del(`otp:${email}`);
 
-    const token = generateToken({ id: user._id, role: user.role });
-
-    return { user, token };
+    return { user };
 };
 
 export const login = async ({ email, password }) => {
@@ -44,7 +42,7 @@ export const login = async ({ email, password }) => {
   if (!isMatch) throw new Error('Mật khẩu không đúng');
 
   const accessToken = generateAccessToken({ id: user._id, role: user.role });
-  const refreshToken = generateRefreshToken({ id: user._id });
+  const refreshToken = generateRefreshToken({ id: user._id, role: user.role });
 
   return { user, accessToken, refreshToken };
 };
@@ -59,4 +57,27 @@ export const resetPassword = async ({ email }) => {
     }
 
     return 'Mật khẩu mới đã được gửi nếu email tồn tại';
+};
+
+export const createAdminIfNotExist = async () => {
+  try {
+    const adminExists = await User.findOne({ role: 'admin' });
+    if (!adminExists) {
+      const hashedPassword = await bcrypt.hash('admin@123', 10);
+      const admin = new User({
+        fullname: 'Super Admin',
+        email: 'admin@admin.com',
+        password: hashedPassword,
+        phone: '0123456789',
+        role: 'admin',
+        isActive: true
+      });
+      await admin.save();
+      console.log('Admin mặc định đã được tạo: admin@admin.com / admin@123');
+    } else {
+      console.log('Admin đã tồn tại, không cần tạo lại.');
+    }
+  } catch (err) {
+    console.error('Lỗi khi tạo admin mặc định:', err);
+  }
 };

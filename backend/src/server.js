@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { config } from "./config/env.js";
+import { createAdminIfNotExist } from './services/auth.service.js';
 import connectDB from './config/db.js';
 import examRouter from './routes/exam.routes.js';
 import authRoutes from './routes/auth.routes.js';
@@ -20,7 +21,9 @@ app.use(express.json());
 app.use('/api/exams', examRouter)
 app.use('/api/auth', authRoutes);
 
-await connectDB()
+await connectDB();
+
+await createAdminIfNotExist();
 
 app.listen(config.port, () => {
     console.log(`Server running on port ${config.port}`)

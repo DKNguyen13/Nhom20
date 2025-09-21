@@ -7,7 +7,7 @@ export const config = {
 
   // JWT
   accessTokenKey: process.env.ACCESS_TOKEN_KEY,
-  accessTokenLife: process.env.ACCESS_TOKEN_LIFE || '15m',
+  accessTokenLife: process.env.ACCESS_TOKEN_LIFE || '5m',
   refreshTokenKey: process.env.REFRESH_TOKEN_KEY,
   refreshTokenLife: process.env.REFRESH_TOKEN_LIFE || '7d',
 

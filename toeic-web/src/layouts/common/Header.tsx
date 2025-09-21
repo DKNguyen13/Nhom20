@@ -1,13 +1,8 @@
 import React, { useState } from "react";
 import { CiUser } from "react-icons/ci";
-import {
-  FaHome,
-  FaClipboardList,
-  FaFileAlt,
-  FaSearch,
-  FaCrown,
-} from "react-icons/fa";
+import { FaHome, FaClipboardList, FaFileAlt, FaSearch, FaCrown} from "react-icons/fa";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import api, { setAccessToken } from "../../config/axios.js";
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -15,11 +10,18 @@ const Header: React.FC = () => {
   const fullname = localStorage.getItem("fullname");
   const [openMenu, setOpenMenu] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("fullname");
-    localStorage.removeItem("token");
-    setOpenMenu(false);
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (err) {
+      console.error("Logout server failed:", err);
+    } finally {
+      localStorage.removeItem("fullname");
+      localStorage.removeItem("token");
+      setAccessToken(null);
+      setOpenMenu(false);
+      navigate("/login");
+    }
   };
 
   const navLinks = [
