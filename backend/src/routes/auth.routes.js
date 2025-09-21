@@ -1,13 +1,17 @@
+import multer from 'multer';
 import express from 'express';
-import { login, register, resetPassword, sendOTP, refreshToken, logout} from '../controllers/auth.controller.js';
+import { authenticate } from '../middleware/authenticate.js';
+import { login, register, resetPassword, sendOTP, refreshToken, logout, updateProfileController} from '../controllers/auth.controller.js';
 
 const router = express.Router();
+const upload = multer();
 
 router.post('/send-otp', sendOTP);
 router.post('/register', register);
 router.post('/login', login);
-router.post("/forgot-password", resetPassword);
+router.post('/forgot-password', resetPassword);
 router.post('/refresh-token', refreshToken);
 router.post('/logout', logout);
+router.patch('/update-profile', authenticate, upload.single('avatar'), updateProfileController);
 
 export default router;

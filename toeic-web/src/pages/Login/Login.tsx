@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import api, { setAccessToken } from "../../config/axios.js";
+import { useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,14 +16,14 @@ const Login: React.FC = () => {
       const res = await api.post("/auth/login", { email, password });
 
       if (res.data.success) {
-        // Lưu access token vào memory
         setAccessToken(res.data.data.accessToken);
 
         localStorage.setItem("fullname", res.data.data.user.fullname);
         localStorage.setItem("email", res.data.data.user.email);
-
+        localStorage.setItem("phone", res.data.data.user.phone);
+        localStorage.setItem("avatarUrl", res.data.data.user.avatarUrl);
         alert("Login successful! Hello " + res.data.data.user.fullname);
-        window.location.href = "/";
+        navigate("/");
       } else {
         alert(res.data.message);
       }

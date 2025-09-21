@@ -16,12 +16,12 @@ const Header: React.FC = () => {
     } catch (err) {
       console.error("Logout server failed:", err);
     } finally {
-      localStorage.removeItem("fullname");
-      localStorage.removeItem("token");
-      setAccessToken(null);
-      setOpenMenu(false);
-      navigate("/login");
-    }
+    localStorage.removeItem("fullname");
+    localStorage.removeItem("token");
+    setAccessToken(null);
+    setOpenMenu(false);
+    navigate("/login");
+  }
   };
 
   const navLinks = [
@@ -115,13 +115,13 @@ const Header: React.FC = () => {
                   onClick={() => setOpenMenu(false)}
                   className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
                 >
-                  Profile
+                  Thông tin cá nhân
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
                 >
-                  Logout
+                  Đăng xuất
                 </button>
               </div>
             )}

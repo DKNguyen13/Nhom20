@@ -27,4 +27,9 @@ export const config = {
   cookieSecure: process.env.COOKIE_SECURE === 'false', // true => chỉ gửi qua https
   cookieSameSite: process.env.COOKIE_SAMESITE || 'strict',
   cookieHttpOnly: process.env.COOKIE_HTTPONLY !== 'false', // default: true
+
+  // Cloudinary
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
+  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
 };

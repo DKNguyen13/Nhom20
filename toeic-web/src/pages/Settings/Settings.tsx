@@ -1,18 +1,16 @@
 import React, {useEffect, useState} from "react";
-import { Link } from "react-router-dom"; // Thêm Link từ react-router-dom
-import LeftSidebarUser from "../../components/LeftSideBarUser";
+import { Link } from "react-router-dom";
+import LeftSidebarUser from "../../components/LeftSidebarUser";
 
 const Settings: React.FC = () => {
 	const [fullname, setFullname] = useState("");
 	const [email, setEmail] = useState("");
 	const [phone, setPhone] = useState("");
-	const [avatarUrl, setAvatarUrl] = useState("");
 
 	useEffect(() => {
 		setFullname(localStorage.getItem("fullname") || "");
 		setEmail(localStorage.getItem("email") || "");
 		setPhone(localStorage.getItem("phone") || "");
-		setAvatarUrl(localStorage.getItem("avatarUrl") || "");
 	}, []);
 
 	return (
@@ -58,10 +56,10 @@ const Settings: React.FC = () => {
 							/>
 						</div>
 
-						{/* Nút Lưu (Sử dụng Link để điều hướng) */}
+						{/* Nút Lưu*/}
 						<div className="text-right pt-10">
 							<Link
-								to="/settings/editsettings" // Điều hướng đến trang /settings
+								to="/settings/edit-info"
 								className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition duration-300 inline-block text-center">
 								Chỉnh sửa
 							</Link>

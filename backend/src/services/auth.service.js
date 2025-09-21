@@ -1,7 +1,8 @@
-import User from '../models/user.models.js';
 import bcrypt from 'bcryptjs';
-import redisClient from '../config/redis.js';
 import crypto from 'crypto';
+import redisClient from '../config/redis.js';
+import User from '../models/user.models.js';
+import { uploadAvatar } from './cloudinary.service.js';
 import { sendOTPEmail, sendResetPasswordEmail } from './mail.service.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
 
@@ -35,6 +36,19 @@ export const register = async ({ fullname, email, password, phone, avatar, otp }
 };
 
 export const login = async ({ email, password }) => {
+  const user = await User.findOne({ email });
+  if (!user) throw new Error('Email không tồn tại');
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) throw new Error('Mật khẩu không đúng');
+
+  const accessToken = generateAccessToken({ id: user._id, role: user.role });
+  const refreshToken = generateRefreshToken({ id: user._id, role: user.role });
+
+  return { user, accessToken, refreshToken };
+};
+
+export const editInfor = async ({ email }) => {
   const user = await User.findOne({ email });
   if (!user) throw new Error('Email không tồn tại');
 
@@ -81,3 +95,29 @@ export const createAdminIfNotExist = async () => {
     console.error('Lỗi khi tạo admin mặc định:', err);
   }
 };
+
+export const updateProfile = async ({ userId, fullName, fileBuffer }) => {
+  const user = await User.findById(userId);
+  if (!user) throw new Error('Người dùng không tồn tại');
+
+  if (fullName && fullName.trim() !== '') {
+    user.fullname = fullName;
+  }
+
+  if (fileBuffer) {
+    const avatarUrl = await uploadAvatar(fileBuffer);
+    user.avatarUrl = avatarUrl; // lưu vào DB
+  }
+
+  await user.save();
+
+  return {
+    id: user._id.toString(),
+    fullname: user.fullname,
+    email: user.email,
+    phone: user.phone,
+    avatar: user.avatarUrl,
+    role: user.role,
+  };
+};
+

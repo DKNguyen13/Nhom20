@@ -41,7 +41,7 @@ export const login = async (req, res) => {
     });
 
     return success(res, 'Đăng nhập thành công', { 
-      user: { id: user._id, fullname: user.fullname, email: user.email, role: user.role },
+      user: { id: user._id, fullname: user.fullname, email: user.email, phone: user.phone, avatarUrl : user.avatarUrl, role: user.role },
       accessToken
     });
   } catch (err) {
@@ -89,5 +89,23 @@ export const refreshToken = (req, res) => {
     return success(res, 'Access token mới', { accessToken });
   } catch (err) {
     return error(res, 'Refresh token không hợp lệ hoặc hết hạn', 401);
+  }
+};
+
+export const updateProfileController = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const fullname = req.body.fullname || '';
+    const fileBuffer = req.file?.buffer || null;
+
+    const updatedUser = await AuthService.updateProfile({
+      userId,
+      fullName: fullname,
+      fileBuffer,
+    });
+
+    return success(res, 'Cập nhật profile thành công', updatedUser);
+  } catch (err) {
+    return error(res, err.message);
   }
 };

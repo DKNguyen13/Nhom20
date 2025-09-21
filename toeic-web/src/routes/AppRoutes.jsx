@@ -150,7 +150,7 @@ const routes = [
 		),
 	},
 	{
-		path: "/settings/editsettings",
+		path: "/settings/edit-info",
 		element: (
 			<MainLayout>
 				<EditSettings />
