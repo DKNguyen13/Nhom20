@@ -3,68 +3,59 @@ import bcrypt from 'bcryptjs';
 import redisClient from '../config/redis.js';
 import crypto from 'crypto';
 import { sendOTPEmail, sendResetPasswordEmail } from './mail.service.js';
+import { generateToken } from '../utils/jwt.js';
 
-class AuthService {
-    static async sendOTP(email) {
-        if (await User.findOne({ email })) throw new Error('Email exists');
+export const sendOTP = async (email) => {
+    if (await User.findOne({ email })) throw new Error('Email đã tồn tại');
 
-        const existingOtp = await redisClient.get(`otp:${email}`);
-        if (existingOtp) await redisClient.del(`otp:${email}`);
+    const existingOtp = await redisClient.get(`otp:${email}`);
+    if (existingOtp) await redisClient.del(`otp:${email}`);
 
-        const otp = crypto.randomInt(100000, 999999).toString();
-        await redisClient.setEx(`otp:${email}`, 600, otp); // TTL 10 phút
+    const otp = crypto.randomInt(100000, 999999).toString();
+    await redisClient.setEx(`otp:${email}`, 600, otp);
 
-        await sendOTPEmail(email, otp);
+    await sendOTPEmail(email, otp);
+    return 'OTP đã được gửi';
+};
 
-        return { email, otp };
-    }
-    
-    static async register({ fullname, email, password, phone, avatar, otp }) {
-        const storedOtp = await redisClient.get(`otp:${email}`);
-        if (!storedOtp) throw new Error('OTP not exits or expired');
-        if (storedOtp !== otp) throw new Error('OTP incorrect');
+export const register = async ({ fullname, email, password, phone, avatar, otp }) => {
+    const storedOtp = await redisClient.get(`otp:${email}`);
+    if (!storedOtp || storedOtp !== otp) throw new Error('OTP không hợp lệ hoặc đã hết hạn');
 
-        if (await User.findOne({ email })) throw new Error('Email exists');
-        if (phone && await User.findOne({ phone })) throw new Error('Phone exists');
+    if (await User.findOne({ email })) throw new Error('Email đã tồn tại');
+    if (phone && await User.findOne({ phone })) throw new Error('Số điện thoại đã tồn tại');
 
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, await bcrypt.genSalt(10));
 
-        const user = new User({ fullname, email, password: hashedPassword, phone, avatar, isVerified: true });
-        await user.save();
+    const user = new User({ fullname, email, password: hashedPassword, phone, avatar, isVerified: true });
+    await user.save();
+    await redisClient.del(`otp:${email}`);
 
-        await redisClient.del(`otp:${email}`);
+    const token = generateToken({ id: user._id, role: user.role });
 
-        return user;
-    }
+    return { user, token };
+};
 
-    static async login({ email, password }) {
-        const user = await User.findOne({ email });
-        if (!user) throw new Error('Email not found');
+export const login = async ({ email, password }) => {
+    const user = await User.findOne({ email });
+    if (!user) throw new Error('Email không tồn tại');
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) throw new Error('Password incorrect');
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) throw new Error('Mật khẩu không đúng');
 
-        return user;
-    }
-    
-    static async resetPassword({ email }) {
-        const user = await User.findOne({ email });
-        if (!user) throw new Error('Mật khẩu mới đã được gửi nếu email tồn tại');
+    const token = generateToken({ id: user._id, role: user.role });
 
+    return { user, token };
+};
+
+export const resetPassword = async ({ email }) => {
+    const user = await User.findOne({ email });
+    if (user) {
         const newPassword = crypto.randomBytes(4).toString('hex');
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-        user.password = hashedPassword;
+        user.password = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
         await user.save();
-
         await sendResetPasswordEmail(email, `Mật khẩu mới của bạn là: ${newPassword}`);
-
-        return { message: 'Mật khẩu mới đã được gửi nếu email tồn tại' };
     }
 
-}
-
-export default AuthService;
+    return 'Mật khẩu mới đã được gửi nếu email tồn tại';
+};

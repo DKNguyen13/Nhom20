@@ -1,90 +1,62 @@
-import AuthService from '../services/auth.service.js';
+import * as AuthService from '../services/auth.service.js';
+import { success, error } from '../utils/response.js';
 import { config } from "../config/env.js";
-import { generateToken } from '../utils/jwt.js';
 import axios from "axios";
 
-class AuthController {
-
-    static async sendOTP(req, res) {
-        try {
-            const { email } = req.body;
-            const result = await AuthService.sendOTP(email);
-
-            res.json({ success: true, message: 'Send OTP', data: { email: result.email } });
-        } catch (error) {
-            res.status(400).json({ success: false, message: error.message });
-        }
+// Gửi OTP
+export const sendOTP = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const message = await AuthService.sendOTP(email);
+        return success(res, message);
+    } catch (err) {
+        return error(res, err.message, 400);
     }
+};
 
-    static async register(req, res) {
-        try {
-            const { fullname, email, password, phone, avatar, otp } = req.body;
-            const user = await AuthService.register({ fullname, email, password, phone, avatar, otp });
+// Đăng ký
+export const register = async (req, res) => {
+    try {
+        const { fullname, email, password, phone, avatar, otp } = req.body;
+        const { user, token } = await AuthService.register({ fullname, email, password, phone, avatar, otp });
 
-            res.status(201).json({
-                success: true,
-                message: 'Register successful. Please login.',
-                data: {
-                    user: {
-                        id: user._id,
-                        fullname: user.fullname,
-                        email: user.email,
-                        phone: user.phone,
-                        avatar: user.avatar,
-                        role: user.role
-                    },
-                }
-            });
-        } catch (error) {
-            res.status(400).json({ success: false, message: error.message });
-        }
+        return success(res, 'Đăng ký thành công', { 
+            user: { id: user._id, fullname: user.fullname, email: user.email, phone: user.phone, avatar: user.avatar, role: user.role },
+            token
+        });
+    } catch (err) {
+        return error(res, err.message, 400);
     }
+};
 
-    static async login(req, res) {
-        try {
-            const { email, password } = req.body;
-            const user = await AuthService.login({ email, password });
+// Đăng nhập
+export const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const { user, token } = await AuthService.login({ email, password });
 
-            const token = generateToken({ id: user._id, role: user.role });
-
-            res.json({
-                success: true,
-                message: 'Login successful',
-                data: {
-                    user: {
-                        id: user._id,
-                        fullname: user.fullname,
-                        email: user.email,
-                        phone: user.phone,
-                        avatar: user.avatar,
-                        role: user.role
-                    },
-                    token
-                }
-            });
-        } catch (error) {
-            res.status(400).json({ success: false, message: error.message });
-        }
+        return success(res, 'Đăng nhập thành công', { 
+            user: { id: user._id, fullname: user.fullname, email: user.email, phone: user.phone, avatar: user.avatar, role: user.role },
+            token
+        });
+    } catch (err) {
+        return error(res, err.message, 400);
     }
+};
 
-    static async resetPassword(req, res) {
+// Reset mật khẩu
+export const resetPassword = async (req, res) => {
+    try {
         const { email, token } = req.body;
 
-        try {
-            //Verify CAPTCHA với Google
-            const secretKey = config.recaptchaSecret;
-            const response = await axios.post(
-                `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`
-            );
+        const captcha = await axios.post(
+            `https://www.google.com/recaptcha/api/siteverify?secret=${config.recaptchaSecret}&response=${token}`
+        );
+        if (!captcha.data.success) throw new Error("CAPTCHA không hợp lệ");
 
-            if (!response.data.success) throw new Error("CAPTCHA không hợp lệ");
-
-            const result = await AuthService.resetPassword({ email });
-            res.json(result);
-        } catch (err) {
-            res.status(400).json({ message: err.message });
-        }
+        const message = await AuthService.resetPassword({ email });
+        return success(res, message);
+    } catch (err) {
+        return error(res, err.message, 400);
     }
-}
-
-export default AuthController;
+};
