@@ -1,4 +1,4 @@
-import PremiumPackage from '../models/premiumPackage.model.js';
+import PremiumPackage from '../models/premiumPackage.models.js';
 
 //CRUD PremiumPackage
 export const createPackage = async (data) => {

@@ -5,7 +5,7 @@ import { createAdminIfNotExist } from './services/auth.service.js';
 import connectDB from './config/db.js';
 import examRouter from './routes/exam.routes.js';
 import authRoutes from './routes/auth.routes.js';
-
+import { seedPackages } from './services/premiumPackage.service.js';
 
 const app = express()
 
@@ -22,8 +22,8 @@ app.use('/api/exams', examRouter)
 app.use('/api/auth', authRoutes);
 
 await connectDB();
-
 await createAdminIfNotExist();
+await seedPackages();
 
 app.listen(config.port, () => {
     console.log(`Server running on port ${config.port}`)
