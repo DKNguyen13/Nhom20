@@ -1,8 +1,8 @@
-import User from '../models/User.js';
+import User from '../models/user.models.js';
 import bcrypt from 'bcryptjs';
 import redisClient from '../config/redis.js';
 import crypto from 'crypto';
-import { sendOTPEmail, sendResetPasswordEmail } from './mailService.js';
+import { sendOTPEmail, sendResetPasswordEmail } from './mail.service.js';
 
 class AuthService {
     static async sendOTP(email) {

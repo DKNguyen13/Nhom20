@@ -1,4 +1,4 @@
-import AuthService from '../services/authService.js';
+import AuthService from '../services/auth.service.js';
 import { config } from "../config/env.js";
 import { generateToken } from '../utils/jwt.js';
 import axios from "axios";

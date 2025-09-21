@@ -16,7 +16,7 @@ export const getRecentExam = async (req, res) => {
     return res.json({ page, limit, total, items });
 }
 
-export const getMostViewdExam = async (req, res) => {
+export const getMostViewedExam = async (req, res) => {
     let { page, limit } = parsePaginate(req.query);
     page = 1;
     limit = 8;

@@ -3,7 +3,7 @@ import cors from 'cors';
 import { config } from "./config/env.js";
 import connectDB from './config/db.js';
 import examRouter from './routes/exam.routes.js';
-import authRoutes from './routes/authRoutes.js';
+import authRoutes from './routes/auth.routes.js';
 
 
 const app = express()
