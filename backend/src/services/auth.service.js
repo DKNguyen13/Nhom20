@@ -137,3 +137,7 @@ export const changePassword = async ({ userId, oldPassword, newPassword }) => {
     message: 'Đổi mật khẩu thành công',
   };
 };
+
+export const getAllUsers = async () => {
+  return await User.find({ role: { $ne: 'admin' } }).select('-password');
+};

@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import AdminRoute from "./AdminRoute";
 
 // Các trang (các phần này sẽ thêm sau)
 import HomePage from "../pages/Home/Home";
@@ -209,25 +210,31 @@ const routes = [
 	{
 		path: "/admin/dashboard",
 		element: (
-			<MainLayout>
-				<DashboardPage />
-			</MainLayout>
+			<AdminRoute>
+      			<MainLayout>
+        			<DashboardPage />
+				</MainLayout>
+			</AdminRoute>
 		),
 	},
 	{
 		path: "/admin/usermanagement",
 		element: (
-			<MainLayout>
-				<UserManagementPage />
-			</MainLayout>
+			<AdminRoute>
+				<MainLayout>
+					<UserManagementPage />
+				</MainLayout>
+			</AdminRoute>
 		),
 	},
 	{
 		path: "/admin/testmanagement",
 		element: (
-			<MainLayout>
-				<TestManagementPage />
-			</MainLayout>
+			<AdminRoute>
+				<MainLayout>
+					<TestManagementPage />
+				</MainLayout>
+			</AdminRoute>
 		),
 	},
 	{

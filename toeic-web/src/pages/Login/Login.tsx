@@ -32,7 +32,8 @@ const Login: React.FC = () => {
         const { user, accessToken } = res.data.data;
 
         setAccessToken(accessToken);
-
+        
+        localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("fullname", user.fullname);
         localStorage.setItem("email", user.email);
         localStorage.setItem("phone", user.phone);
