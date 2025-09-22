@@ -121,3 +121,19 @@ export const updateProfile = async ({ userId, fullName, fileBuffer }) => {
   };
 };
 
+export const changePassword = async ({ userId, oldPassword, newPassword }) => {
+  const user = await User.findById(userId);
+  if (!user) throw new Error('Người dùng không tồn tại');
+
+  const isMatch = await bcrypt.compare(oldPassword, user.password);
+  if (!isMatch) throw new Error('Mật khẩu cũ không đúng');
+
+  const hashedPassword = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
+  user.password = hashedPassword;
+
+  await user.save();
+
+  return {
+    message: 'Đổi mật khẩu thành công',
+  };
+};

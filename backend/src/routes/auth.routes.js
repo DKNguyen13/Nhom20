@@ -1,7 +1,7 @@
 import multer from 'multer';
 import express from 'express';
 import { authenticate } from '../middleware/authenticate.js';
-import { login, register, resetPassword, sendOTP, refreshToken, logout, updateProfileController} from '../controllers/auth.controller.js';
+import { login, register, resetPassword, sendOTP, refreshToken, logout, updateProfileController, changePasswordController } from '../controllers/auth.controller.js';
 
 const router = express.Router();
 const upload = multer();
@@ -12,6 +12,7 @@ router.post('/login', login);
 router.post('/forgot-password', resetPassword);
 router.post('/refresh-token', refreshToken);
 router.post('/logout', logout);
+router.patch('/change-password', authenticate, changePasswordController);
 router.patch('/update-profile', authenticate, upload.single('avatar'), updateProfileController);
 
 export default router;

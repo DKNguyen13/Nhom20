@@ -92,6 +92,7 @@ export const refreshToken = (req, res) => {
   }
 };
 
+// Cập nhật thông tin cá nhân
 export const updateProfileController = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -105,6 +106,18 @@ export const updateProfileController = async (req, res) => {
     });
 
     return success(res, 'Cập nhật profile thành công', updatedUser);
+  } catch (err) {
+    return error(res, err.message);
+  }
+};
+
+// Đổi mật khẩu
+export const changePasswordController = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { oldPassword, newPassword } = req.body;
+    await AuthService.changePassword({ userId, oldPassword, newPassword });
+    return success(res, 'Đổi mật khẩu thành công');
   } catch (err) {
     return error(res, err.message);
   }
