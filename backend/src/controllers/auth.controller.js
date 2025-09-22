@@ -1,10 +1,11 @@
 import * as AuthService from '../services/auth.service.js';
+import * as AdminService from '../services/admin.service.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { success, error } from '../utils/response.js';
 import { config } from "../config/env.js";
 import axios from "axios";
 
-// Gửi OTP
+// Send OTP to email
 export const sendOTP = async (req, res) => {
     try {
         const { email } = req.body;
@@ -15,7 +16,7 @@ export const sendOTP = async (req, res) => {
     }
 };
 
-// Đăng ký
+// Register
 export const register = async (req, res) => {
     try {
         const { fullname, email, password, phone, avatar, otp } = req.body;
@@ -29,7 +30,7 @@ export const register = async (req, res) => {
     }
 };
 
-// Đăng nhập
+// Login
 export const login = async (req, res) => {
   try {
     const { user, accessToken, refreshToken } = await AuthService.login(req.body);
@@ -50,7 +51,7 @@ export const login = async (req, res) => {
   }
 };
 
-// Reset mật khẩu
+// Reset password
 export const resetPassword = async (req, res) => {
     try {
         const { email, token } = req.body;
@@ -140,3 +141,35 @@ export const checkRole = [
     }
   }
 ];
+
+//Admin: Get all users (with pagination, exclude admins)
+export const getAllUsersController = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Không có quyền truy cập' });
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const data = await AdminService.getAllUsers(page, limit);
+    return success(res, 'Danh sách người dùng', data);
+  } catch (err) {
+    return error(res, err.message, 500);
+  }
+};
+
+//Inactivate user (admin only)
+export const changeActivateUserController = async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Không có quyền truy cập' });
+        }
+        const { email } = req.body;
+        const message = await AdminService.changeActivateUser(email);
+        return success(res, message);
+    }
+    catch (err) {
+        return error(res, err.message, 500);
+    }
+};

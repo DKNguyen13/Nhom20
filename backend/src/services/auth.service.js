@@ -6,6 +6,7 @@ import { uploadAvatar } from './cloudinary.service.js';
 import { sendOTPEmail, sendResetPasswordEmail } from './mail.service.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
 
+//Send OTP to email
 export const sendOTP = async (email) => {
     if (await User.findOne({ email })) throw new Error('Email đã tồn tại');
 
@@ -19,6 +20,7 @@ export const sendOTP = async (email) => {
     return 'OTP đã được gửi';
 };
 
+//Register
 export const register = async ({ fullname, email, password, phone, avatar, otp }) => {
     const storedOtp = await redisClient.get(`otp:${email}`);
     if (!storedOtp || storedOtp !== otp) throw new Error('OTP không hợp lệ hoặc đã hết hạn');
@@ -35,19 +37,21 @@ export const register = async ({ fullname, email, password, phone, avatar, otp }
     return { user };
 };
 
+//Login
 export const login = async ({ email, password }) => {
   const user = await User.findOne({ email });
   if (!user) throw new Error('Email không tồn tại');
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) throw new Error('Mật khẩu không đúng');
-
+  if (!user.isActive) throw new Error('Tài khoản đã bị vô hiệu hóa');
   const accessToken = generateAccessToken({ id: user._id, role: user.role });
   const refreshToken = generateRefreshToken({ id: user._id, role: user.role });
 
   return { user, accessToken, refreshToken };
 };
 
+//Edit user info (for future use)
 export const editInfor = async ({ email }) => {
   const user = await User.findOne({ email });
   if (!user) throw new Error('Email không tồn tại');
@@ -73,6 +77,7 @@ export const resetPassword = async ({ email }) => {
     return 'Mật khẩu mới đã được gửi nếu email tồn tại';
 };
 
+//Create admin if not exist
 export const createAdminIfNotExist = async () => {
   try {
     const adminExists = await User.findOne({ role: 'admin' });
@@ -96,6 +101,7 @@ export const createAdminIfNotExist = async () => {
   }
 };
 
+//Update profile
 export const updateProfile = async ({ userId, fullName, fileBuffer }) => {
   const user = await User.findById(userId);
   if (!user) throw new Error('Người dùng không tồn tại');
@@ -106,7 +112,7 @@ export const updateProfile = async ({ userId, fullName, fileBuffer }) => {
 
   if (fileBuffer) {
     const avatarUrl = await uploadAvatar(fileBuffer);
-    user.avatarUrl = avatarUrl; // lưu vào DB
+    user.avatarUrl = avatarUrl;
   }
 
   await user.save();
@@ -121,6 +127,7 @@ export const updateProfile = async ({ userId, fullName, fileBuffer }) => {
   };
 };
 
+//Change password
 export const changePassword = async ({ userId, oldPassword, newPassword }) => {
   const user = await User.findById(userId);
   if (!user) throw new Error('Người dùng không tồn tại');
@@ -136,8 +143,4 @@ export const changePassword = async ({ userId, oldPassword, newPassword }) => {
   return {
     message: 'Đổi mật khẩu thành công',
   };
-};
-
-export const getAllUsers = async () => {
-  return await User.find({ role: { $ne: 'admin' } }).select('-password');
 };
