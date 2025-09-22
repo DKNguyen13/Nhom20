@@ -1,5 +1,5 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import api from "../config/axios";
 import NotFound from "../pages/NotFound/NotFound";
 
 interface AdminRouteProps {
@@ -7,18 +7,30 @@ interface AdminRouteProps {
 }
 
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
-  const isAuthenticated = !!localStorage.getItem("accessToken");
-  const role = localStorage.getItem("role");
+  const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<"guest" | "user" | "admin">("guest");
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  useEffect(() => {
+    const checkRole = async () => {
+      try {
+        const res = await api.get("/auth/check-role");
+        const userRole = res.data.data.role;
+        setRole(userRole); 
+      } catch (err) {
+        setRole("guest");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (role !== "admin") {
-    return <NotFound />;
-  }
+    checkRole();
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (role !== "admin") return <NotFound />;
 
   return <>{children}</>;
 };
+
 
 export default AdminRoute;

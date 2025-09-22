@@ -1,27 +1,51 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
+import React, { useEffect, useState, ReactNode } from "react";
+import { useLocation, Navigate } from "react-router-dom";
+import api, { setAccessToken } from "../config/axios";
+import NotFound from "../pages/NotFound/NotFound";
 
 interface ProtectedRouteProps {
-  isAuthenticated: boolean;
-  guestOnly?: boolean;
-  role?: "user" | "admin";
-  children: React.ReactNode;
+  children: ReactNode;
+  allowedRoles: ("user" | "admin")[];
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  isAuthenticated,
-  guestOnly = false,
-  role,
-  children,
-}) => {
-  if (!isAuthenticated && !guestOnly) {
-    return <Navigate to="/login" replace />;
-  }
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
+  const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<"user" | "admin" | null>(null);
+  const location = useLocation();
 
-  if (isAuthenticated && guestOnly) {
-    if (role === "admin") return <Navigate to="/admin/dashboard" replace />;
-    return <Navigate to="/" replace />;
-  }
+  useEffect(() => {
+    let isMounted = true; // Ngăn memory leak
+
+    const fetchRole = async () => {
+      const token = sessionStorage.getItem("accessToken");
+      if (token) setAccessToken(token);
+
+      try {
+        const res = await api.get("/auth/check-role");
+        if (isMounted) {
+          const userRole = res.data.data?.role?.toLowerCase() as "user" | "admin" | null;
+          setRole(userRole);
+        }
+      } catch (err) {
+        console.error("Fetching role error:", err);
+        if (isMounted) setRole(null);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchRole();
+
+    return () => {
+      isMounted = false; 
+    };
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+
+  if (!role) return <Navigate to="/login" state={{ from: location }} replace />;
+
+  if (!allowedRoles.includes(role)) return <NotFound />;
 
   return <>{children}</>;
 };

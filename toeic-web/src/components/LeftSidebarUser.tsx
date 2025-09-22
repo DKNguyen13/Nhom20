@@ -29,10 +29,10 @@ const LeftSidebarUser: React.FC<LeftSidebarUserProps> = ({
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
+       localStorage.clear();    
     } catch (err) {
       console.error("Logout server failed:", err);
     } finally {
-      localStorage.clear();
       setAccessToken(null);
       navigate("/login", { replace: true });
     }

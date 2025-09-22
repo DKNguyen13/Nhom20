@@ -1,11 +1,10 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import AdminRoute from "./AdminRoute";
+import ProtectedRoute from "./ProtectedRoute";
 
 // Các trang (các phần này sẽ thêm sau)
 import HomePage from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import NotFound from "../pages/NotFound/NotFound";
-import ProtectedRoute from "./ProtectedRoute";
 
 // Layout
 import MainLayout from "../layouts/MainLayout";
@@ -44,21 +43,17 @@ const routes = [
 	{
 		path: "/login", // Trang dành cho Guest (Guest-only)
 		element: (
-			<ProtectedRoute isAuthenticated={isAuthenticated} guestOnly={true}>
-				<MainLayout>
-					<Login />
-				</MainLayout>
-			</ProtectedRoute>
+			<MainLayout>
+				<Login />
+			</MainLayout>
 		),
 	},
 	{
 		path: "/forgot-password", // Trang dành cho Guest (Guest-only)
 		element: (
-			<ProtectedRoute isAuthenticated={isAuthenticated} guestOnly={true}>
-				<MainLayout>
-					<ForgotPassword />
-				</MainLayout>
-			</ProtectedRoute>
+			<MainLayout>
+				<ForgotPassword />
+			</MainLayout>
 		),
 	},
 	{
@@ -70,7 +65,7 @@ const routes = [
 		),
 	},
 	{
-		path: "/reset-password", // Trang 404
+		path: "/reset-password",
 		element: (
 			<MainLayout>
 				<ResetPassword />
@@ -146,33 +141,41 @@ const routes = [
 	{
 		path: "/settings",
 		element: (
-			<MainLayout>
-				<Settings />
-			</MainLayout>
+			<ProtectedRoute allowedRoles={['admin', 'user']}>
+				<MainLayout>
+					<Settings />
+				</MainLayout>
+			</ProtectedRoute>
 		),
 	},
 	{
 		path: "/settings/edit-info",
 		element: (
-			<MainLayout>
-				<EditSettings />
-			</MainLayout>
+			<ProtectedRoute allowedRoles={['admin', 'user']}>
+				<MainLayout>
+					<EditSettings />
+				</MainLayout>
+			</ProtectedRoute>
 		),
 	},
 	{
 		path: "/payment",
 		element: (
-			<MainLayout>
-				<Payment />
-			</MainLayout>
+			<ProtectedRoute allowedRoles={['admin', 'user']}>
+				<MainLayout>
+					<Payment />
+				</MainLayout>
+			</ProtectedRoute>
 		),
 	},
 	{
 		path: "/payment/paymentform",
 		element: (
-			<MainLayout>
-				<PaymentForm />
-			</MainLayout>
+			<ProtectedRoute allowedRoles={['admin', 'user']}>
+				<MainLayout>
+					<PaymentForm />
+				</MainLayout>
+			</ProtectedRoute>
 		),
 	},
 	{
@@ -210,31 +213,31 @@ const routes = [
 	{
 		path: "/admin/dashboard",
 		element: (
-			<AdminRoute>
+			<ProtectedRoute allowedRoles={['admin']}>
       			<MainLayout>
         			<DashboardPage />
 				</MainLayout>
-			</AdminRoute>
+			</ProtectedRoute>
 		),
 	},
 	{
 		path: "/admin/usermanagement",
 		element: (
-			<AdminRoute>
+			<ProtectedRoute allowedRoles={['admin']}>
 				<MainLayout>
 					<UserManagementPage />
 				</MainLayout>
-			</AdminRoute>
+			</ProtectedRoute>
 		),
 	},
 	{
 		path: "/admin/testmanagement",
 		element: (
-			<AdminRoute>
+			<ProtectedRoute allowedRoles={['admin']}>
 				<MainLayout>
 					<TestManagementPage />
 				</MainLayout>
-			</AdminRoute>
+			</ProtectedRoute>
 		),
 	},
 	{

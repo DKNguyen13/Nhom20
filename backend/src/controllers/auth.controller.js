@@ -1,4 +1,5 @@
 import * as AuthService from '../services/auth.service.js';
+import { authenticate } from '../middleware/authenticate.js';
 import { success, error } from '../utils/response.js';
 import { config } from "../config/env.js";
 import axios from "axios";
@@ -69,7 +70,12 @@ export const resetPassword = async (req, res) => {
 // Logout
 export const logout = (req, res) => {
   try {
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: config.cookieSecure,
+      sameSite: config.cookieSameSite,
+    });
+    
     return success(res, 'Đăng xuất thành công');
   } catch (err) {
     return error(res, err.message, 500);
@@ -122,3 +128,15 @@ export const changePasswordController = async (req, res) => {
     return error(res, err.message);
   }
 };
+
+export const checkRole = [
+  authenticate,
+  (req, res) => {
+    try {
+      console.log('User role:', req.user.role);
+      return success(res, 'Role hiện tại', { role: req.user.role });
+    } catch (err) {
+      return error(res, err.message, 500);
+    }
+  }
+];

@@ -16,8 +16,7 @@ const Header: React.FC = () => {
     } catch (err) {
       console.error("Logout server failed:", err);
     } finally {
-    localStorage.removeItem("fullname");
-    localStorage.removeItem("token");
+    localStorage.clear();
     setAccessToken(null);
     setOpenMenu(false);
     navigate("/login");

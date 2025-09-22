@@ -13,8 +13,7 @@ const Login: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Reset lỗi cũ
-    setErrors({});
+    setErrors({});// Reset lỗi cũ
 
     let newErrors: { email?: string; password?: string } = {};
     if (!email) newErrors.email = "Vui lòng nhập email";
@@ -27,13 +26,11 @@ const Login: React.FC = () => {
 
     try {
       const res = await api.post("/auth/login", { email, password });
-
       if (res.data.success) {
         const { user, accessToken } = res.data.data;
 
         setAccessToken(accessToken);
         
-        localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("fullname", user.fullname);
         localStorage.setItem("email", user.email);
         localStorage.setItem("phone", user.phone);
