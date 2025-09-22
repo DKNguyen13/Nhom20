@@ -16,7 +16,6 @@ const Login: React.FC = () => {
     // Reset lỗi cũ
     setErrors({});
 
-    // Validate cơ bản
     let newErrors: { email?: string; password?: string } = {};
     if (!email) newErrors.email = "Vui lòng nhập email";
     if (!password) newErrors.password = "Vui lòng nhập mật khẩu";
@@ -30,18 +29,27 @@ const Login: React.FC = () => {
       const res = await api.post("/auth/login", { email, password });
 
       if (res.data.success) {
-        setAccessToken(res.data.data.accessToken);
+        const { user, accessToken } = res.data.data;
 
-        localStorage.setItem("fullname", res.data.data.user.fullname);
-        localStorage.setItem("email", res.data.data.user.email);
-        localStorage.setItem("phone", res.data.data.user.phone);
-        localStorage.setItem("avatarUrl", res.data.data.user.avatarUrl);
+        setAccessToken(accessToken);
 
-        navigate("/"); // điều hướng thành công
+        localStorage.setItem("fullname", user.fullname);
+        localStorage.setItem("email", user.email);
+        localStorage.setItem("phone", user.phone);
+        localStorage.setItem("avatarUrl", user.avatarUrl);
+        localStorage.setItem("role", user.role);
+
+        if (user.role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/");
+        }
       } else {
         setErrors({ general: res.data.message || "Đăng nhập thất bại" });
+        setPassword("");
       }
     } catch (error: any) {
+      setPassword("");
       setErrors({ general: error.response?.data?.message || "Lỗi kết nối server" });
     }
   };
