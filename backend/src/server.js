@@ -8,6 +8,7 @@ import lessonRouter from './routes/lesson.route.js';
 import wishlistRouter from './routes/wishlist.routes.js';
 import { createAdminIfNotExist } from './services/auth.service.js';
 import { seedPackages } from './services/premiumPackage.service.js';
+import { seedLessons } from './services/lesson.service.js';
 
 const app = express()
 
@@ -28,6 +29,7 @@ app.use('/api/wishlist', wishlistRouter)
 await connectDB();
 await createAdminIfNotExist();
 await seedPackages();
+//await seedLessons();//fake data
 
 app.listen(config.port, () => {
     console.log(`Server running on port ${config.port}`)
