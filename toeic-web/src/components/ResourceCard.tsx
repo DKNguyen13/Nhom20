@@ -77,7 +77,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
         </div>
       </div>
 
-      <Link to={`${id}`} className="mt-auto">
+      <Link to={`/resource/${id}`} className="mt-auto">
         <button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2.5 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 font-medium text-sm shadow-sm">
           Xem chi tiết
         </button>
