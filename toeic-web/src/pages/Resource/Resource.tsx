@@ -1,260 +1,150 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ResourceCard from "../../components/ResourceCard";
+import api from "../../config/axios";
 
-const allResources = [
-	{
-		id: 1,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 100,
-		likes: 50,
-	},
-	{
-		id: 2,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 90,
-		likes: 40,
-	},
-	{
-		id: 3,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 80,
-		likes: 35,
-	},
-	{
-		id: 4,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 110,
-		likes: 12,
-	},
-	{
-		id: 5,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 50,
-		likes: 20,
-	},
-	{
-		id: 6,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 60,
-		likes: 22,
-	},
-	{
-		id: 7,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 120,
-		likes: 18,
-	},
-	{
-		id: 8,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 70,
-		likes: 38,
-	},
-	{
-		id: 9,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 200,
-		likes: 55,
-	},
-	{
-		id: 10,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 100,
-		likes: 50,
-	},
-	{
-		id: 11,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 100,
-		likes: 50,
-	},
-	{
-		id: 12,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 100,
-		likes: 50,
-	},
-	{
-		id: 13,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 120,
-		likes: 14,
-	},
-	{
-		id: 14,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 130,
-		likes: 60,
-	},
-	{
-		id: 15,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 45,
-		likes: 8,
-	},
-	{
-		id: 16,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 75,
-		likes: 14,
-	},
-	{
-		id: 17,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 80,
-		likes: 30,
-	},
-	{
-		id: 18,
-		imageSrc: "./../src/assets/images/image.png",
-		title: "Learning historical words and sentences",
-		views: 140,
-		likes: 62,
-	},
+const itemsPerPage = 9;
+
+const types = [
+  { key: "all", label: "Tất cả" },
+  { key: "vocabulary", label: "Từ vựng" },
+  { key: "reading", label: "Đọc hiểu" },
+  { key: "grammar", label: "Ngữ pháp" },
+  { key: "video", label: "Video bài giảng" },
 ];
 
-const itemsPerPage = 9; // Mỗi trang hiển thị 9 card
-
 const ResourcePage: React.FC = () => {
-	// State trang hiện tại (1 hoặc 2)
-	const [currentPage, setCurrentPage] = useState(1);
+  const [resources, setResources] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedType, setSelectedType] = useState("all");
 
-	// Tính tổng số trang dựa trên độ dài data
-	const totalPages = Math.ceil(allResources.length / itemsPerPage); // Dự kiến = 2
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        const res = await api.get("/lessons");
+        setResources(res.data.data);
+      } catch (err) {
+        console.error("Lỗi load resources:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-	// Xác định data của trang hiện tại
-	const startIndex = (currentPage - 1) * itemsPerPage;
-	const endIndex = startIndex + itemsPerPage;
-	const currentData = allResources.slice(startIndex, endIndex);
+    fetchResources();
+  }, []);
 
-	// Hàm xử lý bấm sang trang
-	const handlePageChange = (page: number) => {
-		setCurrentPage(page);
-	};
+  // Filter theo type
+  const filteredResources =
+    selectedType === "all"
+      ? resources
+      : resources.filter((res) => res.type === selectedType);
 
-	return (
-		<div className="min-h-screen flex flex-col bg-gray-50">
-			{/* Main Content */}
-			<div className="container mx-auto flex-1 py-6">
-				<h2 className="text-2xl font-bold mb-6 text-gray-800">
-					Tài nguyên
-				</h2>
-				<div className="flex gap-8">
-					{/* Sidebar */}
-					<aside className="w-64 bg-white rounded-lg shadow p-4 border border-gray-300 ">
-						{/* Search box */}
-						<div className="mb-5">
-							<input
-								type="text"
-								placeholder="Tìm kiếm"
-								className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-							/>
-						</div>
-						{/* Danh mục */}
-						<nav>
-							<ul className="space-y-3 text-gray-700">
-								<li>
-									<a
-										href="#"
-										className="flex items-center p-2 rounded hover:bg-blue-50"
-									>
-										<span className="ml-2">Từ vựng</span>
-									</a>
-								</li>
-								<li>
-									<a
-										href="#"
-										className="flex items-center p-2 rounded hover:bg-blue-50"
-									>
-										<span className="ml-2">Ngữ pháp</span>
-									</a>
-								</li>
-								<li>
-									<a
-										href="#"
-										className="flex items-center p-2 rounded hover:bg-blue-50"
-									>
-										<span className="ml-2">Video bài giảng</span>
-									</a>
-								</li>
-							</ul>
-						</nav>
-					</aside>
+  const totalPages = Math.ceil(filteredResources.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentData = filteredResources.slice(startIndex, startIndex + itemsPerPage);
 
-					{/* Resource Grid */}
-					<main className="flex-1">
-						<div className="grid grid-cols-3 gap-6">
-							{currentData.map((res) => (
-								<ResourceCard
-									key={res.id}
-									id={res.id}
-									imageSrc={res.imageSrc}
-									title={res.title}
-									views={res.views}
-									likes={res.likes}
-								/>
-							))}
-						</div>
+  const handlePageChange = (page: number) => setCurrentPage(page);
 
-						{/* Pagination */}
-						<div className="flex items-center justify-center mt-8 space-x-2">
-							{/* Trang trước */}
-							<button
-								onClick={() => handlePageChange(currentPage - 1)}
-								disabled={currentPage === 1}
-								className="px-3 py-1 border rounded hover:bg-blue-50 disabled:opacity-50"
-							>
-								Trang trước
-							</button>
+  if (loading) {
+    return <p className="p-4">Đang tải dữ liệu...</p>;
+  }
 
-							{/* Hiển thị page 1,2 (vì totalPages=2) */}
-							{Array.from({ length: totalPages }, (_, i) => i + 1).map(
-								(page) => (
-									<button
-										key={page}
-										onClick={() => handlePageChange(page)}
-										className={`px-3 py-1 border rounded hover:bg-blue-50 ${
-											currentPage === page
-												? "bg-blue-600 text-white"
-												: ""
-										}`}
-									>
-										{page}
-									</button>
-								)
-							)}
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="container mx-auto flex-1 py-6">
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">Tài nguyên</h2>
+        <div className="flex gap-8">
+          {/* Sidebar */}
+          <aside className="w-64 bg-white rounded-lg shadow p-4 border border-gray-300">
+            <div className="mb-5">
+              <input
+                type="text"
+                placeholder="Tìm kiếm"
+                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <nav>
+              <ul className="space-y-3 text-gray-700">
+                {types.map((t) => (
+                  <li key={t.key}>
+                    <button
+                      onClick={() => {
+                        setSelectedType(t.key);
+                        setCurrentPage(1);
+                      }}
+                      className={`w-full text-left p-2 rounded hover:bg-blue-50 ${
+                        selectedType === t.key ? "bg-blue-100 font-semibold" : ""
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </aside>
 
-							{/* Trang sau */}
-							<button
-								onClick={() => handlePageChange(currentPage + 1)}
-								disabled={currentPage === totalPages}
-								className="px-3 py-1 border rounded hover:bg-blue-50 disabled:opacity-50"
-							>
-								Trang sau
-							</button>
-						</div>
-					</main>
-				</div>
-			</div>
-		</div>
-	);
+          {/* Resource Grid */}
+          <main className="flex-1">
+            {filteredResources.length === 0 ? (
+              <p className="text-center text-gray-600 text-lg font-medium py-20">
+                Chưa có bài học
+              </p>
+            ) : (
+              <>
+                <div className="grid grid-cols-3 gap-6">
+                  {currentData.map((res) => (
+                    <ResourceCard
+                      key={res._id}
+                      id={res._id}
+                      imageSrc={res.imageSrc || "./../src/assets/images/lesson.png"}
+                      title={res.title}
+                      views={res.views || 0}
+                      likes={res.likes || 0}
+                      type={res.type}
+                    />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center mt-8 space-x-2">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 border rounded hover:bg-blue-50 disabled:opacity-50"
+                    >
+                      Trang trước
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-3 py-1 border rounded hover:bg-blue-50 ${
+                          currentPage === page ? "bg-blue-600 text-white" : ""
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1 border rounded hover:bg-blue-50 disabled:opacity-50"
+                    >
+                      Trang sau
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </main>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ResourcePage;

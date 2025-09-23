@@ -146,7 +146,7 @@ export const checkRole = [
 export const getAllUsersController = async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Không có quyền truy cập' });
+      return error(res, 'Không có quyền truy cập', 403);
     }
 
     const page = parseInt(req.query.page) || 1;
@@ -163,7 +163,7 @@ export const getAllUsersController = async (req, res) => {
 export const changeActivateUserController = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
-            return res.status(403).json({ success: false, message: 'Không có quyền truy cập' });
+            return error(res, 'Không có quyền truy cập', 403);
         }
         const { email } = req.body;
         const message = await AdminService.changeActivateUser(email);

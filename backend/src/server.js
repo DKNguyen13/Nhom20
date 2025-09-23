@@ -1,13 +1,14 @@
-import express from 'express';
 import cors from 'cors';
-import { config } from "./config/env.js";
-import { createAdminIfNotExist } from './services/auth.service.js';
+import express from 'express';
 import connectDB from './config/db.js';
+import { config } from "./config/env.js";
 import examRouter from './routes/exam.routes.js';
-
-import authRoutes from './routes/auth.routes.js';
-import { seedPackages } from './services/premiumPackage.service.js';
+import authRouter from './routes/auth.routes.js';
+import lessonRouter from './routes/lesson.route.js';
 import wishlistRouter from './routes/wishlist.routes.js';
+import { createAdminIfNotExist } from './services/auth.service.js';
+import { seedPackages } from './services/premiumPackage.service.js';
+import { seedLessons } from './services/lesson.service.js';
 
 const app = express()
 
@@ -19,14 +20,16 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-
-app.use('/api/exams', examRouter)
-app.use('/api/auth', authRoutes);
+app.use('/api/lessons', lessonRouter);
+app.use('/api/exams', examRouter);
+app.use('/api/auth', authRouter);
 app.use('/api/wishlist', wishlistRouter)
+
 
 await connectDB();
 await createAdminIfNotExist();
 await seedPackages();
+//await seedLessons();//fake data
 
 app.listen(config.port, () => {
     console.log(`Server running on port ${config.port}`)
