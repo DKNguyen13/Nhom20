@@ -11,6 +11,7 @@ const lessonSchema = new mongoose.Schema(
       default: "free",
     },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
