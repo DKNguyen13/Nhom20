@@ -1,153 +1,291 @@
-import React, { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // Sử dụng react-icons cho biểu tượng mắt (hiển thị/ẩn mật khẩu)
-import LeftSidebarUser from "../../../components/LeftSideBarUser";
-import { Link } from "react-router-dom";
-const EditSettings: React.FC = () => {
-	// State để quản lý hiển thị/ẩn mật khẩu
-	const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-	const [showNewPassword, setShowNewPassword] = useState(false);
+import api from "../../../config/axios";
+import React, { useState, useEffect, useRef } from "react";
+import LeftSidebarUser from "../../../components/LeftSidebarUser";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
-	return (
-		<div className="min-h-screen flex">
-			{/* Left Sidebar */}
-			<LeftSidebarUser customHeight="h-auto w-64" />
-			{/* Form Cài đặt */}
-			<div className="flex-1 bg-gray-50 flex items-center justify-center">
-				<div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg">
-					<h1 className="text-2xl font-semibold text-blue-600 mb-6">
-						Thông tin tài khoản
-					</h1>
-					<form className="space-y-6">
-						{/* Username */}
-						<div>
-							<label className="block text-gray-700 font-semibold mb-2">
-								Username
-							</label>
-							<input
-								type="text"
-								defaultValue="Khanh Huyen"
-								className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-							/>
-						</div>
+const UpdateProfile: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<"basic" | "privacy" | "password">("basic");
+  const [fullname, setFullname] = useState("");
+  const [email, setEmail] = useState("");
+  const [avatar, setAvatar] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState({ old: false, new: false, confirm: false });
+  const [privacySettings, setPrivacySettings] = useState({ showEmail: true });
+  const [passwords, setPasswords] = useState({ oldPassword: "", newPassword: "", confirmPassword: "" });
+  const [errors, setErrors] = useState({ oldPassword: "", newPassword: "", confirmPassword: "", success: "" });
 
-						{/* Email */}
-						<div>
-							<label className="block text-gray-700 font-semibold mb-2">
-								Email
-							</label>
-							<input
-								type="email"
-								defaultValue="socchut028@gmail.com"
-								className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-							/>
-						</div>
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-						{/* Số điện thoại */}
-						<div>
-							<label className="block text-gray-700 font-semibold mb-2">
-								Số điện thoại
-							</label>
-							<input
-								type="tel"
-								defaultValue="5968080300"
-								className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-							/>
-						</div>
+  // Load dữ liệu từ localStorage
+  useEffect(() => {
+    setFullname(localStorage.getItem("fullname") || "");
+    setEmail(localStorage.getItem("email") || "");
+    setAvatarPreview(localStorage.getItem("avatarUrl") || "");
+  }, []);
 
-						{/* Đổi mật khẩu */}
-						<div>
-							<label className="block text-gray-700 font-semibold mb-2">
-								Đổi mật khẩu
-							</label>
-							<div className="space-y-4">
-								{/* Mật khẩu hiện tại */}
-								<div className="relative">
-									<label className="block text-gray-700 mb-2">
-										Mật khẩu hiện tại
-									</label>
-									<div className="relative flex items-center">
-										<input
-											type={
-												showCurrentPassword ? "text" : "password"
-											}
-											className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10" // Thêm padding bên phải
-										/>
-										<button
-											type="button"
-											onClick={() =>
-												setShowCurrentPassword(!showCurrentPassword)
-											}
-											className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-										>
-											{showCurrentPassword ? (
-												<FaEyeSlash />
-											) : (
-												<FaEye />
-											)}
-										</button>
-									</div>
-								</div>
+  // Giải phóng object URL khi component unmount
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    };
+  }, [avatarPreview]);
 
-								{/* Mật khẩu mới */}
-								<div className="relative">
-									<label className="block text-gray-700 mb-2">
-										Mật khẩu mới
-									</label>
-									<div className="relative flex items-center">
-										<input
-											type={showNewPassword ? "text" : "password"}
-											className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10" // Thêm padding bên phải
-										/>
-										<button
-											type="button"
-											onClick={() =>
-												setShowNewPassword(!showNewPassword)
-											}
-											className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-										>
-											{showNewPassword ? <FaEyeSlash /> : <FaEye />}
-										</button>
-									</div>
-								</div>
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+      const file = e.target.files[0];
+      setAvatar(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
 
-								{/* Xác nhận mật khẩu */}
-								<div className="relative">
-									<label className="block text-gray-700 mb-2">
-										Xác nhận mật khẩu
-									</label>
-									<div className="relative flex items-center">
-										<input
-											type={showNewPassword ? "text" : "password"}
-											className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10" // Thêm padding bên phải
-										/>
-										<button
-											type="button"
-											onClick={() =>
-												setShowNewPassword(!showNewPassword)
-											}
-											className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-										>
-											{showNewPassword ? <FaEyeSlash /> : <FaEye />}
-										</button>
-									</div>
-								</div>
-							</div>
-						</div>
+  // Cập nhật thông tin cơ bản
+  const handleSubmitBasic = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("fullname", fullname);
+      if (avatar) formData.append("avatar", avatar);
 
-						{/* Nút Lưu */}
-						<div className="text-right pt-10">
-							<Link
-								to="/settings"
-								className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition duration-300 inline-block text-center"
-							>
-								Lưu
-							</Link>
-						</div>
-					</form>
-				</div>
-			</div>
-		</div>
-	);
+      const res = await api.patch("/auth/update-profile", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (res.data.success) {
+        const user = res.data.data;
+
+        localStorage.setItem("fullname", user.fullname);
+        if (user.avatarUrl) localStorage.setItem("avatarUrl", user.avatarUrl);
+
+        window.dispatchEvent(new Event("userUpdated"));
+
+        setAvatar(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setAvatarPreview(user.avatarUrl || "");
+      }
+    } catch (err: any) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cập nhật quyền riêng tư
+  const handlePrivacySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // TODO: gọi API lưu privacySettings nếu backend có hỗ trợ
+  };
+
+  // Đổi mật khẩu
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const newErrors = { oldPassword: "", newPassword: "", confirmPassword: "", success: "" };
+    let hasError = false;
+
+    if (!passwords.oldPassword) {
+      newErrors.oldPassword = "Vui lòng nhập mật khẩu cũ";
+      hasError = true;
+    }
+
+    if (!passwords.newPassword) {
+      newErrors.newPassword = "Vui lòng nhập mật khẩu mới";
+      hasError = true;
+    } else if (passwords.newPassword.length < 6) {
+      newErrors.newPassword = "Mật khẩu mới phải có ít nhất 6 ký tự";
+      hasError = true;
+    }
+
+    if (!passwords.confirmPassword) {
+      newErrors.confirmPassword = "Vui lòng xác nhận mật khẩu";
+      hasError = true;
+    } else if (passwords.newPassword !== passwords.confirmPassword) {
+      newErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
+      hasError = true;
+    }
+
+    setErrors(newErrors);
+    if (hasError) return;
+
+    try {
+      const res = await api.patch("/auth/change-password", {
+        oldPassword: passwords.oldPassword,
+        newPassword: passwords.newPassword,
+      });
+
+      if (res.data.success) {
+        setPasswords({ oldPassword: "", newPassword: "", confirmPassword: "" });
+        setErrors({ oldPassword: "", newPassword: "", confirmPassword: "", success: "Đổi mật khẩu thành công!" });
+      } else {
+        setErrors({ ...newErrors, oldPassword: res.data.message || "Mật khẩu cũ không đúng" });
+      }
+    } catch (err: any) {
+      console.error(err);
+      setErrors({ ...newErrors, oldPassword: err.response?.data?.message || "Lỗi khi đổi mật khẩu" });
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex bg-gray-50">
+      <LeftSidebarUser customHeight="h-auto w-64" />
+
+      <div className="flex-1 p-6">
+        <h1 className="text-2xl font-semibold text-blue-600 mb-6 text-center">
+          Cập nhật thông tin cá nhân
+        </h1>
+
+        {/* Tabs */}
+        <div className="flex border-b mb-6">
+          {["basic", "privacy", "password"].map((tab) => (
+            <button
+              key={tab}
+              className={`px-4 py-2 -mb-px border-b-2 font-medium ${
+                activeTab === tab ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500"
+              }`}
+              onClick={() => setActiveTab(tab as "basic" | "privacy" | "password")}
+            >
+              {tab === "basic" ? "Thông tin cơ bản" : tab === "privacy" ? "Quyền riêng tư" : "Thay mật khẩu"}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Thông tin cơ bản */}
+        {activeTab === "basic" && (
+          <form className="space-y-4 bg-white p-6 rounded shadow" onSubmit={handleSubmitBasic}>
+            <div>
+              <label className="block mb-1 font-semibold">Email</label>
+              <p className="text-sm text-gray-500">{email}</p>
+            </div>
+            <div>
+              <label className="block mb-1 font-semibold">Họ và tên</label>
+              <input
+                type="text"
+                value={fullname}
+                onChange={(e) => setFullname(e.target.value)}
+                className="w-full p-2 border rounded"
+                disabled={loading}
+              />
+            </div>
+            <div>
+              <label className="block mb-1 font-semibold">Ảnh đại diện</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                disabled={loading}
+                ref={fileInputRef}
+              />
+              {avatarPreview && (
+                <img src={avatarPreview} alt="preview" className="mt-2 w-32 h-32 object-cover rounded-full border" />
+              )}
+            </div>
+            <div className="text-right pt-4">
+              <button
+                type="submit"
+                className={`bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                disabled={loading}
+              >
+                {loading ? "Đang cập nhật..." : "Lưu"}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Tab Quyền riêng tư */}
+        {activeTab === "privacy" && (
+          <form className="space-y-4 bg-white p-6 rounded shadow" onSubmit={handlePrivacySubmit}>
+            <h2 className="text-lg font-semibold mb-4">Quyền riêng tư</h2>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={privacySettings.showEmail}
+                onChange={(e) => setPrivacySettings({ ...privacySettings, showEmail: e.target.checked })}
+              />
+              <span>Hiển thị email công khai</span>
+            </label>
+            <div className="text-right pt-4">
+              <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                Lưu quyền riêng tư
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Tab Đổi mật khẩu */}
+        {activeTab === "password" && (
+          <form className="space-y-4 bg-white p-6 rounded shadow" onSubmit={handlePasswordSubmit}>
+            <h2 className="text-lg font-semibold mb-4">Đổi mật khẩu</h2>
+
+            {/* Mật khẩu cũ */}
+            <div className="relative">
+              <label className="block mb-1 font-semibold">Mật khẩu cũ</label>
+              <input
+                type={showPassword.old ? "text" : "password"}
+                className={`w-full p-2 border rounded pr-10 ${errors.oldPassword ? "border-red-500" : ""}`}
+                value={passwords.oldPassword}
+                onChange={(e) => setPasswords({ ...passwords, oldPassword: e.target.value })}
+              />
+              <span
+                className="absolute right-3 top-9 cursor-pointer text-gray-600"
+                onClick={() => setShowPassword({ ...showPassword, old: !showPassword.old })}
+              >
+                {showPassword.old ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+              </span>
+              {errors.oldPassword && <p className="text-red-500 text-sm mt-1">{errors.oldPassword}</p>}
+            </div>
+
+            {/* Mật khẩu mới */}
+            <div className="relative">
+              <label className="block mb-1 font-semibold">Mật khẩu mới</label>
+              <input
+                type={showPassword.new ? "text" : "password"}
+                className={`w-full p-2 border rounded pr-10 ${errors.newPassword ? "border-red-500" : ""}`}
+                value={passwords.newPassword}
+                onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
+              />
+              <span
+                className="absolute right-3 top-9 cursor-pointer text-gray-600"
+                onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })}
+              >
+                {showPassword.new ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+              </span>
+              {errors.newPassword && <p className="text-red-500 text-sm mt-1">{errors.newPassword}</p>}
+            </div>
+
+            {/* Xác nhận mật khẩu mới */}
+            <div className="relative">
+              <label className="block mb-1 font-semibold">Xác nhận mật khẩu mới</label>
+              <input
+                type={showPassword.confirm ? "text" : "password"}
+                className={`w-full p-2 border rounded pr-10 ${errors.confirmPassword ? "border-red-500" : ""}`}
+                value={passwords.confirmPassword}
+                onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
+              />
+              <span
+                className="absolute right-3 top-9 cursor-pointer text-gray-600"
+                onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })}
+              >
+                {showPassword.confirm ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+              </span>
+              {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
+            </div>
+
+            {errors.success && <p className="text-green-600 text-sm">{errors.success}</p>}
+
+            <div className="text-right pt-4">
+              <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                Đổi mật khẩu
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
 };
 
-export default EditSettings;
+export default UpdateProfile;

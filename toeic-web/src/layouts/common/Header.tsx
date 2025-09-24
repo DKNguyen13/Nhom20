@@ -1,13 +1,8 @@
 import React, { useState } from "react";
 import { CiUser } from "react-icons/ci";
-import {
-  FaHome,
-  FaClipboardList,
-  FaFileAlt,
-  FaSearch,
-  FaCrown,
-} from "react-icons/fa";
+import { FaHome, FaClipboardList, FaFileAlt, FaSearch, FaCrown} from "react-icons/fa";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import api, { setAccessToken } from "../../config/axios.js";
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -15,11 +10,17 @@ const Header: React.FC = () => {
   const fullname = localStorage.getItem("fullname");
   const [openMenu, setOpenMenu] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("fullname");
-    localStorage.removeItem("token");
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (err) {
+      console.error("Logout server failed:", err);
+    } finally {
+    localStorage.clear();
+    setAccessToken(null);
     setOpenMenu(false);
     navigate("/login");
+  }
   };
 
   const navLinks = [
@@ -113,13 +114,13 @@ const Header: React.FC = () => {
                   onClick={() => setOpenMenu(false)}
                   className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
                 >
-                  Profile
+                  Thông tin cá nhân
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
                 >
-                  Logout
+                  Đăng xuất
                 </button>
               </div>
             )}

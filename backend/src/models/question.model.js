@@ -6,7 +6,7 @@ mongoose.plugin(slug);
 
 const { Schema } = mongoose;
 
-const QuestionSchema = new mongoose.Schema({
+const questionSchema = new mongoose.Schema({
     testId: {
         type: Schema.Types.ObjectId,
         ref: "Test",
@@ -70,7 +70,7 @@ const QuestionSchema = new mongoose.Schema({
 })
 
 // Indexes
-QuestionSchema.index({ testId: 1, partNumber: 1, questionNumber: 1 });
-QuestionSchema.index({ partId: 1, questionNumber: 1 });
+questionSchema.index({ testId: 1, partNumber: 1, questionNumber: 1 });
+questionSchema.index({ partId: 1, questionNumber: 1 });
 
-module.exports = mongoose.model('Part', QuestionSchema);
+module.exports = mongoose.model('Part', questionSchema);

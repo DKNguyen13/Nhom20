@@ -6,7 +6,7 @@ mongoose.plugin(slug);
 
 const { Schema } = mongoose;
 
-const PartSchema = new mongoose.Schema({
+const partSchema = new mongoose.Schema({
     testId: { type: Schema.Types.ObjectId, ref: "Test", required: true },
     title: { type: String, require: true, trim: true },
     slug: { type: String, slug: 'title', required: false, unique: true, lowercase: true, trim: true },
@@ -28,6 +28,6 @@ const PartSchema = new mongoose.Schema({
 })
 
 // Indexes
-PartSchema.index({ testId: 1, partNumber: 1 });
+partSchema.index({ testId: 1, partNumber: 1 });
 
-module.exports = mongoose.model('Part', PartSchema);
+module.exports = mongoose.model('Part', partSchema);

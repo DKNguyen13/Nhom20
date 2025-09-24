@@ -1,0 +1,52 @@
+import * as PackageService from '../services/premiumPackage.service.js';
+import { success, error } from '../utils/response.js';
+
+// Create a new premium package
+export const createPackage = async (req, res) => {
+  try {
+    const pkg = await PackageService.createPackage(req.body);
+    return success(res, 'Tạo gói VIP thành công', pkg);
+  } catch (err) {
+    return error(res, err.message, 400);
+  }
+};
+
+// Get all premium packages
+export const getAllPackages = async (req, res) => {
+  try {
+    const packages = await PackageService.getAllPackages();
+    return success(res, 'Danh sách gói VIP', packages);
+  } catch (err) {
+    return error(res, err.message, 500);
+  }
+};
+
+// Get a single premium package by ID
+export const getPackageById = async (req, res) => {
+  try {
+    const pkg = await PackageService.getPackageById(req.params.id);
+    return success(res, 'Chi tiết gói VIP', pkg);
+  } catch (err) {
+    return error(res, err.message, 404);
+  }
+};
+
+// Update a premium package by ID
+export const updatePackage = async (req, res) => {
+  try {
+    const pkg = await PackageService.updatePackage(req.params.id, req.body);
+    return success(res, 'Cập nhật gói VIP thành công', pkg);
+  } catch (err) {
+    return error(res, err.message, 400);
+  }
+};
+
+// Auto seed packages if not exist
+export const seedPackages = async (req, res) => {
+  try {
+    await PackageService.seedPackages();
+    return success(res, 'Seed 3 gói VIP thành công');
+  } catch (err) {
+    return error(res, err.message, 500);
+  }
+};

@@ -6,7 +6,7 @@ mongoose.plugin(slug);
 
 const { Schema } = mongoose;
 
-const TestSchema = new mongoose.Schema({
+const testSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   slug: { type: String, slug: 'title', required: false, unique: true, lowercase: true, trim: true },
   testCode: { type: String, required: true, unique: true, trim: true },
@@ -73,4 +73,4 @@ const TestSchema = new mongoose.Schema({
   { timestamps: true });
 
 
-export default mongoose.model('Test', TestSchema);
+export default mongoose.model('Test', testSchema);

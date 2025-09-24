@@ -1,67 +1,93 @@
-// LeftSidebar.tsx
 import React from "react";
-import { Link } from "react-router-dom";
-import { FaUser, FaHistory, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import { FaHistory, FaCog, FaSignOutAlt } from "react-icons/fa";
+import api, { setAccessToken } from "../config/axios.js";
 
 interface LeftSidebarUserProps {
-  customHeight?: string; // Cho phép truyền chiều cao tùy ý
+  customHeight?: string;
+  fullname?: string;
+  avatarUrl?: string;
+  country?: string;
 }
 
-const LeftSidebarUser: React.FC<LeftSidebarUserProps> = ({ customHeight }) => {
+interface MenuItem {
+  label: string;
+  icon: React.ReactNode;
+  to?: string;
+  textColor?: string;
+  action?: () => void;
+}
+
+const LeftSidebarUser: React.FC<LeftSidebarUserProps> = ({
+  customHeight = "h-screen w-64 min-w-44",
+}) => {
+  const navigate = useNavigate();
+  const fullname = localStorage.getItem("fullname") || "Guest User";
+  const avatarUrl = localStorage.getItem("avatarUrl") || "/img/avatar/default_avatar.jpg";
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+       localStorage.clear();    
+    } catch (err) {
+      console.error("Logout server failed:", err);
+    } finally {
+      setAccessToken(null);
+      navigate("/login", { replace: true });
+    }
+  };
+
+  const menuItems: MenuItem[] = [
+    { label: "Lịch sử làm bài", icon: <FaHistory />, to: "/history" },
+    { label: "Cài đặt", icon: <FaCog />, to: "/settings" },
+    { label: "Đăng xuất", icon: <FaSignOutAlt />, textColor: "text-red-500", action: handleLogout },
+  ];
+
   return (
-    <div
-      className={`bg-gray-100 flex flex-col p-4 ${
-        customHeight ? customHeight : "h-screen w-64 min-w-44"
-      }`}
-    >
-      {/* Phần thông tin người dùng */}
+    <aside className={`bg-gray-100 flex flex-col p-4 ${customHeight}`}>
+      {/* Thông tin người dùng */}
       <div className="flex items-center mb-6">
         <img
-          src="src/assets/images/ai-image.png"
+          src={avatarUrl}
           alt="Avatar"
-          className="w-10 h-10 rounded-full mr-3"
+          className="w-10 h-10 rounded-full mr-3 object-cover"
         />
         <div>
-          <h2 className="text-lg font-semibold">Khanh Huyen</h2>
+          <h2 className="text-lg font-semibold">{fullname}</h2>
           <p className="text-sm text-gray-500 flex items-center">
-            <span className="mr-1">🇻🇳</span> Vietnam
+            <span className="mr-1">Xin chào!</span>
           </p>
         </div>
       </div>
 
-      {/* Phần menu */}
+      {/* Menu */}
       <nav className="flex-1">
         <ul>
-          <li className="mb-2">
-            <Link
-              to="/history"
-              className="flex items-center p-2 text-gray-700 hover:bg-blue-100 rounded"
-            >
-              <FaHistory className="mr-3" />
-              Lịch sử làm bài
-            </Link>
-          </li>
-          <li className="mb-2">
-            <Link
-              to="/settings"
-              className="flex items-center p-2 text-gray-700 hover:bg-blue-100 rounded"
-            >
-              <FaCog className="mr-3" />
-              Cài đặt
-            </Link>
-          </li>
-          <li className="mb-2">
-            <Link
-              to="/logout"
-              className="flex items-center p-2 text-red-500 hover:bg-blue-100 rounded"
-            >
-              <FaSignOutAlt className="mr-3" />
-              Đăng xuất
-            </Link>
-          </li>
+          {menuItems.map((item) => (
+            <li key={item.label} className="mb-2">
+              {item.action ? (
+                <button
+                  onClick={item.action}
+                  className={`flex items-center w-full p-2 rounded hover:bg-blue-100 ${item.textColor || "text-gray-700"}`}
+                >
+                  <span className="mr-3">{item.icon}</span>
+                  {item.label}
+                </button>
+              ) : (
+                <Link
+                  to={item.to || "#"}
+                  className={`flex items-center p-2 rounded hover:bg-blue-100 ${item.textColor || "text-gray-700"}`}
+                >
+                  <span className="mr-3">{item.icon}</span>
+                  {item.label}
+                </Link>
+              )}
+            </li>
+          ))}
         </ul>
       </nav>
-    </div>
+    </aside>
   );
 };
 
