@@ -7,7 +7,6 @@ import authRouter from './routes/auth.routes.js';
 import lessonRouter from './routes/lesson.route.js';
 import wishlistRouter from './routes/wishlist.routes.js';
 import { createAdminIfNotExist } from './services/auth.service.js';
-import examRouter from './routes/exam.routes.js';
 import testRoutes from './routes/test.routes.js';
 import partRoutes from './routes/part.routes.js';
 import questionRoutes from './routes/question.routes.js';
