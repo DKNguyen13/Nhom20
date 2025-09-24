@@ -1,21 +1,21 @@
 import express from 'express';
-import { createPart, deletePart, getAllParts, getPartById, updatePart } from '../controllers/part.controller';
+import { createPart, deletePart, getAllParts, getPartById, updatePart } from '../controllers/part.controller.js';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 // Get all part
-router.get('/api/test/:slug/parts', getAllParts);
+router.get('/parts', getAllParts);
 
 // Get part by id
-router.get('/api/test/:slug/parts/:partId', getPartById);
+router.get('/parts/:partId', getPartById);
 
 // Create part
-router.post('/api/test/:slug/parts', createPart);
+router.post('/parts', createPart);
 
 // Update part
-router.put('/api/test/:slug/parts/:partId', updatePart);
+router.put('/parts/:partId', updatePart);
 
 // Delete part
-router.delete('/api/test/:slug/part/:partId', deletePart);
+router.delete('/part/:partId', deletePart);
 
 export default router;

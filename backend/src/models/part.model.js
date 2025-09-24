@@ -30,4 +30,4 @@ const partSchema = new mongoose.Schema({
 // Indexes
 partSchema.index({ testId: 1, partNumber: 1 });
 
-module.exports = mongoose.model('Part', partSchema);
+export default mongoose.model('Part', partSchema);

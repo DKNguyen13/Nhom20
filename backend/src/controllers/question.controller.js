@@ -49,7 +49,7 @@ export const getAllQuestionByTest = async (req, res) => {
 export const getAllQuestionByPart = async (req, res) => {
     try {
         const { slug } = req.params;
-        const { partIds } = req.query;
+        const { partIds } = req.query; // /api/test/:slug/parts/:partId/questions?partIds=123123,xxxxx
 
         // Check test exists
         const test = await Test.findOne({ slug });

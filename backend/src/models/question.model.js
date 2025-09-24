@@ -18,7 +18,6 @@ const questionSchema = new mongoose.Schema({
         required: true
     },
     title: { type: String, require: true, trim: true },
-    slug: { type: String, slug: 'title', required: false, unique: true, lowercase: true, trim: true },
     partNumber: { type: Number, min: 1, max: 7, require: true },
     questionNumber: {
         type: Number,
@@ -73,4 +72,4 @@ const questionSchema = new mongoose.Schema({
 questionSchema.index({ testId: 1, partNumber: 1, questionNumber: 1 });
 questionSchema.index({ partId: 1, questionNumber: 1 });
 
-module.exports = mongoose.model('Part', questionSchema);
+export default mongoose.model('Question', questionSchema);
