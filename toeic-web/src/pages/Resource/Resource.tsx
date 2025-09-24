@@ -100,7 +100,7 @@ const ResourcePage: React.FC = () => {
                       imageSrc={res.imageSrc || "./../src/assets/images/lesson.png"}
                       title={res.title}
                       views={res.views || 0}
-                      likes={res.likes || 0}
+                      likes={res.favoriteCount || 0}
                       type={res.type}
                     />
                   ))}

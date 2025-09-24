@@ -42,6 +42,7 @@ const Footer = () => {
                 <CiInstagram size={24} />
               </a>
             </div>
+            
           </div>
 
           {/* Contact Section */}
