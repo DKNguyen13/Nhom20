@@ -1,4 +1,4 @@
-import { success, fail } from '../helpers/responseHelper.js';
+import { success, error } from '../utils/response.js';
 
 import Test from "../models/test.model.js";
 import Part from "../models/part.model.js";
@@ -11,7 +11,7 @@ export const getAllParts = async (req, res) => {
         const test = await Test.findOne({ slug });
 
         if (!test) {
-            return fail(res, 'Test not found');
+            return error(res, 'Test not found');
         }
 
         // Get part 
@@ -27,13 +27,16 @@ export const getAllParts = async (req, res) => {
                 }
             })
         )
-        return success(res, {
-            test: { slug: test.slug, title: test.title },
-            partWithCounts
-        });
+        return success(
+            res,
+            'Get all part success',
+            {
+                test: { slug: test.slug, title: test.title },
+                partWithCounts
+            });
 
     } catch (error) {
-        return fail(res, 'Get all test fail', error.message);
+        return error(res, 'Get all test error', error.message);
     }
 };
 
@@ -47,7 +50,7 @@ export const getPartById = async (req, res) => {
         const test = await Test.findOne({ slug });
 
         if (!test) {
-            return fail(res, 'Test not found');
+            return error(res, 'Test not found');
         }
 
         const part = await Part.findOne({
@@ -56,7 +59,7 @@ export const getPartById = async (req, res) => {
         }).populate('testId', 'title slug');
 
         if (!part) {
-            return fail(res, 'Part not found');
+            return error(res, 'Part not found');
         }
 
         // Get questions for this part
@@ -65,6 +68,7 @@ export const getPartById = async (req, res) => {
 
         return success(
             res,
+            'Get part by id success',
             {
                 part,
                 questions,
@@ -72,7 +76,7 @@ export const getPartById = async (req, res) => {
             }
         );
     } catch (error) {
-        return fail(res, 'Get part by id fail', error.message);
+        return error(res, 'Get part by id error', error.message);
     }
 };
 
@@ -86,7 +90,7 @@ export const createPart = async (req, res) => {
         // Check test exists
         const test = await Test.findOne({ slug });
         if (!test) {
-            return fail(res, 'Test not found');
+            return error(res, 'Test not found');
         }
 
         // Check partNumber already exists for this test
@@ -96,7 +100,7 @@ export const createPart = async (req, res) => {
         });
 
         if (existingPart) {
-            return fail(res, 'Part number already exists for this test');
+            return error(res, 'Part number already exists for this test');
         }
 
         // create Part
@@ -107,9 +111,9 @@ export const createPart = async (req, res) => {
 
         await part.save();
 
-        return success(res, { part });
+        return success(res,'Create part success', { part });
     } catch (error) {
-        return fail(res, 'Fail Create Test', error.message);
+        return error(res, 'error Create Test', error.message);
     }
 };
 
@@ -123,7 +127,7 @@ export const updatePart = async (req, res) => {
         // Check test exists
         const test = await Test.findOne({ slug });
         if (!test) {
-            return fail(res, 'Test not found');
+            return error(res, 'Test not found');
         }
 
         const updateData = { ...req.body };
@@ -135,12 +139,12 @@ export const updatePart = async (req, res) => {
         ).populate('testId', 'title slug');
 
         if (!part) {
-            return fail(res, 'Part not found');
+            return error(res, 'Part not found');
         }
 
-        return success(res, { part })
+        return success(res, 'Update part success', { part })
     } catch (error) {
-        return fail(res, 'Update part fail', error.message);
+        return error(res, 'Update part error', error.message);
     }
 };
 
@@ -155,7 +159,7 @@ export const deletePart = async (req, res) => {
         // Check test exists
         const test = await Test.findOne({ slug });
         if (!test) {
-            return fail(res, 'Test not found');
+            return error(res, 'Test not found');
         }
 
         // Delete part
@@ -165,14 +169,14 @@ export const deletePart = async (req, res) => {
         });
 
         if (!part) {
-            return fail(res, 'part not found');
+            return error(res, 'part not found');
         }
 
         // Casade: delete all questions of this part
         await Question.deleteMany({ partId: part._id });
 
-        return success(res, { part });
+        return success(res, 'Delete part success', { part });
     } catch (error) {
-        return fail(res, 'Delete part fail', error.message);
+        return error(res, 'Delete part error', error.message);
     }
 };

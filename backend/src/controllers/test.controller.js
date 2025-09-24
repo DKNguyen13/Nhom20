@@ -1,4 +1,4 @@
-import { success, fail } from '../helpers/responseHelper.js';
+import { success, error } from '../utils/response.js';
 
 import Test from "../models/test.model.js";
 import Part from "../models/part.model.js";
@@ -11,10 +11,10 @@ export const getAllTest = async (req, res) => {
         if (!tests) {
             return fail(res, 'Error fetching tests');
         }
-        return success(res, { tests });
+        return success(res, 'Get all test success', { tests });
 
     } catch (error) {
-        return fail(res, 'Get all test fail', error.message);
+        return error(res, 'Get all test error', error.message);
     }
 };
 
@@ -27,7 +27,7 @@ export const getTestDetail = async (req, res) => {
         const test = await Test.findOne({ slug });
 
         if (!test) {
-            return fail(res, 'Test not found');
+            return error(res, 'Test not found');
         }
 
         // Get part and questions
@@ -37,7 +37,10 @@ export const getTestDetail = async (req, res) => {
         const questions = await Question.find({ testId: test._id })
             .sort({ partNumber: 1, questionNumber: 1 });
 
-        return success(res, {
+        return success(
+            res,
+            'Get test detail success',
+            {
             test,
             parts,
             questions,
@@ -52,7 +55,7 @@ export const getTestDetail = async (req, res) => {
             }
         });
     } catch (error) {
-        return fail(res, 'Error fetching test', error.message);
+        return error(res, 'Error fetching test', error.message);
     }
 };
 
@@ -71,9 +74,9 @@ export const createTest = async (req, res) => {
         const test = new Test(testData);
         await test.save();
 
-        return success(res, { test });
+        return success(res, 'Create test success', { test });
     } catch (error) {
-        return fail(res, 'Fail Create Test', error.message);
+        return error(res, 'error Create Test', error.message);
     }
 };
 
@@ -92,12 +95,12 @@ export const updateTest = async (req, res) => {
         ).populate('createdBy', 'fullname email');
 
         if (!test) {
-            return fail(res, 'Test not found');
+            return error(res, 'Test not found');
         }
 
-        return success(res, { test })
+        return success(res,'Update test success', { test })
     } catch (error) {
-        return fail(res, 'Update test fail', error.message);
+        return error(res, 'Update test error', error.message);
     }
 };
 
@@ -113,11 +116,11 @@ export const deleteTest = async (req, res) => {
         );
 
         if (!test) {
-            return fail(res, 'Test not found');
+            return error(res, 'Test not found');
         }
 
-        return success(res, { test });
+        return success(res, 'Delete test success');
     } catch (error) {
-        return fail(res, 'Delete test fail', error.message);
+        return error(res, 'Delete test error', error.message);
     }
 };

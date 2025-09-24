@@ -1,4 +1,4 @@
-import { success, fail } from '../helpers/responseHelper.js';
+import { success, error } from '../utils/response.js';
 
 import Test from "../models/test.model.js";
 import Part from "../models/part.model.js";
@@ -12,7 +12,7 @@ export const getAllQuestionByTest = async (req, res) => {
         // check test exists
         const test = await Test.findOne({ slug });
         if (!test) {
-            return fail(res, 'Test not found');
+            return error(res, 'Test not found');
         }
 
         // Get list part of test
@@ -26,6 +26,7 @@ export const getAllQuestionByTest = async (req, res) => {
 
         return success(
             res,
+            'Get all question by test success',
             {
                 test: { title: test.title, slug: test.slug },
                 parts: parts.map(part => ({
@@ -41,7 +42,7 @@ export const getAllQuestionByTest = async (req, res) => {
         )
 
     } catch (error) {
-        return fail(res, 'Get all question by test fail', error.message);
+        return error(res, 'Get all question by test error', error.message);
     }
 };
 
@@ -54,7 +55,7 @@ export const getAllQuestionByPart = async (req, res) => {
         // Check test exists
         const test = await Test.findOne({ slug });
         if (!test) {
-            return fail(res, 'Test not found');
+            return error(res, 'Test not found');
         }
 
         const partIdArray = partIds ? partIds.split(",") : [];
@@ -66,7 +67,7 @@ export const getAllQuestionByPart = async (req, res) => {
 
         // Check parts exists
         if (!parts || parts.length === 0) {
-            return fail(res, 'Parts not found');
+            return error(res, 'Parts not found');
         }
 
         // Build filter for parts
@@ -80,18 +81,21 @@ export const getAllQuestionByPart = async (req, res) => {
 
         const totalQuestion = await Question.countDocuments(filter);
 
-        return success(res, {
-            data: {
-                parts,
-                questions: {
-                    items: questions,
-                    total: totalQuestion,
+        return success(
+            res,
+            'Get all question by part success',
+            {
+                data: {
+                    parts,
+                    questions: {
+                        items: questions,
+                        total: totalQuestion,
+                    }
                 }
-            }
-        });
+            });
 
     } catch (error) {
-        return fail(res, 'Get all question by parts fail', error.message);
+        return error(res, 'Get all question by parts error', error.message);
     }
 };
 
@@ -107,13 +111,13 @@ export const createQuestions = async (req, res) => {
         // Check test exists
         const test = await Test.findOne({ slug });
         if (!test) {
-            return fail(res, 'Test not found');
+            return error(res, 'Test not found');
         }
 
         // Check part exists
         const part = await Part.findOne({ _id: partId, testId: test._id });
         if (!part) {
-            return fail(res, 'Part not found in this test to create Question');
+            return error(res, 'Part not found in this test to create Question');
         }
 
         // Get last question number in part
@@ -147,12 +151,13 @@ export const createQuestions = async (req, res) => {
 
         return success(
             res,
+            'create Questions success',
             {
                 questions: insertedQuestions,
             }
         );
     } catch (error) {
-        return fail(res, 'Fail Create question', error.message);
+        return error(res, 'error Create question', error.message);
     }
 };
 
