@@ -18,7 +18,7 @@ export const getAllTest = async (req, res) => {
     }
 };
 
-// [GET] /api/test/detail/:slug
+// [GET] /api/test/:slug
 export const getTestDetail = async (req, res) => {
     try {
 
@@ -77,16 +77,16 @@ export const createTest = async (req, res) => {
     }
 };
 
-// [PUT] /api/test/:id
+// [PUT] /api/test/:slug
 export const updateTest = async (req, res) => {
     try {
         // validate input
 
-        const { id } = req.params;
+        const { slug } = req.params;
         const updateData = { ...req.body };
 
-        const test = await Test.findByIdAndUpdate(
-            id,
+        const test = await Test.findOneAndUpdate(
+            { slug },
             updateData,
             { new: true, runValidators: true },
         ).populate('createdBy', 'fullname email');
@@ -101,13 +101,13 @@ export const updateTest = async (req, res) => {
     }
 };
 
-// [DELETE] /api/test/:id
+// [DELETE] /api/test/:slug
 export const deleteTest = async (req, res) => {
     try {
         // Soft delete
-        const { id } = req.params;
-        const test = await Test.findByIdAndUpdate(
-            id,
+        const { slug } = req.params;
+        const test = await Test.findOneAndUpdate(
+            { slug },
             { isActive: false },
             { new: true }
         );

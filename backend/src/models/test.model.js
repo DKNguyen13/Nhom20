@@ -70,7 +70,6 @@ const testSchema = new mongoose.Schema({
     notes: { type: String },
   },
 },
-  { timestamps: true });
-
+{ timestamps: true });
 
 export default mongoose.model('Test', testSchema);

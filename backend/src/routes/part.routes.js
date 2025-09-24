@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPart, deletepart, getAllParts, getPartById, updatePart } from '../controllers/part.controller';
+import { createPart, deletePart, getAllParts, getPartById, updatePart } from '../controllers/part.controller';
 
 const router = express.Router();
 
@@ -7,15 +7,15 @@ const router = express.Router();
 router.get('/api/test/:slug/parts', getAllParts);
 
 // Get part by id
-router.get('/api/part/:id', getPartById);
+router.get('/api/test/:slug/parts/:partId', getPartById);
 
 // Create part
-router.post('/api/test/:testId/part', createPart);
+router.post('/api/test/:slug/parts', createPart);
 
 // Update part
-router.put('/api/part/:id', updatePart);
+router.put('/api/test/:slug/parts/:partId', updatePart);
 
 // Delete part
-router.delete('/api/part/:id', deletepart);
+router.delete('/api/test/:slug/part/:partId', deletePart);
 
 export default router;

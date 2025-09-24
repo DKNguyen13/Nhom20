@@ -28,10 +28,8 @@ export const getAllParts = async (req, res) => {
             })
         )
         return success(res, {
-            data: {
-                test: { slug: test.slug, title: test.title },
-                partWithCounts
-            }
+            test: { slug: test.slug, title: test.title },
+            partWithCounts
         });
 
     } catch (error) {
@@ -39,20 +37,30 @@ export const getAllParts = async (req, res) => {
     }
 };
 
-// [GET] /api/part/:id
+// [GET] /api/test/:slug/parts/:partId
 export const getPartById = async (req, res) => {
     try {
 
-        const { id } = req.params;
+        const { slug, partId } = req.params;
 
-        const part = await Part.findById(id).populate('testId', 'title testCode');
+        // Check test exists
+        const test = await Test.findOne({ slug });
+
+        if (!test) {
+            return fail(res, 'Test not found');
+        }
+
+        const part = await Part.findOne({
+            _id: partId,
+            testId: test._id
+        }).populate('testId', 'title slug');
 
         if (!part) {
             return fail(res, 'Part not found');
         }
 
         // Get questions for this part
-        const questions = await Question.find({ partId: id })
+        const questions = await Question.find({ partId })
             .sort({ questionNumber: 1 });
 
         return success(
@@ -68,22 +76,22 @@ export const getPartById = async (req, res) => {
     }
 };
 
-// [POST] /api/test/:/testId/part
+// [POST] /api/test/:slug/parts
 export const createPart = async (req, res) => {
     try {
         // validate input
 
-        const { testId } = req.params;
+        const { slug } = req.params;
 
         // Check test exists
-        const test = await Test.findById(testId);
+        const test = await Test.findOne({ slug });
         if (!test) {
             return fail(res, 'Test not found');
         }
 
         // Check partNumber already exists for this test
         const existingPart = await Part.findOne({
-            testId,
+            testId: test._id,
             partNumber: req.body.partNumber
         });
 
@@ -94,7 +102,7 @@ export const createPart = async (req, res) => {
         // create Part
         const part = new Part({
             ...req.body,
-            testId
+            testId: test._id
         });
 
         await part.save();
@@ -105,19 +113,26 @@ export const createPart = async (req, res) => {
     }
 };
 
-// [PUT] /api/part/:id
+// [PUT] /api/test/:slug/parts/:partId
 export const updatePart = async (req, res) => {
     try {
         // validate input
 
-        const { id } = req.params;
+        const { slug, partId } = req.params;
+
+        // Check test exists
+        const test = await Test.findOne({ slug });
+        if (!test) {
+            return fail(res, 'Test not found');
+        }
+
         const updateData = { ...req.body };
 
-        const part = await Part.findByIdAndUpdate(
-            id,
+        const part = await Part.findOneAndUpdate(
+            { _id: partId, testId: test._id },
             updateData,
             { new: true, runValidators: true },
-        ).populate('testId', 'title testCode');
+        ).populate('testId', 'title slug');
 
         if (!part) {
             return fail(res, 'Part not found');
@@ -129,18 +144,32 @@ export const updatePart = async (req, res) => {
     }
 };
 
-// [DELETE] /api/part/:id
-export const deletepart = async (req, res) => {
+// [DELETE] /api/test/:slug/parts/:partId
+export const deletePart = async (req, res) => {
     try {
         // hard delete - no casade with question
         // solution -> remove part and all question of this part
 
-        const { id } = req.params;
-        const part = await Part.findByIdAndDelete(id);
+        const { slug, partId } = req.params;
+
+        // Check test exists
+        const test = await Test.findOne({ slug });
+        if (!test) {
+            return fail(res, 'Test not found');
+        }
+
+        // Delete part
+        const part = await Part.findOneAndDelete({
+            _id: partId,
+            testId: test._id
+        });
 
         if (!part) {
             return fail(res, 'part not found');
         }
+
+        // Casade: delete all questions of this part
+        await Question.deleteMany({ partId: part._id });
 
         return success(res, { part });
     } catch (error) {

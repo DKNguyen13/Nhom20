@@ -4,10 +4,10 @@ import { createTest, deleteTest, getAllTest, getTestDetail, updateTest } from '.
 
 const router = express.Router();
 
-router.get('/', getAllTest);
-router.post('/create', createTest);
-router.get('/detail/:slug', getTestDetail);
-router.put('/:id', updateTest);
-router.delete(':id', deleteTest);
+router.get('/api/test', getAllTest);
+router.get('/api/test/:slug', getTestDetail);
+router.post('/api/test', createTest);
+router.put('/api/test/:slug', updateTest);
+router.delete('/api/test:slug', deleteTest);
 
 export default router;
