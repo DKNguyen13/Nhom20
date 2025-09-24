@@ -1,5 +1,4 @@
 import express from 'express';
-
 import {getRecentExam, getMostSolvedExam, getMostViewedExam, getExam} from '../controllers/exam.controller.js';
 import { authenticate } from "../middleware/authenticate.js";
 
