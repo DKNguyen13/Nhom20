@@ -17,9 +17,11 @@ export const createLesson = async (req, res) => {
 };
 
 // Get all lessons excluding deleted ones
+// Get all lessons excluding deleted ones
 export const getLessons = async (req, res) => {
   try {
     const lessons = await Lesson.find({ isDeleted: false });
+    
     const lessonsWithFavorite = await Promise.all(
       lessons.map(async (lesson) => {
         const favoriteCount = await Wishlist.countDocuments({ lesson: lesson._id });
@@ -28,14 +30,22 @@ export const getLessons = async (req, res) => {
           const exists = await Wishlist.exists({ user: req.user._id, lesson: lesson._id });
           isFavorite = !!exists;
         }
-        return { ...lesson.toObject(), favoriteCount, isFavorite };
+        return {
+          ...lesson.toObject(),
+          views: lesson.views || 0,        // ✅ thêm số views
+          favoriteCount,
+          isFavorite
+        };
       })
     );
+
     return success(res, 'Lấy danh sách lesson thành công', lessonsWithFavorite);
   } catch (err) {
-    return error(res, err.message, 500);
+    console.log(err.message);
+    return error(res, "Lỗi lấy danh sách các bài học", 500);
   }
 };
+
 
 // Get lesson by ID
 export const getLessonById = async (req, res) => {
@@ -83,6 +93,23 @@ export const deleteLesson = async (req, res) => {
     );
     if (!lesson) return error(res, "Lesson không tìm thấy", 404);
     return success(res, 'Xóa lesson thành công');
+  } catch (err) {
+    return error(res, err.message, 400);
+  }
+};
+
+// Increase view
+export const incrementViews = async (req, res) => {
+  try {
+    const lesson = await Lesson.findOneAndUpdate(
+      { _id: req.params.id, isDeleted: false },
+      { $inc: { views: 1 } },
+      { new: true }
+    );
+
+    if (!lesson) return error(res, "Lesson không tìm thấy", 404);
+
+    return success(res, "Tăng views thành công", { views: lesson.views });
   } catch (err) {
     return error(res, err.message, 400);
   }
