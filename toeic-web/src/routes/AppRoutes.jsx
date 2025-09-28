@@ -28,7 +28,7 @@ import UserManagementPage from "../pages/Admin/UserManagement/UserManagement";
 import TestManagementPage from "../pages/Admin/TestManagement/TestManagement";
 import MockDetailTests from "../pages/Detail/mockDetailTests";
 import { Wishlist } from "../pages/Wishlist/Wishlist";
-const isAuthenticated = false; // Kiểm tra trạng thái đăng nhập
+import VipManagement from "../pages/Admin/VipManagement/VipManagement";
 
 // Cấu hình routes
 const routes = [
@@ -236,6 +236,16 @@ const routes = [
 			<ProtectedRoute allowedRoles={['admin']}>
 				<MainLayout>
 					<TestManagementPage />
+				</MainLayout>
+			</ProtectedRoute>
+		),
+	},
+	{
+		path: "/admin/vipmanagement",
+		element: (
+			<ProtectedRoute allowedRoles={['admin']}>
+				<MainLayout>
+					<VipManagement />
 				</MainLayout>
 			</ProtectedRoute>
 		),
