@@ -17,13 +17,6 @@ const testSchema = new mongoose.Schema({
   isFeatured: { type: Boolean, required: true, default: false },
   isOfficial: { type: Boolean, required: true, default: false },
 
-  tags: [{ type: String, trim: true }],
-  category: {
-    type: String,
-    required: true,
-    enum: ["practice", "mock", "official", "skill-builder"],
-  },
-
   createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
 
   publishedAt: { type: Date },

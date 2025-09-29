@@ -31,7 +31,7 @@ const Header: React.FC = () => {
       icon: <FaClipboardList className="text-xl" />,
     },
     {
-      to: "/mock-test",
+      to: "/tests",
       label: "Thi thử",
       icon: <FaFileAlt className="text-xl" />,
     },
