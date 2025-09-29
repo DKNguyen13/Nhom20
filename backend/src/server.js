@@ -12,6 +12,7 @@ import partRoutes from './routes/part.routes.js';
 import questionRoutes from './routes/question.routes.js';
 import { seedPackages } from './services/premiumPackage.service.js';
 import { seedLessons } from './services/lesson.service.js';
+import commentRoute from "./routes/comment.route.js";
 
 const app = express()
 
@@ -25,6 +26,7 @@ app.use(express.json());
 
 app.use('/api/lessons', lessonRouter);
 app.use('/api/exams', examRouter);
+app.use('/api/comments', commentRoute);
 app.use('/api/auth', authRouter);
 app.use('/api/wishlist', wishlistRouter)
 app.use('/api/test', testRoutes);
@@ -35,7 +37,7 @@ app.use('/api/test/:slug', questionRoutes);
 await connectDB();
 await createAdminIfNotExist();
 await seedPackages();
-//await seedLessons();//fake data
+await seedLessons();//fake data
 
 app.listen(config.port, () => {
     console.log(`Server running on port ${config.port}`)
