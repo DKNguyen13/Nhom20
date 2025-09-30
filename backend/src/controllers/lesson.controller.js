@@ -17,7 +17,6 @@ export const createLesson = async (req, res) => {
 };
 
 // Get all lessons excluding deleted ones
-// Get all lessons excluding deleted ones
 export const getLessons = async (req, res) => {
   try {
     const lessons = await Lesson.find({ isDeleted: false });
@@ -32,7 +31,7 @@ export const getLessons = async (req, res) => {
         }
         return {
           ...lesson.toObject(),
-          views: lesson.views || 0,        // ✅ thêm số views
+          views: lesson.views || 0,
           favoriteCount,
           isFavorite
         };

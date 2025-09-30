@@ -1,16 +1,6 @@
 import * as PackageService from '../services/premiumPackage.service.js';
 import { success, error } from '../utils/response.js';
 
-// Create a new premium package
-export const createPackage = async (req, res) => {
-  try {
-    const pkg = await PackageService.createPackage(req.body);
-    return success(res, 'Tạo gói VIP thành công', pkg);
-  } catch (err) {
-    return error(res, err.message, 400);
-  }
-};
-
 // Get all premium packages
 export const getAllPackages = async (req, res) => {
   try {
@@ -24,6 +14,7 @@ export const getAllPackages = async (req, res) => {
 // Get a single premium package by ID
 export const getPackageById = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') return error(res, 'Không có quyền truy cập', 403);
     const pkg = await PackageService.getPackageById(req.params.id);
     return success(res, 'Chi tiết gói VIP', pkg);
   } catch (err) {
@@ -34,6 +25,7 @@ export const getPackageById = async (req, res) => {
 // Update a premium package by ID
 export const updatePackage = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') return error(res, 'Không có quyền truy cập', 403);
     const pkg = await PackageService.updatePackage(req.params.id, req.body);
     return success(res, 'Cập nhật gói VIP thành công', pkg);
   } catch (err) {

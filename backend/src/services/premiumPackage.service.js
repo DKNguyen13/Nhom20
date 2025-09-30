@@ -1,30 +1,30 @@
 import PremiumPackage from '../models/premiumPackage.models.js';
 
-//CRUD PremiumPackage
-export const createPackage = async (data) => {
-  const exists = await PremiumPackage.findOne({ type: data.type });
-  if (exists) throw new Error('Gói đã tồn tại');
-  return await PremiumPackage.create(data);
-};
-
+// Get all packages
 export const getAllPackages = async () => {
-  return await PremiumPackage.find().sort({ createdAt: -1 });
+  const packages = await PremiumPackage.find();
+  const order = ["basic", "pro", "premium"];
+  return packages.sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
 };
 
+// Get package by id
 export const getPackageById = async (id) => {
   const pkg = await PremiumPackage.findById(id);
   if (!pkg) throw new Error('Gói không tồn tại');
   return pkg;
 };
 
+// Update data
 export const updatePackage = async (id, data) => {
-  const pkg = await PremiumPackage.findByIdAndUpdate(id, data, { new: true });
-  if (!pkg) throw new Error('Gói không tồn tại');
-  return pkg;
-};
+  const allowedUpdates = {
+    originalPrice: data.originalPrice,
+    discountedPrice: data.discountedPrice,
+    description: data.description
+  };
 
-export const deletePackage = async (id) => {
-  const pkg = await PremiumPackage.findByIdAndDelete(id);
+  if (allowedUpdates.discountedPrice > allowedUpdates.originalPrice) throw new Error('Giá giảm không được lớn hơn giá gốc');
+
+  const pkg = await PremiumPackage.findByIdAndUpdate(id, allowedUpdates, { new: true });
   if (!pkg) throw new Error('Gói không tồn tại');
   return pkg;
 };

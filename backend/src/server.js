@@ -8,6 +8,7 @@ import lessonRouter from './routes/lesson.route.js';
 import wishlistRouter from './routes/wishlist.routes.js';
 import { createAdminIfNotExist } from './services/auth.service.js';
 import { seedPackages } from './services/premiumPackage.service.js';
+import vipRouter from './routes/vipPackage.routes.js'
 import { seedLessons } from './services/lesson.service.js';
 
 const app = express()
@@ -23,8 +24,8 @@ app.use(express.json());
 app.use('/api/lessons', lessonRouter);
 //app.use('/api/exams', examRouter);
 app.use('/api/auth', authRouter);
-app.use('/api/wishlist', wishlistRouter)
-
+app.use('/api/wishlist', wishlistRouter);
+app.use('/api/vip', vipRouter);
 
 await connectDB();
 await createAdminIfNotExist();
