@@ -161,11 +161,10 @@ const routes = [
 	{
 		path: "/payment",
 		element: (
-			<ProtectedRoute allowedRoles={['admin', 'user']}>
 				<MainLayout>
 					<Payment />
 				</MainLayout>
-			</ProtectedRoute>
+			
 		),
 	},
 	{
