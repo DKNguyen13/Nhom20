@@ -77,30 +77,6 @@ export const resetPassword = async ({ email }) => {
     return 'Mật khẩu mới đã được gửi nếu email tồn tại';
 };
 
-//Create admin if not exist
-export const createAdminIfNotExist = async () => {
-  try {
-    const adminExists = await User.findOne({ role: 'admin' });
-    if (!adminExists) {
-      const hashedPassword = await bcrypt.hash('admin@', 10);
-      const admin = new User({
-        fullname: 'Super Admin',
-        email: 'admin@admin.com',
-        password: hashedPassword,
-        phone: '0123456789',
-        role: 'admin',
-        isActive: true
-      });
-      await admin.save();
-      console.log('Admin mặc định đã được tạo: admin@admin.com / admin@123');
-    } else {
-      console.log('Admin đã tồn tại, không cần tạo lại.');
-    }
-  } catch (err) {
-    console.error('Lỗi khi tạo admin mặc định:', err);
-  }
-};
-
 //Update profile
 export const updateProfile = async ({ userId, fullName, fileBuffer }) => {
   const user = await User.findById(userId);

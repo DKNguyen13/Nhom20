@@ -28,17 +28,3 @@ export const updatePackage = async (id, data) => {
   if (!pkg) throw new Error('Gói không tồn tại');
   return pkg;
 };
-
-//Auto seed packages if not exist
-export const seedPackages = async () => {
-  const packages = [
-    { name: "Basic", durationMonths: 1, originalPrice: 299000, discountedPrice: 249000, type: "basic" },
-    { name: "Pro", durationMonths: 6, originalPrice: 499000, discountedPrice: 249000, type: "pro" },
-    { name: "Premium", durationMonths: 12, originalPrice: 799000, discountedPrice: 249000, type: "premium" },
-  ];
-
-  for (const pkg of packages) {
-    const exists = await PremiumPackage.findOne({ type: pkg.type });
-    if (!exists) await PremiumPackage.create(pkg);
-  }
-};
