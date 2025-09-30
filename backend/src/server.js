@@ -10,6 +10,7 @@ import { createAdminIfNotExist } from './services/auth.service.js';
 import { seedPackages } from './services/premiumPackage.service.js';
 import vipRouter from './routes/vipPackage.routes.js'
 import { seedLessons } from './services/lesson.service.js';
+import vnpayRoutes from "./routes/vnpay.routes.js";
 
 const app = express()
 
@@ -26,6 +27,7 @@ app.use('/api/lessons', lessonRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/wishlist', wishlistRouter);
 app.use('/api/vip', vipRouter);
+app.use("/api/payment", vnpayRoutes);
 
 await connectDB();
 await createAdminIfNotExist();

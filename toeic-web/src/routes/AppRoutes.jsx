@@ -29,6 +29,8 @@ import TestManagementPage from "../pages/Admin/TestManagement/TestManagement";
 import MockDetailTests from "../pages/Detail/mockDetailTests";
 import { Wishlist } from "../pages/Wishlist/Wishlist";
 import VipManagement from "../pages/Admin/VipManagement/VipManagement";
+import PaymentFail from "../pages/Payment/PaymentFail";
+import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 
 // Cấu hình routes
 const routes = [
@@ -170,11 +172,27 @@ const routes = [
 	{
 		path: "/payment/paymentform",
 		element: (
-			<ProtectedRoute allowedRoles={['admin', 'user']}>
+			
 				<MainLayout>
 					<PaymentForm />
 				</MainLayout>
-			</ProtectedRoute>
+
+		),
+	},
+	{
+		path: "/payment/success",
+		element: (
+			<MainLayout>
+			<PaymentSuccess />
+			</MainLayout>
+		),
+	},
+	{
+		path: "/payment/fail",
+		element: (
+			<MainLayout>
+			<PaymentFail />
+			</MainLayout>
 		),
 	},
 	{

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { IoPlayForward } from "react-icons/io5";
 import { GiBrain } from "react-icons/gi";
 import { FaComments } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../config/axios.js";
 
 interface Package {
@@ -18,6 +18,8 @@ interface Package {
 const PaymentPage: React.FC = () => {
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
+  const [popupMessage, setPopupMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPackages = async () => {
@@ -32,6 +34,31 @@ const PaymentPage: React.FC = () => {
     };
     fetchPackages();
   }, []);
+
+  const handleBuy = async (pkgId: string) => {
+    try {
+      const res = await api.post("/payment/create", { packageId: pkgId });
+      if (res.data.paymentUrl) {
+        window.location.href = res.data.paymentUrl; // redirect sang VNPay
+      }
+    } catch (err: any) {
+      console.error("Payment error", err);
+      const message =
+        err.response?.data?.message || "Lỗi khi tạo đơn thanh toán";
+      setPopupMessage(message); // hiển thị popup
+    }
+  };
+
+  // Khi quay lại từ VNPay, check code và navigate
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code"); // code trả về từ BE
+    if (code === "00") {
+      navigate("/payment/success");
+    } else if (code) {
+      navigate("/payment/fail");
+    }
+  }, [navigate]);
 
   const getDiscountPercent = (original: number, discounted: number) => {
     if (original <= discounted) return null;
@@ -94,12 +121,12 @@ const PaymentPage: React.FC = () => {
                   </div>
 
                   {/* Button */}
-                  <Link
-                    to={`/payment/paymentform?package=${pkg._id}`}
+                  <button
+                    onClick={() => handleBuy(pkg._id)}
                     className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-300 w-full text-center mt-auto"
                   >
                     Đăng ký ngay
-                  </Link>
+                  </button>
                 </div>
               );
             })}
@@ -160,6 +187,21 @@ const PaymentPage: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {/* Popup Message */}
+      {popupMessage && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm mx-auto shadow-lg text-center">
+            <p className="text-gray-800 mb-4">{popupMessage}</p>
+            <button
+              onClick={() => setPopupMessage(null)}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
