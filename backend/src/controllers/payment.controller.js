@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { config } from "../config/env.js";
 import User from "../models/user.models.js";
 import PaymentOrder from "../models/paymentOrder.model.js";
-import PremiumPackage from "../models/vipPackage.model.js";
+import VipPackage from "../models/vipPackage.model.js";
 
 // Sort + encode giống VNPay gốc
 function sortObject(obj) {
@@ -37,7 +37,7 @@ export const createPayment = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const pkg = await PremiumPackage.findById(packageId);
+    const pkg = await VipPackage.findById(packageId);
     if (!pkg) return res.status(400).json({ message: "Package not found" });
     
     const { vnp_TmnCode, vnp_HashSecret, vnp_Url, vnp_ReturnUrl } = config;
@@ -122,7 +122,7 @@ export const returnPayment = async (req, res) => {
     }
 
     const user = await User.findById(order.userId);
-    const pkg = await PremiumPackage.findById(order.packageId);
+    const pkg = await VipPackage.findById(order.packageId);
     if (!pkg) return res.redirect(`${config.frontendUrl}${config.paymentFailPath}`);
 
     const now = new Date();

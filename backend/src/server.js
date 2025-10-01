@@ -3,6 +3,7 @@ import express from 'express';
 import connectDB from './config/db.js';
 import { config } from './config/env.js';
 import authRouter from './routes/auth.routes.js';
+import adminRouter from './routes/admin.routes.js';
 import vnpayRoutes from "./routes/vnpay.routes.js";
 import lessonRouter from './routes/lesson.routes.js';
 import vipRouter from './routes/vipPackage.routes.js';
@@ -24,11 +25,13 @@ app.use('/api/auth', authRouter);
 app.use('/api/wishlist', wishlistRouter);
 app.use('/api/vip', vipRouter);
 app.use("/api/payment", vnpayRoutes);
+app.use('/api/admin', adminRouter);
 
 await connectDB();
 await InitData.createAdminIfNotExist();
 await InitData.seedPackages();
 await InitData.seedLessons();
+await InitData.seedRevenue();
 
 app.listen(config.port, () => {
     console.log(`Server running on port ${config.port}`)

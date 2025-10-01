@@ -1,5 +1,5 @@
-import Wishlist from '../models/wishlist.model.js';
 import Lesson from '../models/lesson.model.js';
+import Wishlist from '../models/wishlist.model.js';
 import { success, error } from "../utils/response.js";
 
 // Add lesson to wishlist
@@ -56,7 +56,8 @@ export const toggleWishlist = async (req, res) => {
     }
   } catch (err) {
     if (err.code === 11000) return error(res, 'Bài học đã có trong wishlist', 400);
-    return error(res, err.message, 500);
+    console.log('Toggle wishlist ', err.message);
+    return error(res, 'Toggle wishlist error', 500);
   }
 };
 

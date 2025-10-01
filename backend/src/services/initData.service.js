@@ -1,7 +1,47 @@
 import bcrypt from 'bcryptjs';
+import mongoose from "mongoose";
 import User from "../models/user.models.js";
 import Lesson from "../models/lesson.model.js";
 import VipPackage from "../models/vipPackage.model.js";
+import PaymentOrder from "../models/paymentOrder.model.js";
+
+
+export const seedRevenue = async () => {
+  const count = await PaymentOrder.countDocuments();
+  if (count > 0) {
+    console.log("💰 PaymentOrders already exist, skip seeding...");
+    return;
+  }
+
+  const fakeOrders = [];
+
+  for (let year of [2023, 2024, 2025]) {
+    for (let month = 1; month <= 12; month++) {
+      const orderCount = Math.floor(Math.random() * 8) + 3; // 3-10 orders / tháng
+
+      for (let i = 0; i < orderCount; i++) {
+        const price = [249000, 399000, 599000][Math.floor(Math.random() * 3)];
+
+        fakeOrders.push({
+          orderId: new mongoose.Types.ObjectId().toString(), // random id
+          userId: new mongoose.Types.ObjectId(),             // fake user
+          packageId: new mongoose.Types.ObjectId(),          // fake package
+          pricePaid: price,
+          status: "success",
+          isActive: true,
+          startDate: new Date(year, month - 1, 1),
+          endDate: new Date(year, month - 1, 28),
+          createdAt: new Date(year, month - 1, Math.floor(Math.random() * 28) + 1),
+          updatedAt: new Date(year, month - 1, Math.floor(Math.random() * 28) + 1),
+        });
+      }
+    }
+  }
+
+  await PaymentOrder.insertMany(fakeOrders);
+  console.log(`✅ Seeded ${fakeOrders.length} fake PaymentOrders`);
+};
+
 
 //Create admin if not exist
 export const createAdminIfNotExist = async () => {
