@@ -36,3 +36,31 @@ export const isSelfOrAdmin = (req, res, next) => {
   }
   next();
 };
+
+
+export const optionalAuth = async (req, res, next) =>{
+  const authHeader = req.headers["authorization"];
+
+  if (!authHeader) {
+    // Không có token -> cho qua
+    return next();
+  }
+
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = verifyAccessToken(token);
+
+    if (!decoded.id || !decoded.role) {
+      return res.status(401).json({ success: false, message: 'Invalid token payload' });
+    }
+
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+  }
+}

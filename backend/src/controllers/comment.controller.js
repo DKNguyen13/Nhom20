@@ -1,20 +1,34 @@
 import Comment from "../models/comment.model.js";
 
+function convertComments(comments, id) {
+    return comments.map(comment => (convertComment(comment, id)));
+}
+function convertComment(comment, id) {
+    return {
+        ...comment.toObject(),
+        isOwner: id !== null && id === comment.author._id.toString(),
+        isLike: id !== null && comment.likes.some((author) => author.toString() === id),
+    }
+}
 export const getCommentsByExamId = async (req, res, next) => {
     try {
+        const user = req.user;
+        let id = null
+        if (user) {
+            id = user.id
+        }
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
         const comments = await Comment.find({ exam: req.params.examId, isParent: true })
+            .populate("author", "fullname avatarUrl")
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
-
         const total = await Comment.countDocuments({ exam: req.params.examId, isParent: true });
-
         res.json({
-            data: comments,
+            data: convertComments(comments, id),
             pagination: {
                 currentPage: page,
                 totalPages: Math.ceil(total / limit),
@@ -30,11 +44,11 @@ export const getCommentsByExamId = async (req, res, next) => {
 
 export const addComment = async (req, res, next) => {
     try {
-        const user = req.user;
         const comment = req.body;
-        comment.author = user.id;
-        let savedComment = await Comment.create(comment)
-        res.status(201).json(savedComment);
+        comment.author = req.user.id
+        let savedComment = await Comment.create(comment);
+        savedComment = await savedComment.populate("author", "fullname avatarUrl");
+        res.status(201).json(convertComment(savedComment, req.user.id));
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -45,7 +59,7 @@ export const updateComment = async (req, res, next) => {
         const cmt = req.body;
         cmt.isEdited = true;
         cmt.editedAt = Date.now();
-        const comment = await Comment.findByIdAndUpdate(
+        let comment = await Comment.findByIdAndUpdate(
             req.params.id,
             cmt,
             { new: true }
@@ -53,8 +67,8 @@ export const updateComment = async (req, res, next) => {
         if (!comment) {
             return res.status(404).json({ error: "Comment not found" });
         }
-
-        res.json(comment);
+        comment = await comment.populate("author", "fullname avatarUrl")
+        res.json(convertComment(comment, req.user.id));
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -85,10 +99,17 @@ export const replyComment = async (req, res, next) => {
             return res.status(404).json({ error: "Parent comment not found" });
         }
         reply.author = user.id;
-        reply.parent = parentCommentId;
+        reply.exam = parentComment.exam;
+        if (parentComment.isParent === false) {
+            reply.parent = parentComment.parent;
+        }
+        else{
+            reply.parent = parentCommentId;
+        }
         reply.isParent = false;
-        const savedReply = await Comment.create(reply);
-        res.json(savedReply);
+        let savedReply = await Comment.create(reply);
+        savedReply = await savedReply.populate("author", "fullname avatarUrl");
+        res.json(convertComment(savedReply, user.id));
     }
     catch (error) {
         res.status(500).json({ error: error.message });
@@ -97,6 +118,11 @@ export const replyComment = async (req, res, next) => {
 
 export const getChildrenComment = async (req, res, next) => {
     try {
+        const user = req.user;
+        let id = null
+        if (user) {
+            id = user.id
+        }
         const parentCommentId = req.params.id;
         const page = parseInt(req.query.page) || 1;
         const limit = 5;
@@ -108,13 +134,14 @@ export const getChildrenComment = async (req, res, next) => {
         }
 
         const replies = await Comment.find({ parent: parentCommentId })
+            .populate("author", "fullname avatarUrl")
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
 
         const total = await Comment.countDocuments({ parent: parentCommentId });
 
         res.json({
-            data: replies,
+            data: convertComments(replies, id),
             pagination: {
                 currentPage: page,
                 totalPages: Math.ceil(total / limit),

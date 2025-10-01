@@ -56,9 +56,21 @@ const commentSchema = new mongoose.Schema({
 
 commentSchema.pre("deleteOne", async function() {
     const commentId = this.getQuery()._id;
-    
     // Xóa tất cả comment con
-    await mongoose.model('Comment').deleteMany({ parent: commentId });
+    if (this.getQuery().isParent){
+        await mongoose.model('Comment').deleteMany({ parent: commentId });
+    }
+    else{
+        await mongoose.model('Comment').findByIdAndUpdate(this.getQuery().parent, {$inc: { noOfChildren: -1}, $pull : { children: commentId }});
+    }
 });
 
+commentSchema.post("save", async function(doc) {
+    if (!doc.isParent){
+        await mongoose.model('Comment').findByIdAndUpdate(doc.parent, {
+            $inc: { noOfChildren: 1 },
+            $push: { children: doc._id }
+        });
+    }
+})
 export default mongoose.model('Comment', commentSchema);
