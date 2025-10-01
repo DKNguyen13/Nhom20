@@ -1,52 +1,7 @@
 import DetailToeicTest from "../../components/DetailToeicContent";
 import { useParams } from "react-router-dom";
-import { getTestDetail } from "../../service/testService";
-import { useEffect, useState } from "react";
-
-const sampleParts = [
-  {
-    id: 1,
-    title: "Part 1",
-    questionCount: 6,
-    tags: ["Picture description - people", "Picture description - objects"],
-  },
-  {
-    id: 2,
-    title: "Part 2",
-    questionCount: 25,
-    tags: ["Question-response", "WH-questions", "Yes/No questions"],
-  },
-  {
-    id: 3,
-    title: "Part 3",
-    questionCount: 39,
-    tags: ["Conversations", "Multiple speakers", "Graphics"],
-  },
-  {
-    id: 4,
-    title: "Part 4",
-    questionCount: 30,
-    tags: ["Short talks", "Announcements", "Presentations"],
-  },
-  {
-    id: 5,
-    title: "Part 5",
-    questionCount: 30,
-    tags: ["Incomplete sentences", "Grammar", "Vocabulary"],
-  },
-  {
-    id: 6,
-    title: "Part 6",
-    questionCount: 16,
-    tags: ["Text completion", "Context clues", "Grammar in context"],
-  },
-  {
-    id: 7,
-    title: "Part 7",
-    questionCount: 54,
-    tags: ["Reading comprehension", "Single passages", "Multiple passages"],
-  },
-];
+import { useTestData } from "../../hooks/useTestData.js";
+import { useTestSession } from "../../hooks/useTestSession.js";
 
 const sampleComments = [
   {
@@ -72,24 +27,17 @@ const sampleComments = [
 
 function MockDetailTests() {
   const { slug } = useParams();
-  const [testData, setTestData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchTestData = async () => {
-      try {
-        const data = await getTestDetail(slug); //slug
-        setTestData(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTestData();
-  }, []);
+  const { testData, loading, error } = useTestData(slug);
+  const {
+    selectedParts,
+    setSelectedParts,
+    selectedTime,
+    setSelectedTime,
+    handleStartPractice,
+    sessionLoading,
+    sessionError,
+  } = useTestSession(testData);
 
   if (loading) {
     return (
@@ -112,16 +60,23 @@ function MockDetailTests() {
   return (
     <div className="min-h-screen bg-background">
       <DetailToeicTest
-        testName={testData.data.test.title}
-        durationMinutes={120}
-        totalParts={7}
-        totalQuestions={200}
-        practicedCount={2500000}
-        commentsCount={3000}
-        parts={testData.data.parts}
-        comments={sampleComments}
-        defaultActiveTab="practice"
-      />
+      testName={testData.data.test.title}
+      durationMinutes={120}
+      totalParts={7}
+      totalQuestions={200}
+      practicedCount={2500000}
+      commentsCount={3000}
+      parts={testData.data.parts}
+      defaultActiveTab="practice"
+      selectedParts={selectedParts}
+      setSelectedParts={setSelectedParts}
+      selectedTime={selectedTime}
+      setSelectedTime={setSelectedTime}
+      onStartPractice={handleStartPractice}
+      sessionLoading={sessionLoading}
+      sessionError={sessionError}
+      comments={sampleComments}
+    />
     </div>
   );
 }

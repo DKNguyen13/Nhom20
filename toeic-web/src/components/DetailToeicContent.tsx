@@ -14,7 +14,7 @@ import { Select } from "../components/ui/select";
 type Comment = {
   id: string;
   user: string;
-  date: string; // ISO or formatted date
+  date: string;
   text: string;
   pinned?: boolean;
 };
@@ -32,8 +32,17 @@ type ToeicTestProps = {
     totalQuestions: number;
     tags: string[];
   }>;
-  comments: Comment[]; // list of comments to display
+  comments: Comment[];
   defaultActiveTab?: "practice" | "fulltest" | "discussion";
+
+  // props từ MockDetailTests
+  selectedParts: number[];
+  setSelectedParts: React.Dispatch<React.SetStateAction<Set<number>>>;
+  selectedTime: number;
+  setSelectedTime: React.Dispatch<React.SetStateAction<number>>;
+  onStartPractice: (mode?: "practice" | "fulltest") => void;
+  sessionLoading?: boolean;
+  sessionError?: string | null;
 };
 
 type TabType = "practice" | "fulltest" | "discussion";
@@ -48,51 +57,35 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
   parts,
   comments,
   defaultActiveTab = "practice",
+  selectedParts,
+  setSelectedParts,
+  selectedTime,
+  setSelectedTime,
+  onStartPractice,
+  sessionLoading,
+  sessionError,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultActiveTab);
-  const [selectedParts, setSelectedParts] = useState<Set<number>>(new Set());
-  const [selectedTime, setSelectedTime] = useState<string>("");
 
   const handlePartToggle = (partId: number) => {
-    const newSelectedParts = new Set(selectedParts);
-    if (newSelectedParts.has(partId)) {
-      newSelectedParts.delete(partId);
+    if (selectedParts.includes(partId)) {
+      // Bỏ phần đã chọn
+      setSelectedParts(selectedParts.filter((id) => id !== partId));
     } else {
-      newSelectedParts.add(partId);
+      // Thêm phần mới
+      setSelectedParts([...selectedParts, partId]);
     }
-    setSelectedParts(newSelectedParts);
   };
 
   const generateTimeOptions = () => {
-    const options = [] as { value: string; label: string }[];
+    const options = [] as { value: number; label: string }[];
     for (let i = 0; i <= 135; i += 5) {
       options.push({
-        value: i.toString(),
+        value: i,
         label: i === 0 ? "Unlimited" : `${i} minutes`,
       });
     }
     return options;
-  };
-
-  const handleStartPractice = (mode: "practice" | "fulltest" = "practice") => {
-    const selectedPartsArray = Array.from(selectedParts);
-    // nếu fulltest thì thời gian = 120, ngược lại thì lấy từ dropdown
-    const timeValue =
-      mode === "fulltest"
-        ? "120 minutes"
-        : selectedTime === "0"
-        ? "unlimited"
-        : selectedTime
-        ? `${selectedTime} minutes`
-        : "unlimited";
-
-    console.log("Starting practice with:", {
-      selectedParts: selectedPartsArray,
-      timeLimit: timeValue,
-      partTitles: selectedPartsArray
-        .map((id) => parts.find((p) => p._id === id)?.title)
-        .filter(Boolean),
-    });
   };
 
   const formatNumber = (num: number): string => {
@@ -236,7 +229,7 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
                       <input
                         type="checkbox"
                         id={`part-${part._id}`}
-                        checked={selectedParts.has(part._id)}
+                        checked={selectedParts.includes(part._id)}
                         onChange={() => handlePartToggle(part._id)}
                         className="mt-1 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-600 focus:ring-2"
                         aria-describedby={`part-${part._id}-description`}
@@ -278,10 +271,10 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
                   <div className="w-full sm:w-64">
                     <Select
                       value={selectedTime}
-                      onValueChange={setSelectedTime}
+                      onValueChange={(val) => setSelectedTime(val)}
                       placeholder="Chọn thời gian"
                       options={generateTimeOptions().map((opt) => ({
-                        ...opt,
+                        value: opt.value,
                         label:
                           opt.label === "Unlimited"
                             ? "Không giới hạn"
@@ -290,13 +283,16 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
                     />
                   </div>
                   <Button
-                    onClick={() => handleStartPractice("practice")}
-                    disabled={selectedParts.size === 0}
+                    onClick={() => onStartPractice("practice")}
+                    disabled={selectedParts.length === 0 || sessionLoading}
                     className="w-full sm:w-auto"
                   >
-                    Bắt đầu luyện tập
+                    {sessionLoading ? "Đang khởi tạo..." : "Bắt đầu luyện tập"}
                   </Button>
                 </div>
+                {sessionError && (
+                  <p className="text-red-500 text-sm">{sessionError}</p>
+                )}
               </div>
             </div>
           )}
@@ -319,11 +315,15 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
               </p>
 
               <Button
-                onClick={() => handleStartPractice('fulltest')}
+                onClick={() => onStartPractice("fulltest")}
+                disabled={sessionLoading}
                 className="mt-4 w-full sm:w-auto"
               >
-                Bắt đầu thi thử
+                {sessionLoading ? "Đang khởi tạo..." : "Bắt đầu thi thử"}
               </Button>
+              {sessionError && (
+                <p className="text-red-500 text-sm mt-2">{sessionError}</p>
+              )}
             </div>
           )}
 
