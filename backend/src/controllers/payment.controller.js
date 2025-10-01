@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { config } from "../config/env.js";
 import User from "../models/user.models.js";
 import PaymentOrder from "../models/paymentOrder.model.js";
-import PremiumPackage from "../models/premiumPackage.models.js";
+import PremiumPackage from "../models/vipPackage.model.js";
 
 // Sort + encode giống VNPay gốc
 function sortObject(obj) {

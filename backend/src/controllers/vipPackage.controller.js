@@ -1,4 +1,4 @@
-import * as PackageService from '../services/premiumPackage.service.js';
+import * as PackageService from '../services/vipPackage.service.js';
 import { success, error } from '../utils/response.js';
 
 // Get all premium packages

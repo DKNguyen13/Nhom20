@@ -1,15 +1,15 @@
-import PremiumPackage from '../models/premiumPackage.models.js';
+import vipPackageModel from '../models/vipPackage.model.js';
 
 // Get all packages
 export const getAllPackages = async () => {
-  const packages = await PremiumPackage.find();
+  const packages = await vipPackageModel.find();
   const order = ["basic", "pro", "premium"];
   return packages.sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
 };
 
 // Get package by id
 export const getPackageById = async (id) => {
-  const pkg = await PremiumPackage.findById(id);
+  const pkg = await vipPackageModel.findById(id);
   if (!pkg) throw new Error('Gói không tồn tại');
   return pkg;
 };
@@ -24,7 +24,7 @@ export const updatePackage = async (id, data) => {
 
   if (allowedUpdates.discountedPrice > allowedUpdates.originalPrice) throw new Error('Giá giảm không được lớn hơn giá gốc');
 
-  const pkg = await PremiumPackage.findByIdAndUpdate(id, allowedUpdates, { new: true });
+  const pkg = await vipPackageModel.findByIdAndUpdate(id, allowedUpdates, { new: true });
   if (!pkg) throw new Error('Gói không tồn tại');
   return pkg;
 };

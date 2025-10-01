@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import User from "../models/user.models.js";
 import Lesson from "../models/lesson.model.js";
-import premiumPackageModels from "../models/premiumPackage.models.js";
+import VipPackage from "../models/vipPackage.model.js";
 
 //Create admin if not exist
 export const createAdminIfNotExist = async () => {
@@ -57,8 +57,8 @@ export const seedPackages = async () => {
   ];
 
   for (const pkg of packages) {
-    const exists = await premiumPackageModels.findOne({ type: pkg.type });
-    if (!exists) await premiumPackageModels.create(pkg);
+    const exists = await VipPackage.findOne({ type: pkg.type });
+    if (!exists) await VipPackage.create(pkg);
   }
 };
 

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const premiumPackageSchema = new mongoose.Schema({
+const vipPackageSchema = new mongoose.Schema({
     name: { type: String, required: true },
     durationMonths: { type: Number, required: true },  // 1, 6, 12
     originalPrice: { type: Number, required: true },
@@ -9,4 +9,4 @@ const premiumPackageSchema = new mongoose.Schema({
     type: { type: String, enum: ['basic','pro','premium'], required: true }
 }, { timestamps: true });
 
-export default mongoose.model('PremiumPackage', premiumPackageSchema);
+export default mongoose.model('VipPackage', vipPackageSchema);
