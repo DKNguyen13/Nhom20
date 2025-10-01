@@ -1,0 +1,30 @@
+import vipPackageModel from '../models/vipPackage.model.js';
+
+// Get all packages
+export const getAllPackages = async () => {
+  const packages = await vipPackageModel.find();
+  const order = ["basic", "pro", "premium"];
+  return packages.sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
+};
+
+// Get package by id
+export const getPackageById = async (id) => {
+  const pkg = await vipPackageModel.findById(id);
+  if (!pkg) throw new Error('Gói không tồn tại');
+  return pkg;
+};
+
+// Update data
+export const updatePackage = async (id, data) => {
+  const allowedUpdates = {
+    originalPrice: data.originalPrice,
+    discountedPrice: data.discountedPrice,
+    description: data.description
+  };
+
+  if (allowedUpdates.discountedPrice > allowedUpdates.originalPrice) throw new Error('Giá giảm không được lớn hơn giá gốc');
+
+  const pkg = await vipPackageModel.findByIdAndUpdate(id, allowedUpdates, { new: true });
+  if (!pkg) throw new Error('Gói không tồn tại');
+  return pkg;
+};

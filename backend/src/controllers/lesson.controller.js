@@ -1,4 +1,5 @@
 import Lesson from "../models/lesson.model.js";
+import Wishlist from '../models/wishlist.model.js';
 import { success, error } from '../utils/response.js';
 
 // Create lesson
@@ -19,18 +20,46 @@ export const createLesson = async (req, res) => {
 export const getLessons = async (req, res) => {
   try {
     const lessons = await Lesson.find({ isDeleted: false });
-    return success(res, 'Lấy danh sách lesson thành công', lessons);
+    
+    const lessonsWithFavorite = await Promise.all(
+      lessons.map(async (lesson) => {
+        const favoriteCount = await Wishlist.countDocuments({ lesson: lesson._id });
+        let isFavorite = false;
+        if (req.user) {
+          const exists = await Wishlist.exists({ user: req.user._id, lesson: lesson._id });
+          isFavorite = !!exists;
+        }
+        return {
+          ...lesson.toObject(),
+          views: lesson.views || 0,
+          favoriteCount,
+          isFavorite
+        };
+      })
+    );
+
+    return success(res, 'Lấy danh sách lesson thành công', lessonsWithFavorite);
   } catch (err) {
-    return error(res, err.message, 500);
+    console.log(err.message);
+    return error(res, "Lỗi lấy danh sách các bài học", 500);
   }
 };
+
 
 // Get lesson by ID
 export const getLessonById = async (req, res) => {
   try {
     const lesson = await Lesson.findOne({ _id: req.params.id, isDeleted: false });
     if (!lesson) return error(res, "Lesson không tìm thấy", 404);
-    return success(res, 'Lấy lesson thành công', lesson);
+    const favoriteCount = await Wishlist.countDocuments({ lesson: lesson._id });
+
+    let isFavorite = false;
+    if (req.user) {
+      const exists = await Wishlist.exists({ user: req.user._id, lesson: lesson._id });
+      isFavorite = !!exists;
+    }
+
+    return success(res, 'Lấy lesson thành công', {...lesson.toObject(), favoriteCount, isFavorite });
   } catch (err) {
     return error(res, err.message, 400);
   }
@@ -63,6 +92,23 @@ export const deleteLesson = async (req, res) => {
     );
     if (!lesson) return error(res, "Lesson không tìm thấy", 404);
     return success(res, 'Xóa lesson thành công');
+  } catch (err) {
+    return error(res, err.message, 400);
+  }
+};
+
+// Increase view
+export const incrementViews = async (req, res) => {
+  try {
+    const lesson = await Lesson.findOneAndUpdate(
+      { _id: req.params.id, isDeleted: false },
+      { $inc: { views: 1 } },
+      { new: true }
+    );
+
+    if (!lesson) return error(res, "Lesson không tìm thấy", 404);
+
+    return success(res, "Tăng views thành công", { views: lesson.views });
   } catch (err) {
     return error(res, err.message, 400);
   }

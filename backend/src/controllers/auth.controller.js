@@ -1,9 +1,9 @@
+import axios from "axios";
+import { config } from "../config/env.config.js";
+import { success, error } from '../utils/response.js';
 import * as AuthService from '../services/auth.service.js';
 import * as AdminService from '../services/admin.service.js';
 import { authenticate } from '../middleware/authenticate.js';
-import { success, error } from '../utils/response.js';
-import { config } from "../config/env.js";
-import axios from "axios";
 
 // Send OTP to email
 export const sendOTP = async (req, res) => {

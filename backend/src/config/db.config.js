@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { config } from "./env.js";
+import { config } from "./env.config.js";
+
 const connectDB = async () => {
     try{
         await mongoose.connect(config.mongodbUri, {

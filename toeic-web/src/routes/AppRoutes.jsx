@@ -28,7 +28,9 @@ import UserManagementPage from "../pages/Admin/UserManagement/UserManagement";
 import TestManagementPage from "../pages/Admin/TestManagement/TestManagement";
 import MockDetailTests from "../pages/Detail/mockDetailTests";
 import { Wishlist } from "../pages/Wishlist/Wishlist";
-const isAuthenticated = false; // Kiểm tra trạng thái đăng nhập
+import VipManagement from "../pages/Admin/VipManagement/VipManagement";
+import PaymentFail from "../pages/Payment/PaymentFail";
+import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 
 // Cấu hình routes
 const routes = [
@@ -161,21 +163,36 @@ const routes = [
 	{
 		path: "/payment",
 		element: (
-			<ProtectedRoute allowedRoles={['admin', 'user']}>
 				<MainLayout>
 					<Payment />
 				</MainLayout>
-			</ProtectedRoute>
+			
 		),
 	},
 	{
 		path: "/payment/paymentform",
 		element: (
-			<ProtectedRoute allowedRoles={['admin', 'user']}>
+			
 				<MainLayout>
 					<PaymentForm />
 				</MainLayout>
-			</ProtectedRoute>
+
+		),
+	},
+	{
+		path: "/payment/success",
+		element: (
+			<MainLayout>
+			<PaymentSuccess />
+			</MainLayout>
+		),
+	},
+	{
+		path: "/payment/fail",
+		element: (
+			<MainLayout>
+			<PaymentFail />
+			</MainLayout>
 		),
 	},
 	{
@@ -213,11 +230,9 @@ const routes = [
 	{
 		path: "/admin/dashboard",
 		element: (
-			<ProtectedRoute allowedRoles={['admin']}>
       			<MainLayout>
         			<DashboardPage />
 				</MainLayout>
-			</ProtectedRoute>
 		),
 	},
 	{
@@ -236,6 +251,16 @@ const routes = [
 			<ProtectedRoute allowedRoles={['admin']}>
 				<MainLayout>
 					<TestManagementPage />
+				</MainLayout>
+			</ProtectedRoute>
+		),
+	},
+	{
+		path: "/admin/vipmanagement",
+		element: (
+			<ProtectedRoute allowedRoles={['admin']}>
+				<MainLayout>
+					<VipManagement />
 				</MainLayout>
 			</ProtectedRoute>
 		),

@@ -1,8 +1,7 @@
-import { success, error } from '../utils/response.js';
-
 import Test from "../models/test.model.js";
 import Part from "../models/part.model.js";
 import Question from "../models/question.model.js";
+import { success, error } from '../utils/response.js';
 
 // [GET] /api/test
 export const getAllTest = async (req, res) => {
@@ -63,8 +62,6 @@ export const getTestDetail = async (req, res) => {
 export const createTest = async (req, res) => {
     try {
         // validate input
-
-
         const testData = {
             ...req.body,
             createdBy: req.user._id,
@@ -84,7 +81,6 @@ export const createTest = async (req, res) => {
 export const updateTest = async (req, res) => {
     try {
         // validate input
-
         const { slug } = req.params;
         const updateData = { ...req.body };
 
@@ -118,7 +114,7 @@ export const deleteTest = async (req, res) => {
         if (!test) {
             return error(res, 'Test not found');
         }
-
+        
         return success(res, 'Delete test success');
     } catch (error) {
         return error(res, 'Delete test error', error.message);

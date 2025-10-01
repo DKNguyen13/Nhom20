@@ -1,6 +1,7 @@
 import React from "react";
 import { FaEye, FaHeart, FaBookOpen, FaPen, FaCog, FaVideo } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../config/axios"; // import axios đã config
 
 interface ResourceCardProps {
   id: string | number;
@@ -11,10 +12,7 @@ interface ResourceCardProps {
   type?: "reading" | "vocabulary" | "grammar" | "video";
 }
 
-const typeConfig: Record<
-  string,
-  { label: string; icon: JSX.Element; classes: string }
-> = {
+const typeConfig: Record<string, { label: string; icon: JSX.Element; classes: string }> = {
   reading: {
     label: "Đọc hiểu",
     icon: <FaBookOpen className="mr-1.5" />,
@@ -37,14 +35,19 @@ const typeConfig: Record<
   },
 };
 
-const ResourceCard: React.FC<ResourceCardProps> = ({
-  id,
-  imageSrc,
-  title,
-  views,
-  likes,
-  type,
-}) => {
+const ResourceCard: React.FC<ResourceCardProps> = ({ id, imageSrc, title, views, likes, type }) => {
+  const navigate = useNavigate();
+
+  const handleViewDetail = async () => {
+    try {
+      await api.patch(`/lessons/${id}/views`);
+    } catch (err) {
+      console.error("Lỗi khi tăng views:", err);
+    } finally {
+      navigate(`/resource/${id}`);
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-5 flex flex-col max-w-sm mx-auto transform hover:-translate-y-1">
       <div className="relative overflow-hidden rounded-lg mb-4">
@@ -58,9 +61,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
       <h3 className="text-gray-900 font-bold text-xl mb-3 line-clamp-2">{title}</h3>
 
       {type && (
-        <div
-          className={`inline-flex items-center text-sm font-medium px-3 py-1.5 rounded-full mb-4 ${typeConfig[type].classes}`}
-        >
+        <div className={`inline-flex items-center text-sm font-medium px-3 py-1.5 rounded-full mb-4 ${typeConfig[type].classes}`}>
           {typeConfig[type].icon}
           {typeConfig[type].label}
         </div>
@@ -77,11 +78,12 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
         </div>
       </div>
 
-      <Link to={`${id}`} className="mt-auto">
-        <button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2.5 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 font-medium text-sm shadow-sm">
-          Xem chi tiết
-        </button>
-      </Link>
+      <button
+        onClick={handleViewDetail}
+        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2.5 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 font-medium text-sm shadow-sm"
+      >
+        Xem chi tiết
+      </button>
     </div>
   );
 };
