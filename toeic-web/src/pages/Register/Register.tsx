@@ -79,7 +79,7 @@ const Register: React.FC = () => {
 
     try {
       const res = await api.post("/auth/register", {
-        fullName: fullname,
+        fullname: fullname,
         email,
         password,
         phone,

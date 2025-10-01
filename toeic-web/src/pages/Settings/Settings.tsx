@@ -7,11 +7,10 @@ const Settings: React.FC = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
-  // Hàm helper: nếu null/undefined thì trả ""
   const safeValue = (val: string | null | undefined) => val ?? "";
 
   useEffect(() => {
-    setFullname(safeValue(localStorage.getItem("fullName")));
+    setFullname(safeValue(localStorage.getItem("fullname")));
     setEmail(safeValue(localStorage.getItem("email")));
     setPhone(safeValue(localStorage.getItem("phone")));
   }, []);

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaTachometerAlt, FaUsers, FaFileAlt, FaGift, FaSignOutAlt } from "react-icons/fa"; // thêm FaGift cho VIP
+import { FaTachometerAlt, FaUsers, FaFileAlt, FaGift, FaSignOutAlt } from "react-icons/fa";
 import api, { setAccessToken } from "../config/axios.js";
 
 interface LeftSidebarAdminProps {
@@ -9,7 +9,7 @@ interface LeftSidebarAdminProps {
 
 const LeftSidebarAdmin: React.FC<LeftSidebarAdminProps> = ({ customHeight }) => {
   const navigate = useNavigate();
-  const fullname = localStorage.getItem("fullName") || "Admin";
+  const fullname = localStorage.getItem("fullname") || "Admin";
   const avatarUrl = localStorage.getItem("avatarUrl") || "/img/avatar/default_avatar.jpg";
 
   const handleLogout = async () => {

@@ -28,7 +28,7 @@ export const normalLoginService = async ({ email, password }) => {
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
     
-    const safeUser = { id: user._id, fullName: user.fullName, email: user.email, phone: user.phone, avatarUrl: user.avatarUrl, role: user.role };
+    const safeUser = { id: user._id, fullname: user.fullname, email: user.email, phone: user.phone, avatarUrl: user.avatarUrl, role: user.role };
 
     return { user : safeUser, accessToken, refreshToken };
 };
@@ -52,7 +52,7 @@ export const googleLoginService = async ({ tokenId }) => {
         }
     } else {
         user = new User({ 
-            fullName: name, 
+            fullname: name, 
             email, 
             avatarUrl: picture, 
             authType: 'google', 
@@ -68,7 +68,7 @@ export const googleLoginService = async ({ tokenId }) => {
 
     const safeUser = { 
         id: user._id, 
-        fullName: user.fullName, 
+        fullname: user.fullname, 
         email: user.email, 
         phone: user.phone, 
         avatarUrl: user.avatarUrl, 
@@ -79,7 +79,7 @@ export const googleLoginService = async ({ tokenId }) => {
 };
 
 // Register
-export const registerService = async ({ fullName, email, password, phone, dob, avatarUrl, otp }) => {
+export const registerService = async ({ fullname, email, password, phone, dob, avatarUrl, otp }) => {
     const storedOtp = await redisClient.get(`otp:${email}`);
     
     if (!storedOtp || storedOtp !== otp) throw new Error('OTP invalid');
@@ -88,7 +88,7 @@ export const registerService = async ({ fullName, email, password, phone, dob, a
 
     if (phone && await User.findOne({ phone })) throw new Error('Phone already exist');
 
-    if (!fullName || !fullNameRegex.test(fullName)) throw new Error('Full name contains invalid characters');
+    if (!fullname || !fullNameRegex.test(fullname)) throw new Error('Full name contains invalid characters');
     
     let dobDate = null;
     if (dob) {
@@ -99,7 +99,7 @@ export const registerService = async ({ fullName, email, password, phone, dob, a
 
     const hashedPassword = await bcrypt.hash(password, await bcrypt.genSalt(10));
 
-    const user = new User({ fullName, email, password: hashedPassword, phone, dob: dobDate, avatarUrl, authType: 'normal', isVerified: true });
+    const user = new User({ fullname, email, password: hashedPassword, phone, dob: dobDate, avatarUrl, authType: 'normal', isVerified: true });
     await user.save();
     await redisClient.del(`otp:${email}`);
 
@@ -149,12 +149,12 @@ export const editInforService = async ({ email }) => {
 };
 
 //Update profile
-export const updateProfileService = async ({ userId, fullName, fileBuffer }) => {
+export const updateProfileService = async ({ userId, fullname, fileBuffer }) => {
     const user = await User.findById(userId);
     if (!user) throw new Error('Người dùng không tồn tại');
 
-    if (fullName && fullName.trim() !== '') {
-        user.fullName = fullName;
+    if (fullname && fullname.trim() !== '') {
+        user.fullname = fullname;
     }
 
     if (fileBuffer) {
@@ -166,7 +166,7 @@ export const updateProfileService = async ({ userId, fullName, fileBuffer }) => 
 
     return {
         id: user._id.toString(),
-        fullName: user.fullName,
+        fullname: user.fullname,
         email: user.email,
         phone: user.phone,
         avatar: user.avatarUrl,
@@ -187,7 +187,5 @@ export const changePasswordService = async ({ userId, oldPassword, newPassword }
 
     await user.save();
 
-    return {
-        message: 'Đổi mật khẩu thành công',
-    };
+    return { message: 'Đổi mật khẩu thành công',};
 };

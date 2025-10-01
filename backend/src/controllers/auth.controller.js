@@ -21,7 +21,7 @@ export const login = async (req, res) => {
         });
 
         return success(res, 'Login successfull', { 
-            user: { fullName: user.fullName, email : user.email, phone : user.phone, avatarUrl : user.avatarUrl },
+            user: { fullname: user.fullname, email : user.email, phone : user.phone, avatarUrl : user.avatarUrl, role : user.role },
             accessToken
         });
     } catch (err) {
@@ -47,7 +47,7 @@ export const googleLogin = async (req, res) => {
         });
 
         return success(res, 'Google login successful', { 
-            user: { fullName: user.fullName, email : user.email, avatarUrl: user.avatarUrl },
+            user: { fullname: user.fullname, email : user.email, avatarUrl: user.avatarUrl },
             accessToken
         });
     } catch (err) {
@@ -59,8 +59,8 @@ export const googleLogin = async (req, res) => {
 // Register account
 export const register = async (req, res) => {
     try{
-        const { fullName, email, password, phone, dob, avatarUrl, otp } = req.body;
-        await AuthService.register({ fullName, email, password, phone, dob, avatarUrl, otp });
+        const { fullname, email, password, phone, dob, avatarUrl, otp } = req.body;
+        await AuthService.register({ fullname, email, password, phone, dob, avatarUrl, otp });
         return success(res, 'Register successful. Please login.')
     }
     catch (err){
@@ -146,12 +146,12 @@ export const refreshToken = async (req, res) => {
 export const updateProfileController = async (req, res) => {
   try {
     const userId = req.user.id;
-    const fullName = req.body.fullname || '';
+    const fullname = req.body.fullname || '';
     const fileBuffer = req.file?.buffer || null;
 
     const updatedUser = await AuthService.updateProfileService({
         userId,
-        fullName: fullName,
+        fullname: fullname,
         fileBuffer,
     });
 
@@ -176,7 +176,8 @@ export const changePassword = async (req, res) => {
 
 // Check role
 export const checkRole = [ authenticate, (req, res) => {
-    try {
+    try 
+    {
         console.log('User role:', req.user.role);
         return success(res, 'Role hiện tại', { role: req.user.role });
     } catch (err) {

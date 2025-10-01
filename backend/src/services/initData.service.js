@@ -49,7 +49,7 @@ export const createAdminIfNotExist = async () => {
     if (!adminExists) {
       const hashedPassword = await bcrypt.hash('admin@', 10);
       const admin = new User({
-        fullName: 'Super Admin',
+        fullname: 'Super Admin',
         email: 'admin@admin.com',
         password: hashedPassword,
         phone: '0123456789',

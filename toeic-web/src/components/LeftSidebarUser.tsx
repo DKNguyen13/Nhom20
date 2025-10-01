@@ -22,7 +22,7 @@ const LeftSidebarUser: React.FC<LeftSidebarUserProps> = ({
   customHeight = "h-screen w-64 min-w-44",
 }) => {
   const navigate = useNavigate();
-  const fullname = localStorage.getItem("fullName") || "Guest User";
+  const fullname = localStorage.getItem("fullname") || "Guest User";
   const avatarUrl = localStorage.getItem("avatarUrl") || "/img/avatar/default_avatar.jpg";
 
   // Logout handler

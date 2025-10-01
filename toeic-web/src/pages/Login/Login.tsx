@@ -33,7 +33,7 @@ const Login: React.FC = () => {
       if (res.data.success) {
         const { user, accessToken } = res.data.data;
         setAccessToken(accessToken);
-        localStorage.setItem("fullName", user.fullName);
+        localStorage.setItem("fullname", user.fullname);
         localStorage.setItem("email", user.email);
         localStorage.setItem("phone", user.phone);
         localStorage.setItem("avatarUrl", user.avatarUrl);
@@ -173,7 +173,7 @@ const Login: React.FC = () => {
                     if (res.data.success) {
                       const { user, accessToken } = res.data.data;
                       setAccessToken(accessToken);
-                      localStorage.setItem("fullName", user.fullName);
+                      localStorage.setItem("fullname", user.fullname);
                       localStorage.setItem("email", user.email);
                       localStorage.setItem("avatarUrl", user.avatarUrl);
                       navigate("/");
