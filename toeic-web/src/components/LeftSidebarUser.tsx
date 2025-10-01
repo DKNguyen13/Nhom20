@@ -1,7 +1,7 @@
 import React from "react";
+import api, { setAccessToken } from "../config/axios.js";
 import { Link, useNavigate } from "react-router-dom";
 import { FaHistory, FaCog, FaSignOutAlt } from "react-icons/fa";
-import api, { setAccessToken } from "../config/axios.js";
 
 interface LeftSidebarUserProps {
   customHeight?: string;

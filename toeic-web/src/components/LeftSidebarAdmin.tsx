@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaTachometerAlt, FaUsers, FaFileAlt, FaGift, FaSignOutAlt } from "react-icons/fa"; // thêm FaGift cho VIP
+import { FaTachometerAlt, FaUsers, FaFileAlt, FaGift, FaSignOutAlt } from "react-icons/fa";
 import api, { setAccessToken } from "../config/axios.js";
 
 interface LeftSidebarAdminProps {

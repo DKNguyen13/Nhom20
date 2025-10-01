@@ -26,7 +26,7 @@ const UserManagementPage: React.FC = () => {
   const fetchUsers = async (page: number) => {
     setLoading(true);
     try {
-      const res = await api.get(`/auth/users?page=${page}&limit=${pageSize}`);
+      const res = await api.get(`/admin/users?page=${page}&limit=${pageSize}`);
       const data = res.data.data;
 
       setUsers(
@@ -65,7 +65,7 @@ const UserManagementPage: React.FC = () => {
   // Inactivate / Activate user
   const handleToggleStatus = async (user: User) => {
     try {
-      await api.patch("/auth/change-activate-user", { email: user.email });
+      await api.patch("/admin/activate", { email: user.email });
       setUsers((prev) =>
         prev.map((u) =>
           u.email === user.email

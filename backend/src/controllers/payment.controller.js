@@ -1,7 +1,7 @@
 import moment from "moment";
 import crypto from "crypto";
 import { config } from "../config/env.config.js";
-import User from "../models/user.models.js";
+import User from "../models/user.model.js";
 import VipPackage from "../models/vipPackage.model.js";
 import PaymentOrder from "../models/paymentOrder.model.js";
 

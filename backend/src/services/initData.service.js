@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import mongoose from "mongoose";
-import User from "../models/user.models.js";
+import User from "../models/user.model.js";
 import Lesson from "../models/lesson.model.js";
 import VipPackage from "../models/vipPackage.model.js";
 import PaymentOrder from "../models/paymentOrder.model.js";
@@ -41,7 +41,6 @@ export const seedRevenue = async () => {
   await PaymentOrder.insertMany(fakeOrders);
   console.log(`✅ Seeded ${fakeOrders.length} fake PaymentOrders`);
 };
-
 
 //Create admin if not exist
 export const createAdminIfNotExist = async () => {
