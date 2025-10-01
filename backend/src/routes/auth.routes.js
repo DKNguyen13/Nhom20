@@ -2,13 +2,14 @@ import multer from 'multer';
 import express from 'express';
 import { authenticate } from '../middleware/authenticate.js';
 import * as authController from '../controllers/auth.controller.js';
+import limitRequest from '../middleware/limitRequest.middleware.js';
 
 const router = express.Router();
 const upload = multer();
 
-router.post('/login', authController.login);
+router.post('/login', limitRequest, authController.login);
 router.post('/google', authController.googleLogin);
-router.post('/send-otp', authController.sendOTP);
+router.post('/send-otp', limitRequest, authController.sendOTP);
 router.post('/register', authController.register);
 router.post('/forgot-password', authController.resetPassword);
 router.post('/refresh-token', authController.refreshToken);
