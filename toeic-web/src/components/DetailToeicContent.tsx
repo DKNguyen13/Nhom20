@@ -27,9 +27,9 @@ type ToeicTestProps = {
   practicedCount: number;
   commentsCount: number;
   parts: Array<{
-    id: number;
+    _id: number;
     title: string;
-    questionCount: number;
+    totalQuestions: number;
     tags: string[];
   }>;
   comments: Comment[]; // list of comments to display
@@ -90,7 +90,7 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
       selectedParts: selectedPartsArray,
       timeLimit: timeValue,
       partTitles: selectedPartsArray
-        .map((id) => parts.find((p) => p.id === id)?.title)
+        .map((id) => parts.find((p) => p._id === id)?.title)
         .filter(Boolean),
     });
   };
@@ -100,9 +100,9 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
   };
 
   const tabs = [
-    { id: "practice" as TabType, label: "Practice", icon: BookOpen },
-    { id: "fulltest" as TabType, label: "Full Test", icon: Clock },
-    { id: "discussion" as TabType, label: "Discussion", icon: MessageCircle },
+    { id: "practice" as TabType, label: "Luyện tập", icon: BookOpen },
+    { id: "fulltest" as TabType, label: "Thi thử", icon: Clock },
+    { id: "discussion" as TabType, label: "Thảo luận", icon: MessageCircle },
   ];
 
   return (
@@ -117,14 +117,12 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center gap-2 text-gray-500">
               <Clock className="w-4 h-4" />
-              <span className="text-sm">
-                Duration: {durationMinutes} minutes
-              </span>
+              <span className="text-sm">Thời gian: {durationMinutes} phút</span>
             </div>
             <div className="flex items-center gap-2 text-gray-500">
               <BookOpen className="w-4 h-4" />
               <span className="text-sm">
-                {totalParts} parts, {totalQuestions} questions
+                {totalParts} phần, {totalQuestions} câu hỏi
               </span>
             </div>
           </div>
@@ -139,7 +137,7 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
                 <div className="text-lg font-semibold text-gray-900">
                   {formatNumber(practicedCount)}
                 </div>
-                <div className="text-sm text-gray-500">practiced</div>
+                <div className="text-sm text-gray-500">lượt luyện tập</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -148,7 +146,7 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
                 <div className="text-lg font-semibold text-gray-900">
                   {formatNumber(commentsCount)}
                 </div>
-                <div className="text-sm text-gray-500">comments</div>
+                <div className="text-sm text-gray-500">bình luận</div>
               </div>
             </div>
           </div>
@@ -160,8 +158,8 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
         <div className="flex items-start gap-2">
           <Info className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-gray-900">
-            To be converted into a scaled score (e.g., up to 990 for TOEIC),
-            please select <strong>FULL TEST</strong> mode.
+            Để có kết quả quy đổi điểm chuẩn (ví dụ: thang điểm 990 cho TOEIC),
+            vui lòng chọn chế độ <strong>THI THỬ</strong>.
           </p>
         </div>
       </div>
@@ -213,12 +211,12 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
                   <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-medium text-green-600 mb-1">
-                      Pro Tips
+                      Mẹo luyện thi
                     </h3>
                     <p className="text-sm text-gray-900">
-                      Practicing by section and selecting a suitable time limit
-                      will help you focus on answering correctly instead of
-                      being pressured to complete the entire test.
+                      Luyện tập theo từng phần và chọn thời gian phù hợp sẽ giúp
+                      bạn tập trung trả lời chính xác thay vì bị áp lực hoàn
+                      thành toàn bộ bài thi.
                     </p>
                   </div>
                 </div>
@@ -227,32 +225,32 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
               {/* Parts Checklist */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Select Parts to Practice
+                  Chọn phần muốn luyện tập
                 </h3>
                 <div className="grid gap-3">
                   {parts.map((part) => (
                     <div
-                      key={part.id}
+                      key={part._id}
                       className="flex items-start gap-3 p-4 bg-gray-100 rounded-lg border border-gray-200 hover:bg-gray-200 transition-colors"
                     >
                       <input
                         type="checkbox"
-                        id={`part-${part.id}`}
-                        checked={selectedParts.has(part.id)}
-                        onChange={() => handlePartToggle(part.id)}
+                        id={`part-${part._id}`}
+                        checked={selectedParts.has(part._id)}
+                        onChange={() => handlePartToggle(part._id)}
                         className="mt-1 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-600 focus:ring-2"
-                        aria-describedby={`part-${part.id}-description`}
+                        aria-describedby={`part-${part._id}-description`}
                       />
                       <div className="flex-1 min-w-0">
                         <label
-                          htmlFor={`part-${part.id}`}
+                          htmlFor={`part-${part._id}`}
                           className="text-sm font-medium text-gray-900 cursor-pointer"
                         >
-                          {part.title} ({part.questionCount} questions)
+                          {part.title} ({part.totalQuestions} câu hỏi)
                         </label>
                         {part.tags.length > 0 && (
                           <div
-                            id={`part-${part.id}-description`}
+                            id={`part-${part._id}-description`}
                             className="flex flex-wrap gap-1 mt-2"
                           >
                             {part.tags.map((tag, index) => (
@@ -274,15 +272,21 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
               {/* Timer Selector */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Time Limit
+                  Giới hạn thời gian
                 </h3>
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
                   <div className="w-full sm:w-64">
                     <Select
                       value={selectedTime}
                       onValueChange={setSelectedTime}
-                      placeholder="Select time"
-                      options={generateTimeOptions()}
+                      placeholder="Chọn thời gian"
+                      options={generateTimeOptions().map((opt) => ({
+                        ...opt,
+                        label:
+                          opt.label === "Unlimited"
+                            ? "Không giới hạn"
+                            : `${opt.value} phút`,
+                      }))}
                     />
                   </div>
                   <Button
@@ -290,7 +294,7 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
                     disabled={selectedParts.size === 0}
                     className="w-full sm:w-auto"
                   >
-                    Start Practice
+                    Bắt đầu luyện tập
                   </Button>
                 </div>
               </div>
@@ -307,18 +311,18 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
             >
               <Clock className="w-16 h-16 text-blue-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Full Test Mode
+                Chế độ thi thử
               </h3>
               <p className="text-gray-500 max-w-md mx-auto">
-                Take the complete {testName} under timed conditions. Your
-                results will be converted to a scaled score up to 990 points.
+                Làm toàn bộ bài thi {testName} trong điều kiện tính giờ. Kết quả
+                của bạn sẽ được quy đổi sang thang điểm 990.
               </p>
 
               <Button
-                onClick={() => handleStartPractice("fulltest")}
+                onClick={() => handleStartPractice('fulltest')}
                 className="mt-4 w-full sm:w-auto"
               >
-                Start Full Test
+                Bắt đầu thi thử
               </Button>
             </div>
           )}
@@ -333,12 +337,12 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
             >
               <MessageCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Discussion Forum
+                Diễn đàn thảo luận
               </h3>
               <p className="text-gray-500 max-w-md mx-auto">
-                Join the discussion with {formatNumber(commentsCount)} comments
-                from other test takers. Share tips, ask questions, and learn
-                together.
+                Tham gia thảo luận với {formatNumber(commentsCount)} bình luận
+                từ các thí sinh khác. Chia sẻ kinh nghiệm, đặt câu hỏi và học
+                hỏi cùng nhau.
               </p>
             </div>
           )}
@@ -353,7 +357,7 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
         <div className="p-6 space-y-4">
           {comments.length === 0 ? (
             <p className="text-gray-500 text-center py-8">
-              Please log in to comment
+              Vui lòng đăng nhập để bình luận
             </p>
           ) : (
             <div className="space-y-4">

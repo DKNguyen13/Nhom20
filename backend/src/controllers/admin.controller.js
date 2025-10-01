@@ -1,5 +1,5 @@
-import * as AdminService from "../services/admin.service.js";
 import { success, error } from "../utils/response.js";
+import * as AdminService from "../services/admin.service.js";
 
 export const getRevenueStatsController = async (req, res) => {
   try {

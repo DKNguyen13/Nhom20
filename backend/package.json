@@ -27,6 +27,7 @@
     "streamifier": "^0.1.1"
   },
   "devDependencies": {
+    "mongoose-slug-updater": "^3.3.0",
     "nodemon": "^3.1.10"
   }
 }

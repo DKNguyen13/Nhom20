@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import redisClient from '../config/redis.js';
+import redisClient from '../config/redis.config.js';
 import User from '../models/user.models.js';
 import { uploadAvatar } from './cloudinary.service.js';
 import { sendOTPEmail, sendResetPasswordEmail } from './mail.service.js';

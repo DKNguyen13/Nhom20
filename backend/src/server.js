@@ -1,13 +1,16 @@
 import cors from 'cors';
 import express from 'express';
-import connectDB from './config/db.js';
-import { config } from './config/env.js';
+import connectDB from './config/db.config.js';
+import { config } from './config/env.config.js';
 import authRouter from './routes/auth.routes.js';
+import testRoutes from './routes/test.routes.js';
+import partRoutes from './routes/part.routes.js';
 import adminRouter from './routes/admin.routes.js';
 import vnpayRoutes from "./routes/vnpay.routes.js";
 import lessonRouter from './routes/lesson.routes.js';
 import vipRouter from './routes/vipPackage.routes.js';
 import wishlistRouter from './routes/wishlist.routes.js';
+import questionRoutes from './routes/question.routes.js';
 import * as InitData from './services/initData.service.js';
 
 const app = express()
@@ -26,6 +29,9 @@ app.use('/api/wishlist', wishlistRouter);
 app.use('/api/vip', vipRouter);
 app.use("/api/payment", vnpayRoutes);
 app.use('/api/admin', adminRouter);
+app.use('/api/test', testRoutes);
+app.use('/api/test/:slug', partRoutes);
+app.use('/api/test/:slug', questionRoutes);
 
 await connectDB();
 await InitData.createAdminIfNotExist();
@@ -36,4 +42,5 @@ await InitData.seedRevenue();
 app.listen(config.port, () => {
     console.log(`Server running on port ${config.port}`)
 })
+
 export default app;

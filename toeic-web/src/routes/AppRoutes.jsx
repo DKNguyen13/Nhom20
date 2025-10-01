@@ -85,7 +85,7 @@ const routes = [
 	},
 
 	{
-		path: "/mock-test",
+		path: "/tests",
 		element: (
 			<MainLayout>
 				<MockTest />
@@ -132,7 +132,7 @@ const routes = [
 		),
 	},
 	{
-		path: "/tests/:id",
+		path: "/test/:slug",
 		element: (
 			<MainLayout>
 				<MockDetailTests />

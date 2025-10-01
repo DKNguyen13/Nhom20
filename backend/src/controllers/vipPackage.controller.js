@@ -1,5 +1,5 @@
-import * as PackageService from '../services/vipPackage.service.js';
 import { success, error } from '../utils/response.js';
+import * as PackageService from '../services/vipPackage.service.js';
 
 // Get all premium packages
 export const getAllPackages = async (req, res) => {
