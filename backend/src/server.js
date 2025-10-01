@@ -12,6 +12,7 @@ import partRoutes from './routes/part.routes.js';
 import questionRoutes from './routes/question.routes.js';
 import { seedPackages } from './services/premiumPackage.service.js';
 import { seedLessons } from './services/lesson.service.js';
+import sessionRoutes from './routes/session.routes.js';
 
 const app = express()
 
@@ -30,6 +31,7 @@ app.use('/api/wishlist', wishlistRouter)
 app.use('/api/test', testRoutes);
 app.use('/api/test/:slug', partRoutes);
 app.use('/api/test/:slug', questionRoutes);
+app.use('/api/session', sessionRoutes);
 
 
 await connectDB();

@@ -14,7 +14,7 @@ export const getAllTest = async (req, res) => {
         return success(res, 'Get all test success', { tests });
 
     } catch (error) {
-        return error(res, 'Get all test error', error.message);
+        return error(res, 'Get all test error');
     }
 };
 
@@ -55,7 +55,7 @@ export const getTestDetail = async (req, res) => {
             }
         });
     } catch (error) {
-        return error(res, 'Error fetching test', error.message);
+        return error(res, 'Error fetching test');
     }
 };
 
@@ -76,7 +76,7 @@ export const createTest = async (req, res) => {
 
         return success(res, 'Create test success', { test });
     } catch (error) {
-        return error(res, 'error Create Test', error.message);
+        return error(res, 'error Create Test');
     }
 };
 
@@ -100,7 +100,7 @@ export const updateTest = async (req, res) => {
 
         return success(res,'Update test success', { test })
     } catch (error) {
-        return error(res, 'Update test error', error.message);
+        return error(res, 'Update test error');
     }
 };
 
@@ -121,6 +121,6 @@ export const deleteTest = async (req, res) => {
 
         return success(res, 'Delete test success');
     } catch (error) {
-        return error(res, 'Delete test error', error.message);
+        return error(res, 'Delete test error');
     }
 };
