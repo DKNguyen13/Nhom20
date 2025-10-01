@@ -1,7 +1,7 @@
 import React from "react";
+import api, { setAccessToken } from "../config/axios.js";
 import { Link, useNavigate } from "react-router-dom";
 import { FaHistory, FaCog, FaSignOutAlt } from "react-icons/fa";
-import api, { setAccessToken } from "../config/axios.js";
 
 interface LeftSidebarUserProps {
   customHeight?: string;
@@ -22,7 +22,7 @@ const LeftSidebarUser: React.FC<LeftSidebarUserProps> = ({
   customHeight = "h-screen w-64 min-w-44",
 }) => {
   const navigate = useNavigate();
-  const fullname = localStorage.getItem("fullname") || "Guest User";
+  const fullname = localStorage.getItem("fullName") || "Guest User";
   const avatarUrl = localStorage.getItem("avatarUrl") || "/img/avatar/default_avatar.jpg";
 
   // Logout handler

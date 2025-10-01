@@ -1,54 +1,84 @@
 import axios from "axios";
 import { config } from "../config/env.config.js";
+import redisClient from "../config/redis.config.js";
 import { success, error } from '../utils/response.js';
 import * as AuthService from '../services/auth.service.js';
-import * as AdminService from '../services/admin.service.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { verifyRefreshToken, generateAccessToken } from '../utils/jwt.js';
 
-// Send OTP to email
+// Normal Login
+export const login = async (req, res) => {
+    try {
+        const { user, accessToken, refreshToken }  = await AuthService.normalLoginService(req.body);
+
+        await redisClient.set(`refreshToken:${user._id}`, refreshToken, { EX: 7*24*60*60 });
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: config.cookieSecure,
+            sameSite: config.cookieSameSite,
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+
+        return success(res, 'Login successfull', { 
+            user: { fullName: user.fullName, email : user.email, phone : user.phone, avatarUrl : user.avatarUrl },
+            accessToken
+        });
+    } catch (err) {
+        console.log('Normal login error:', err.message);
+        return error(res, "Login error. Please try again!", 400);
+    }
+};
+
+// Google Login
+export const googleLogin = async (req, res) => {
+    try {
+        const { tokenId } = req.body;
+        const { user, accessToken, refreshToken } = await AuthService.googleLoginService({ tokenId });
+
+        await redisClient.set(`refreshToken:${user.id}`, refreshToken, { EX: 7*24*60*60 });
+
+        // Set cookie refresh token
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: config.cookieSecure,
+            sameSite: config.cookieSameSite,
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+        });
+
+        return success(res, 'Google login successful', { 
+            user: { fullName: user.fullName, email : user.email, avatarUrl: user.avatarUrl },
+            accessToken
+        });
+    } catch (err) {
+        console.error("Google login error:", err);
+        return error(res, "Google login error. Please try again!", 400);
+    }
+};
+
+// Register account
+export const register = async (req, res) => {
+    try{
+        const { fullName, email, password, phone, dob, avatarUrl, otp } = req.body;
+        await AuthService.register({ fullName, email, password, phone, dob, avatarUrl, otp });
+        return success(res, 'Register successful. Please login.')
+    }
+    catch (err){
+        console.log("Register fail:", err.message);
+        return error(res, 'Register fail. Please try again!', 400);
+    }
+};
+
+// Send register OTP to email
 export const sendOTP = async (req, res) => {
     try {
         const { email } = req.body;
-        const message = await AuthService.sendOTP(email);
+        const message = await AuthService.sendRegisterOTPService(email);
         return success(res, message);
     } catch (err) {
-        return error(res, err.message, 400);
+        console.log("Send register OTP fail:", err.message);
+        return error(res, "Send OTP fail. Please try again", 400);
     }
-};
-
-// Register
-export const register = async (req, res) => {
-    try {
-        const { fullname, email, password, phone, avatar, otp } = req.body;
-        const { user } = await AuthService.register({ fullname, email, password, phone, avatar, otp });
-
-        return success(res, 'Đăng ký thành công', { 
-            user: { id: user._id, fullname: user.fullname, email: user.email, phone: user.phone, avatar: user.avatar, role: user.role }
-        });
-    } catch (err) {
-        return error(res, err.message, 400);
-    }
-};
-
-// Login
-export const login = async (req, res) => {
-  try {
-    const { user, accessToken, refreshToken } = await AuthService.login(req.body);
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: config.cookieSecure,
-      sameSite: config.cookieSameSite,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-
-    return success(res, 'Đăng nhập thành công', { 
-      user: { id: user._id, fullname: user.fullname, email: user.email, phone: user.phone, avatarUrl : user.avatarUrl, role: user.role },
-      accessToken
-    });
-  } catch (err) {
-    return error(res, err.message, 400);
-  }
 };
 
 // Reset password
@@ -64,112 +94,92 @@ export const resetPassword = async (req, res) => {
         const message = await AuthService.resetPassword({ email });
         return success(res, message);
     } catch (err) {
-        return error(res, err.message, 400);
+        console.log('Reset password error:', err.message);
+        return error(res, 'Reset password error', 400);
     }
 };
 
 // Logout
-export const logout = (req, res) => {
-  try {
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      secure: config.cookieSecure,
-      sameSite: config.cookieSameSite,
-    });
-    
-    return success(res, 'Đăng xuất thành công');
-  } catch (err) {
-    return error(res, err.message, 500);
-  }
+export const logout = async (req, res) => {
+    try{
+        const token = req.cookies.refreshToken;
+        if (token) {
+        const decoded = verifyRefreshToken(token);
+        await redisClient.del(`refreshToken:${decoded.id}`);
+        }
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: config.cookieSecure,
+            sameSite: config.cookieSameSite,
+        });
+        return success(res, "Logged out successfully");
+    }
+    catch(err){
+        console.error("Error logging out user: ", err);
+        return error(res, "Logout failed", 500);
+    }
 };
 
 // Refresh Access Token
-import { verifyRefreshToken, generateAccessToken } from '../utils/jwt.js';
-export const refreshToken = (req, res) => {
-  try {
-    const token = req.cookies.refreshToken;
-    if (!token) return res.status(401).json({ success: false, message: 'No refresh token' });
+export const refreshToken = async (req, res) => {
+    try {
+        const token = req.cookies.refreshToken;
+        if (!token) return error(res, 'No refresh token provided', 401);
 
-    const decoded = verifyRefreshToken(token);
-    const accessToken = generateAccessToken({ id: decoded.id, role: decoded.role });
+        const decoded = verifyRefreshToken(token);
+        const user = await User.findById(decoded.id);
+        const storedToken = await redisClient.get(`refreshToken:${user._id}`);
 
-    return success(res, 'Access token mới', { accessToken });
-  } catch (err) {
-    return error(res, 'Refresh token không hợp lệ hoặc hết hạn', 401);
-  }
+        if (!user || !user.isActive) throw new Error('User not found or inactive');
+        if (!storedToken || storedToken !== token) return error(res, 'Invalid or revoked refresh token', 401);
+        const newAccessToken = generateAccessToken({ id: user._id, role: user.role });
+
+        return success(res, 'New access token', { newAccessToken });
+    } catch (err) {
+        console.log('Refresh access token invalid', err.message)
+        return error(res, 'Refresh access token invalid', 401);
+    }
 };
 
-// Cập nhật thông tin cá nhân
+// Update profile
 export const updateProfileController = async (req, res) => {
   try {
     const userId = req.user.id;
-    const fullname = req.body.fullname || '';
+    const fullName = req.body.fullname || '';
     const fileBuffer = req.file?.buffer || null;
 
-    const updatedUser = await AuthService.updateProfile({
-      userId,
-      fullName: fullname,
-      fileBuffer,
+    const updatedUser = await AuthService.updateProfileService({
+        userId,
+        fullName: fullName,
+        fileBuffer,
     });
 
     return success(res, 'Cập nhật profile thành công', updatedUser);
-  } catch (err) {
-    return error(res, err.message);
-  }
-};
-
-// Đổi mật khẩu
-export const changePasswordController = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { oldPassword, newPassword } = req.body;
-    await AuthService.changePassword({ userId, oldPassword, newPassword });
-    return success(res, 'Đổi mật khẩu thành công');
-  } catch (err) {
-    return error(res, err.message);
-  }
-};
-
-export const checkRole = [
-  authenticate,
-  (req, res) => {
-    try {
-      console.log('User role:', req.user.role);
-      return success(res, 'Role hiện tại', { role: req.user.role });
     } catch (err) {
-      return error(res, err.message, 500);
+        console.log("Update profile fail:", err.message);
+        return error(res, "Update profile fail");
     }
-  }
-];
-
-//Admin: Get all users (with pagination, exclude admins)
-export const getAllUsersController = async (req, res) => {
-  try {
-    if (req.user.role !== 'admin') {
-      return error(res, 'Không có quyền truy cập', 403);
-    }
-
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-
-    const data = await AdminService.getAllUsers(page, limit);
-    return success(res, 'Danh sách người dùng', data);
-  } catch (err) {
-    return error(res, err.message, 500);
-  }
 };
 
-//Inactivate user (admin only)
-export const changeActivateUserController = async (req, res) => {
+// Change password
+export const changePassword = async (req, res) => {
     try {
-        if (req.user.role !== 'admin') {
-            return error(res, 'Không có quyền truy cập', 403);
-        }
-        const { email } = req.body;
-        const message = await AdminService.changeActivateUser(email);
-        return success(res, message);
+        const userId = req.user.id;
+        const { oldPassword, newPassword } = req.body;
+        await AuthService.changePasswordService({ userId, oldPassword, newPassword });
+        return success(res, 'Đổi mật khẩu thành công');
+    } catch (err) {
+        return error(res, err.message);
     }
-    catch (err) {
+};
+
+// Check role
+export const checkRole = [ authenticate, (req, res) => {
+    try {
+        console.log('User role:', req.user.role);
+        return success(res, 'Role hiện tại', { role: req.user.role });
+    } catch (err) {
         return error(res, err.message, 500);
     }
-};
+}];

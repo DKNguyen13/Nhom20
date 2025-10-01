@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import connectDB from './config/db.config.js';
 import { config } from './config/env.config.js';
 import authRouter from './routes/auth.routes.js';
@@ -23,7 +24,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
-
+app.use(cookieParser());
 app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/lessons', lessonRouter);

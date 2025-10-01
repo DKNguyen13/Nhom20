@@ -1,14 +1,116 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import User from '../models/user.model.js';
+import { config } from '../config/env.config.js';
+import { OAuth2Client } from "google-auth-library";
 import redisClient from '../config/redis.config.js';
-import User from '../models/user.models.js';
 import { uploadAvatar } from './cloudinary.service.js';
 import { sendOTPEmail, sendResetPasswordEmail } from './mail.service.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
 
+const client = new OAuth2Client(config.googleClientId);
+
+const fullNameRegex = /^[\p{L}\s'-]+$/u;
+
+// Normal Login
+export const normalLoginService = async ({ email, password }) => {
+    if ( !email || !password ) throw new Error('Email and password are required');
+    
+    const user = await User.findOne({ email });
+    if (!user) throw new Error('Email does not exist');
+
+    if (user.authType !== 'normal') throw new Error(`This account uses ${user.authType} login. Please login using Google.`);
+    
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) throw new Error('Incorrect password');
+
+    const payload = { id: user._id, role: user.role };
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
+    
+    const safeUser = { id: user._id, fullName: user.fullName, email: user.email, phone: user.phone, avatarUrl: user.avatarUrl, role: user.role };
+
+    return { user : safeUser, accessToken, refreshToken };
+};
+
+// Google Login
+export const googleLoginService = async ({ tokenId }) => {
+    if (!tokenId) throw new Error('Token ID is required');
+
+    const ticket = await client.verifyIdToken({
+        idToken: tokenId,
+        audience: config.googleClientId
+    });
+
+    const { email, name, picture } = ticket.getPayload();
+
+    let user = await User.findOne({ email });
+
+    if (user) {
+        if (user.authType === 'normal') {
+            throw new Error('Email already registered. Please login with password.');
+        }
+    } else {
+        user = new User({ 
+            fullName: name, 
+            email, 
+            avatarUrl: picture, 
+            authType: 'google', 
+            password: null, 
+            isVerified: true 
+        });
+        await user.save();
+    }
+
+    const payload = { id: user._id, role: user.role };
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
+
+    const safeUser = { 
+        id: user._id, 
+        fullName: user.fullName, 
+        email: user.email, 
+        phone: user.phone, 
+        avatarUrl: user.avatarUrl, 
+        role: user.role 
+    };
+
+    return { user: safeUser, accessToken, refreshToken };
+};
+
+// Register
+export const registerService = async ({ fullName, email, password, phone, dob, avatarUrl, otp }) => {
+    const storedOtp = await redisClient.get(`otp:${email}`);
+    
+    if (!storedOtp || storedOtp !== otp) throw new Error('OTP invalid');
+    
+    if (await User.findOne( { email }))  throw new Error('Email already exists');
+
+    if (phone && await User.findOne({ phone })) throw new Error('Phone already exist');
+
+    if (!fullName || !fullNameRegex.test(fullName)) throw new Error('Full name contains invalid characters');
+    
+    let dobDate = null;
+    if (dob) {
+        const [day, month, year] = dob.split('/');
+        dobDate = new Date(`${year}-${month}-${day}`); // chuyển sang YYYY-MM-DD
+        if (isNaN(dobDate.getTime())) throw new Error('Invalid date of birth');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, await bcrypt.genSalt(10));
+
+    const user = new User({ fullName, email, password: hashedPassword, phone, dob: dobDate, avatarUrl, authType: 'normal', isVerified: true });
+    await user.save();
+    await redisClient.del(`otp:${email}`);
+
+    return { user };
+};
+
 //Send OTP to email
-export const sendOTP = async (email) => {
-    if (await User.findOne({ email })) throw new Error('Email đã tồn tại');
+export const sendRegisterOTPService = async (email) => {
+    if (!email) throw new Error('Email is required');
+
+    if (await User.findOne({ email })) throw new Error('Email already exists');
 
     const existingOtp = await redisClient.get(`otp:${email}`);
     if (existingOtp) await redisClient.del(`otp:${email}`);
@@ -17,106 +119,75 @@ export const sendOTP = async (email) => {
     await redisClient.setEx(`otp:${email}`, 600, otp);
 
     await sendOTPEmail(email, otp);
-    return 'OTP đã được gửi';
+    return 'OTP sent successfully';
 };
 
-//Register
-export const register = async ({ fullname, email, password, phone, avatar, otp }) => {
-    const storedOtp = await redisClient.get(`otp:${email}`);
-    if (!storedOtp || storedOtp !== otp) throw new Error('OTP không hợp lệ hoặc đã hết hạn');
-
-    if (await User.findOne({ email })) throw new Error('Email đã tồn tại');
-    if (phone && await User.findOne({ phone })) throw new Error('Số điện thoại đã tồn tại');
-
-    const hashedPassword = await bcrypt.hash(password, await bcrypt.genSalt(10));
-
-    const user = new User({ fullname, email, password: hashedPassword, phone, avatar, isVerified: true });
-    await user.save();
-    await redisClient.del(`otp:${email}`);
-
-    return { user };
-};
-
-//Login
-export const login = async ({ email, password }) => {
-  const user = await User.findOne({ email });
-  if (!user) throw new Error('Email không tồn tại');
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new Error('Mật khẩu không đúng');
-  if (!user.isActive) throw new Error('Tài khoản đã bị vô hiệu hóa');
-  const accessToken = generateAccessToken({ id: user._id, role: user.role });
-  const refreshToken = generateRefreshToken({ id: user._id, role: user.role });
-
-  return { user, accessToken, refreshToken };
-};
-
-//Edit user info (for future use)
-export const editInfor = async ({ email }) => {
-  const user = await User.findOne({ email });
-  if (!user) throw new Error('Email không tồn tại');
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new Error('Mật khẩu không đúng');
-
-  const accessToken = generateAccessToken({ id: user._id, role: user.role });
-  const refreshToken = generateRefreshToken({ id: user._id, role: user.role });
-
-  return { user, accessToken, refreshToken };
-};
-
+//Reset password
 export const resetPassword = async ({ email }) => {
     const user = await User.findOne({ email });
     if (user) {
         const newPassword = crypto.randomBytes(4).toString('hex');
         user.password = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
         await user.save();
-        await sendResetPasswordEmail(email, `Mật khẩu mới của bạn là: ${newPassword}`);
+        await sendResetPasswordEmail(email, `New password ${newPassword}`);
     }
+    return 'A new password has been sent if the email exists';
+};
 
-    return 'Mật khẩu mới đã được gửi nếu email tồn tại';
+//Edit user info (for future use)
+export const editInforService = async ({ email }) => {
+    const user = await User.findOne({ email });
+    if (!user) throw new Error('Email không tồn tại');
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) throw new Error('Mật khẩu không đúng');
+
+    const accessToken = generateAccessToken({ id: user._id, role: user.role });
+    const refreshToken = generateRefreshToken({ id: user._id, role: user.role });
+
+    return { user, accessToken, refreshToken };
 };
 
 //Update profile
-export const updateProfile = async ({ userId, fullName, fileBuffer }) => {
-  const user = await User.findById(userId);
-  if (!user) throw new Error('Người dùng không tồn tại');
+export const updateProfileService = async ({ userId, fullName, fileBuffer }) => {
+    const user = await User.findById(userId);
+    if (!user) throw new Error('Người dùng không tồn tại');
 
-  if (fullName && fullName.trim() !== '') {
-    user.fullname = fullName;
-  }
+    if (fullName && fullName.trim() !== '') {
+        user.fullName = fullName;
+    }
 
-  if (fileBuffer) {
-    const avatarUrl = await uploadAvatar(fileBuffer);
-    user.avatarUrl = avatarUrl;
-  }
+    if (fileBuffer) {
+        const avatarUrl = await uploadAvatar(fileBuffer);
+        user.avatarUrl = avatarUrl;
+    }
 
-  await user.save();
+    await user.save();
 
-  return {
-    id: user._id.toString(),
-    fullname: user.fullname,
-    email: user.email,
-    phone: user.phone,
-    avatar: user.avatarUrl,
-    role: user.role,
-  };
+    return {
+        id: user._id.toString(),
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        avatar: user.avatarUrl,
+        role: user.role,
+    };
 };
 
 //Change password
-export const changePassword = async ({ userId, oldPassword, newPassword }) => {
-  const user = await User.findById(userId);
-  if (!user) throw new Error('Người dùng không tồn tại');
+export const changePasswordService = async ({ userId, oldPassword, newPassword }) => {
+    const user = await User.findById(userId);
+    if (!user) throw new Error('Người dùng không tồn tại');
 
-  const isMatch = await bcrypt.compare(oldPassword, user.password);
-  if (!isMatch) throw new Error('Mật khẩu cũ không đúng');
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) throw new Error('Mật khẩu cũ không đúng');
 
-  const hashedPassword = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
-  user.password = hashedPassword;
+    const hashedPassword = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
+    user.password = hashedPassword;
 
-  await user.save();
+    await user.save();
 
-  return {
-    message: 'Đổi mật khẩu thành công',
-  };
+    return {
+        message: 'Đổi mật khẩu thành công',
+    };
 };

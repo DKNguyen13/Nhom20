@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import mongoose from "mongoose";
-import User from "../models/user.models.js";
+import User from "../models/user.model.js";
 import Lesson from "../models/lesson.model.js";
 import VipPackage from "../models/vipPackage.model.js";
 import PaymentOrder from "../models/paymentOrder.model.js";
@@ -42,7 +42,6 @@ export const seedRevenue = async () => {
   console.log(`✅ Seeded ${fakeOrders.length} fake PaymentOrders`);
 };
 
-
 //Create admin if not exist
 export const createAdminIfNotExist = async () => {
   try {
@@ -50,7 +49,7 @@ export const createAdminIfNotExist = async () => {
     if (!adminExists) {
       const hashedPassword = await bcrypt.hash('admin@', 10);
       const admin = new User({
-        fullname: 'Super Admin',
+        fullName: 'Super Admin',
         email: 'admin@admin.com',
         password: hashedPassword,
         phone: '0123456789',

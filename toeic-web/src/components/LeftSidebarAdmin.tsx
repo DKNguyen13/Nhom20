@@ -9,7 +9,7 @@ interface LeftSidebarAdminProps {
 
 const LeftSidebarAdmin: React.FC<LeftSidebarAdminProps> = ({ customHeight }) => {
   const navigate = useNavigate();
-  const fullname = localStorage.getItem("fullname") || "Admin";
+  const fullname = localStorage.getItem("fullName") || "Admin";
   const avatarUrl = localStorage.getItem("avatarUrl") || "/img/avatar/default_avatar.jpg";
 
   const handleLogout = async () => {

@@ -2,15 +2,47 @@ import { success, error } from "../utils/response.js";
 import * as AdminService from "../services/admin.service.js";
 
 export const getRevenueStatsController = async (req, res) => {
+    try {
+        if (req.user.role !== "admin") return error(res, "Không có quyền truy cập", 403);
+
+        const { type, year } = req.query;
+        const data = await AdminService.getRevenueStats({ type, year });
+
+        return success(res, "Thống kê doanh thu", data);
+    } catch (err) {
+        console.log(err.message);
+        return error(res, 'Get revenue error', 500);
+    }
+};
+
+//Admin: Get all users (with pagination, exclude admins)
+export const getAllUsersController = async (req, res) => {
   try {
-    if (req.user.role !== "admin") return error(res, "Không có quyền truy cập", 403);
+    if (req.user.role !== 'admin') {
+      return error(res, 'Không có quyền truy cập', 403);
+    }
 
-    const { type, year } = req.query;
-    const data = await AdminService.getRevenueStats({ type, year });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
 
-    return success(res, "Thống kê doanh thu", data);
+    const data = await AdminService.getAllUsers(page, limit);
+    return success(res, 'Danh sách người dùng', data);
   } catch (err) {
-    console.log(err.message);
-    return error(res, 'Get revenue error', 500);
+    return error(res, err.message, 500);
   }
+};
+
+//Inactivate user (admin only)
+export const changeActivateUserController = async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') {
+            return error(res, 'Không có quyền truy cập', 403);
+        }
+        const { email } = req.body;
+        const message = await AdminService.changeActivateUser(email);
+        return success(res, message);
+    }
+    catch (err) {
+        return error(res, err.message, 500);
+    }
 };
