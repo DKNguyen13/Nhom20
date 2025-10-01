@@ -1,5 +1,5 @@
 import Lesson from "../models/lesson.model.js";
-import Wishlist from '../models/wishlist.models.js';
+import Wishlist from '../models/wishlist.model.js';
 import { success, error } from '../utils/response.js';
 
 // Create lesson

@@ -4,7 +4,7 @@ import connectDB from './config/db.js';
 import { config } from './config/env.js';
 import authRouter from './routes/auth.routes.js';
 import vnpayRoutes from "./routes/vnpay.routes.js";
-import lessonRouter from './routes/lesson.route.js';
+import lessonRouter from './routes/lesson.routes.js';
 import vipRouter from './routes/vipPackage.routes.js';
 import wishlistRouter from './routes/wishlist.routes.js';
 import * as InitData from './services/initData.service.js';
