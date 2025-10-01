@@ -6,7 +6,8 @@ import authRouter from './routes/auth.routes.js';
 import testRoutes from './routes/test.routes.js';
 import partRoutes from './routes/part.routes.js';
 import adminRouter from './routes/admin.routes.js';
-import vnpayRoutes from "./routes/vnpay.routes.js";
+import vnpayRoutes from './routes/vnpay.routes.js';
+import commentRoute from './routes/comment.route.js';
 import lessonRouter from './routes/lesson.routes.js';
 import vipRouter from './routes/vipPackage.routes.js';
 import wishlistRouter from './routes/wishlist.routes.js';
@@ -23,12 +24,13 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-app.use('/api/lessons', lessonRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/lessons', lessonRouter);
 app.use('/api/wishlist', wishlistRouter);
 app.use('/api/vip', vipRouter);
 app.use("/api/payment", vnpayRoutes);
-app.use('/api/admin', adminRouter);
+app.use('/api/comments', commentRoute);
 app.use('/api/test', testRoutes);
 app.use('/api/test/:slug', partRoutes);
 app.use('/api/test/:slug', questionRoutes);

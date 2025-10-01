@@ -119,8 +119,8 @@ function MockDetailTests() {
         practicedCount={2500000}
         commentsCount={3000}
         parts={testData.data.parts}
-        comments={sampleComments}
         defaultActiveTab="practice"
+        testId={testData.data.test._id}
       />
     </div>
   );
