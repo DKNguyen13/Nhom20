@@ -9,6 +9,7 @@ const { Schema } = mongoose;
 const testSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   slug: { type: String, slug: 'title', required: false, unique: true, lowercase: true, trim: true },
+  audio: { type: String, required: true, trim: true },
   testCode: { type: String, required: true, unique: true, trim: true },
   description: { type: String },
 
@@ -63,6 +64,6 @@ const testSchema = new mongoose.Schema({
     notes: { type: String },
   },
 },
-{ timestamps: true });
+  { timestamps: true });
 
 export default mongoose.model('Test', testSchema);

@@ -42,7 +42,7 @@ export const getAllQuestionByTest = async (req, res) => {
         )
 
     } catch (error) {
-        return error(res, 'Get all question by test error', error.message);
+        return error(res, 'Get all question by test error');
     }
 };
 
@@ -95,7 +95,7 @@ export const getAllQuestionByPart = async (req, res) => {
             });
 
     } catch (error) {
-        return error(res, 'Get all question by parts error', error.message);
+        return error(res, 'Get all question by parts error');
     }
 };
 
@@ -157,7 +157,7 @@ export const createQuestions = async (req, res) => {
             }
         );
     } catch (error) {
-        return error(res, 'error Create question', error.message);
+        return error(res, 'error Create question');
     }
 };
 

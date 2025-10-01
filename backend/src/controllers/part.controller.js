@@ -36,7 +36,7 @@ export const getAllParts = async (req, res) => {
             });
 
     } catch (error) {
-        return error(res, 'Get all test error', error.message);
+        return error(res, 'Get all test error');
     }
 };
 
@@ -76,7 +76,7 @@ export const getPartById = async (req, res) => {
             }
         );
     } catch (error) {
-        return error(res, 'Get part by id error', error.message);
+        return error(res, 'Get part by id error');
     }
 };
 
@@ -111,9 +111,9 @@ export const createPart = async (req, res) => {
 
         await part.save();
 
-        return success(res,'Create part success', { part });
-    } catch (error) {
-        return error(res, 'error Create Test', error.message);
+        return success(res, 'Create part success', { part });
+    } catch (err) {
+        return error(res, 'error Create Test');
     }
 };
 
@@ -144,7 +144,7 @@ export const updatePart = async (req, res) => {
 
         return success(res, 'Update part success', { part })
     } catch (error) {
-        return error(res, 'Update part error', error.message);
+        return error(res, 'Update part error');
     }
 };
 
@@ -177,6 +177,6 @@ export const deletePart = async (req, res) => {
 
         return success(res, 'Delete part success', { part });
     } catch (error) {
-        return error(res, 'Delete part error', error.message);
+        return error(res, 'Delete part error');
     }
 };

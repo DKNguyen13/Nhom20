@@ -27,18 +27,29 @@ const questionSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    // UPDATED: More flexible content structure
     content: {
-        type: {
-            type: String,
-            enum: ['single-choice'],
-            default: 'single-choice'
+        question: String, // Main question text
+        
+        // For Part 1 - Photographs
+        image: String,
+        
+        // For Part 5 - Sentence with blank
+        sentence: String, // "The company ____ new employees last month."
+        
+        // For Part 3, 4 - Conversations/Talks with transcript
+        transcript: String,
+        transcriptId: String, // To group questions with same transcript
+        
+        // For Part 6, 7 - Reading passages
+        passage: {
+            title: String,
+            text: String
         },
-        question: {
-            type: String,
-            required: true
-        },
-        image: String, // url img
-        audio: String, // url audio
+        passageId: String, // To group questions with same passage
+        
+        // Audio info (for all listening parts)
+        audio: String,
         audioStartTime: Number,
         audioEndTime: Number
     },
