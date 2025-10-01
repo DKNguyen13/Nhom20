@@ -8,5 +8,5 @@ router.get('/recent', getRecentExam)
 
 router.get('/most-viewed', getMostViewedExam)
 router.get('/most-solved', getMostSolvedExam)
-router.get('/', authenticate, getExam)
+router.get('/', getExam)
 export default router;
