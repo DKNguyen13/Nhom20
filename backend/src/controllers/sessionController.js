@@ -1,5 +1,6 @@
 import { success, error } from '../utils/response.js';
 
+import User from "../models/user.model.js";
 import Test from "../models/test.model.js";
 import Part from "../models/part.model.js";
 import Question from "../models/question.model.js";
@@ -372,7 +373,7 @@ export const submitBulkAnswers = async (req, res) => {
             if (!question) continue;
 
             const isCorrect = answer.selectedAnswer === question.correctAnswer;
-            const isSkipped = !answer.selectedAnswer;
+            const isSkipped = answer.selectedAnswer === null || answer.selectedAnswer === undefined;
 
             const existingAnswerIndex = userAnswer.questions.findIndex(
                 q => q.questionId.toString() === answer.questionId
@@ -393,7 +394,7 @@ export const submitBulkAnswers = async (req, res) => {
                 userAnswer.questions[existingAnswerIndex] = {
                     ...userAnswer.questions[existingAnswerIndex],
                     ...answerData,
-                    timeSpent: userAnswer.questions[existingAnswerIndex].timeSpent + (answer.timeSpent || 0)
+                    timeSpent: (userAnswer.questions[existingAnswerIndex].timeSpent || 0) + (answer.timeSpent || 0)
                 };
             } else {
                 // Add new answer
@@ -431,7 +432,7 @@ export const submitBulkAnswers = async (req, res) => {
         );
 
     } catch (err) {
-        return error(res, 'Error submitting bulk answers');
+        return error(res, 'Error submitting bulk answers', err.message);
     }
 };
 
@@ -452,7 +453,7 @@ export const submitSession = async (req, res) => {
         }
 
         // Calculate results
-        const results = await this.calculateSessionResults(sessionId, userId);
+        const results = await calculateSessionResults(sessionId, userId);
 
         // Update session
         session.status = 'completed';
@@ -485,7 +486,7 @@ export const submitSession = async (req, res) => {
         );
 
     } catch (err) {
-        return error(res, 'Error submitting session')
+        return error(res, 'Error submitting session', err.message);
     }
 };
 // [PUT] /api/session/:sessionId/pause
@@ -661,7 +662,7 @@ export const getUserSessions = async (req, res) => {
     }
 };
 
-// Helper calculate session results
+// calculate session results
 const calculateSessionResults = async function (sessionId, userId) {
     // Get UserAnswer with all questions
     const userAnswer = await UserAnswer.findOne({
