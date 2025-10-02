@@ -14,28 +14,28 @@ const fullNameRegex = /^[\p{L}\s'-]+$/u;
 
 // Normal Login
 export const normalLoginService = async ({ email, password }) => {
-    if ( !email || !password ) throw new Error('Email and password are required');
+    if ( !email || !password ) throw new Error('Vui lòng nhập email và mật khẩu');
     
     const user = await User.findOne({ email });
-    if (!user) throw new Error('Email does not exist');
-
-    if (user.authType !== 'normal') throw new Error(`This account uses ${user.authType} login. Please login using Google.`);
+    if (!user) throw new Error('Email không tồn tại');
+    if (!user.isActive) throw new Error('Tài khoản bị vô hiệu hóa!');
+    if (user.authType !== 'normal') throw new Error(`Tài khoản này đăng ký bằng ${user.authType}. Vui lòng đăng nhập bằng Google.`);
     
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) throw new Error('Incorrect password');
+    if (!isMatch) throw new Error('Mật khẩu không đúng');
 
     const payload = { id: user._id, role: user.role };
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
     
-    const safeUser = { id: user._id, fullname: user.fullname, email: user.email, phone: user.phone, avatarUrl: user.avatarUrl, role: user.role };
+    const safeUser = { id: user._id, fullname: user.fullname, email: user.email, phone: user.phone, avatarUrl: user.avatarUrl, isActive : user.isActive, role: user.role };
 
     return { user : safeUser, accessToken, refreshToken };
 };
 
 // Google Login
 export const googleLoginService = async ({ tokenId }) => {
-    if (!tokenId) throw new Error('Token ID is required');
+    if (!tokenId) throw new Error("Thiếu token ID");
 
     const ticket = await client.verifyIdToken({
         idToken: tokenId,
@@ -45,11 +45,9 @@ export const googleLoginService = async ({ tokenId }) => {
     const { email, name, picture } = ticket.getPayload();
 
     let user = await User.findOne({ email });
-
+    
     if (user) {
-        if (user.authType === 'normal') {
-            throw new Error('Email already registered. Please login with password.');
-        }
+        if (user.authType === 'normal') throw new Error('Email đã được đăng ký. Vui lòng đăng nhập bằng mật khẩu.');
     } else {
         user = new User({ 
             fullname: name, 
@@ -57,7 +55,7 @@ export const googleLoginService = async ({ tokenId }) => {
             avatarUrl: picture, 
             authType: 'google', 
             password: null, 
-            isVerified: true 
+            isActive: true 
         });
         await user.save();
     }
@@ -71,6 +69,7 @@ export const googleLoginService = async ({ tokenId }) => {
         fullname: user.fullname, 
         email: user.email, 
         phone: user.phone, 
+        isActive : user.isActive,
         avatarUrl: user.avatarUrl, 
         role: user.role 
     };
@@ -82,19 +81,22 @@ export const googleLoginService = async ({ tokenId }) => {
 export const registerService = async ({ fullname, email, password, phone, dob, avatarUrl, otp }) => {
     const storedOtp = await redisClient.get(`otp:${email}`);
     
-    if (!storedOtp || storedOtp !== otp) throw new Error('OTP invalid');
+    if (!storedOtp || storedOtp !== otp) throw new Error('OTP không hợp lệ!');
     
-    if (await User.findOne( { email }))  throw new Error('Email already exists');
+    if (await User.findOne( { email }))  throw new Error('Email tồn tại. Vui lòng sử dụng email khác!');
 
-    if (phone && await User.findOne({ phone })) throw new Error('Phone already exist');
+    if (phone && await User.findOne({ phone })) throw new Error('Số điện thoại đã tồn tại!');
 
-    if (!fullname || !fullNameRegex.test(fullname)) throw new Error('Full name contains invalid characters');
+    if (!fullname || !fullNameRegex.test(fullname)) throw new Error('Họ tên chứa ký tự không hợp lệ!');
     
     let dobDate = null;
     if (dob) {
         const [day, month, year] = dob.split('/');
         dobDate = new Date(`${year}-${month}-${day}`); // chuyển sang YYYY-MM-DD
-        if (isNaN(dobDate.getTime())) throw new Error('Invalid date of birth');
+        if (isNaN(dobDate.getTime())) throw new Error('Ngày sinh không hợp lệ!');
+    }
+    else {
+        console.log('Dob null!');
     }
 
     const hashedPassword = await bcrypt.hash(password, await bcrypt.genSalt(10));
@@ -108,9 +110,9 @@ export const registerService = async ({ fullname, email, password, phone, dob, a
 
 //Send OTP to email
 export const sendRegisterOTPService = async (email) => {
-    if (!email) throw new Error('Email is required');
+    if (!email) throw new Error('Vui lòng nhập email!');
 
-    if (await User.findOne({ email })) throw new Error('Email already exists');
+    if (await User.findOne({ email })) throw new Error('Email đã tồn tại!');
 
     const existingOtp = await redisClient.get(`otp:${email}`);
     if (existingOtp) await redisClient.del(`otp:${email}`);
@@ -119,7 +121,7 @@ export const sendRegisterOTPService = async (email) => {
     await redisClient.setEx(`otp:${email}`, 600, otp);
 
     await sendOTPEmail(email, otp);
-    return 'OTP sent successfully';
+    return 'Gửi OTP thành công. Vui lòng kiểm tra email!';
 };
 
 //Reset password
@@ -131,7 +133,7 @@ export const resetPassword = async ({ email }) => {
         await user.save();
         await sendResetPasswordEmail(email, `New password ${newPassword}`);
     }
-    return 'A new password has been sent if the email exists';
+    return 'Nếu email tồn tại, mật khẩu mới đã được gửi!';
 };
 
 //Edit user info (for future use)
