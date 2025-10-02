@@ -28,7 +28,9 @@ import UserManagementPage from "../pages/Admin/UserManagement/UserManagement";
 import TestManagementPage from "../pages/Admin/TestManagement/TestManagement";
 import MockDetailTests from "../pages/Detail/mockDetailTests";
 import { Wishlist } from "../pages/Wishlist/Wishlist";
-const isAuthenticated = false; // Kiểm tra trạng thái đăng nhập
+import VipManagement from "../pages/Admin/VipManagement/VipManagement";
+import PaymentFail from "../pages/Payment/PaymentFail";
+import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 
 // Cấu hình routes
 const routes = [
@@ -138,116 +140,139 @@ const routes = [
     ),
   },
 
-  {
-    path: "/settings",
-    element: (
-      <ProtectedRoute allowedRoles={["admin", "user"]}>
-        <MainLayout>
-          <Settings />
-        </MainLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/settings/edit-info",
-    element: (
-      <ProtectedRoute allowedRoles={["admin", "user"]}>
-        <MainLayout>
-          <EditSettings />
-        </MainLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/payment",
-    element: (
-      <ProtectedRoute allowedRoles={["admin", "user"]}>
-        <MainLayout>
-          <Payment />
-        </MainLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/payment/paymentform",
-    element: (
-      <ProtectedRoute allowedRoles={["admin", "user"]}>
-        <MainLayout>
-          <PaymentForm />
-        </MainLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/resource",
-    element: (
-      <MainLayout>
-        <Resource />
-      </MainLayout>
-    ),
-  },
-  {
-    path: "/resource/:id",
-    element: (
-      <MainLayout>
-        <ResourceDetail />
-      </MainLayout>
-    ),
-  },
-  {
-    path: "/history",
-    element: (
-      <MainLayout>
-        <History />
-      </MainLayout>
-    ),
-  },
-  {
-    path: "/practice",
-    element: (
-      <MainLayout>
-        <Practice />
-      </MainLayout>
-    ),
-  },
-  {
-    path: "/admin/dashboard",
-    element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
-        <MainLayout>
-          <DashboardPage />
-        </MainLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/admin/usermanagement",
-    element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
-        <MainLayout>
-          <UserManagementPage />
-        </MainLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/admin/testmanagement",
-    element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
-        <MainLayout>
-          <TestManagementPage />
-        </MainLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/wishlist",
-    element: (
-      <MainLayout>
-        <Wishlist />
-      </MainLayout>
-    ),
-  },
+	{
+		path: "/settings",
+		element: (
+			<ProtectedRoute allowedRoles={['admin', 'user']}>
+				<MainLayout>
+					<Settings />
+				</MainLayout>
+			</ProtectedRoute>
+		),
+	},
+	{
+		path: "/settings/edit-info",
+		element: (
+			<ProtectedRoute allowedRoles={['admin', 'user']}>
+				<MainLayout>
+					<EditSettings />
+				</MainLayout>
+			</ProtectedRoute>
+		),
+	},
+	{
+		path: "/payment",
+		element: (
+				<MainLayout>
+					<Payment />
+				</MainLayout>
+			
+		),
+	},
+	{
+		path: "/payment/paymentform",
+		element: (
+			
+				<MainLayout>
+					<PaymentForm />
+				</MainLayout>
+
+		),
+	},
+	{
+		path: "/payment/success",
+		element: (
+			<MainLayout>
+			<PaymentSuccess />
+			</MainLayout>
+		),
+	},
+	{
+		path: "/payment/fail",
+		element: (
+			<MainLayout>
+			<PaymentFail />
+			</MainLayout>
+		),
+	},
+	{
+		path: "/resource",
+		element: (
+			<MainLayout>
+				<Resource />
+			</MainLayout>
+		),
+	},
+	{
+		path: "/resource/:id",
+		element: (
+			<MainLayout>
+				<ResourceDetail />
+			</MainLayout>
+		),
+	},
+	{
+		path: "/history",
+		element: (
+			<MainLayout>
+				<History />
+			</MainLayout>
+		),
+	},
+	{
+		path: "/practice",
+		element: (
+			<MainLayout>
+				<Practice />
+			</MainLayout>
+		),
+	},
+	{
+		path: "/admin/dashboard",
+		element: (
+      			<MainLayout>
+        			<DashboardPage />
+				</MainLayout>
+		),
+	},
+	{
+		path: "/admin/usermanagement",
+		element: (
+			<ProtectedRoute allowedRoles={['admin']}>
+				<MainLayout>
+					<UserManagementPage />
+				</MainLayout>
+			</ProtectedRoute>
+		),
+	},
+	{
+		path: "/admin/testmanagement",
+		element: (
+			<ProtectedRoute allowedRoles={['admin']}>
+				<MainLayout>
+					<TestManagementPage />
+				</MainLayout>
+			</ProtectedRoute>
+		),
+	},
+	{
+		path: "/admin/vipmanagement",
+		element: (
+			<ProtectedRoute allowedRoles={['admin']}>
+				<MainLayout>
+					<VipManagement />
+				</MainLayout>
+			</ProtectedRoute>
+		),
+	},
+	{
+		path: "/wishlist",
+		element: (
+			<MainLayout>
+				<Wishlist />
+			</MainLayout>
+		),
+	},
 ];
 
 const AppRoutes = () => {

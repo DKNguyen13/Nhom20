@@ -76,6 +76,7 @@ function MockDetailTests() {
       sessionLoading={sessionLoading}
       sessionError={sessionError}
       comments={sampleComments}
+	    testId={testData.data.test._id}
     />
     </div>
   );

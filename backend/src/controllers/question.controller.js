@@ -1,8 +1,7 @@
-import { success, error } from '../utils/response.js';
-
 import Test from "../models/test.model.js";
 import Part from "../models/part.model.js";
 import Question from "../models/question.model.js";
+import { success, error } from '../utils/response.js';
 
 // [GET] /api/test/:slug/questions
 export const getAllQuestionByTest = async (req, res) => {

@@ -1,9 +1,10 @@
 import express from 'express';
-import {addNewWishList, getWishlistExam} from "../controllers/wishlist.controller.js";
-import {authenticate} from "../middleware/authenticate.js";
+import { authenticate } from "../middleware/authenticate.js";
+import * as WishlistController from "../controllers/wishlist.controller.js";
 
 const router = express.Router()
 
-router.post('/', authenticate, addNewWishList)
-router.get('/', authenticate, getWishlistExam)
+router.patch('/toggle', authenticate, WishlistController.toggleWishlist);
+router.get('/:lessonId', authenticate, WishlistController.getLessonFavorite);
+
 export default router;

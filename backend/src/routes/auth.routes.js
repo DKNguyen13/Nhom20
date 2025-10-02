@@ -1,26 +1,23 @@
 import multer from 'multer';
 import express from 'express';
 import { authenticate } from '../middleware/authenticate.js';
-import { login, register, logout,  resetPassword, sendOTP, refreshToken, 
-     updateProfileController, changePasswordController, checkRole, 
-     getAllUsersController, changeActivateUserController } 
-from '../controllers/auth.controller.js';
+import * as authController from '../controllers/auth.controller.js';
+import limitRequest from '../middleware/limitRequest.middleware.js';
 
 const router = express.Router();
 const upload = multer();
 
-router.post('/send-otp', sendOTP);
-router.post('/register', register);
-router.post('/login', login);
-router.post('/forgot-password', resetPassword);
-router.post('/refresh-token', refreshToken);
-router.post('/logout', logout);
+router.post('/login', limitRequest, authController.login);
+router.post('/google', authController.googleLogin);
+router.post('/send-otp', limitRequest, authController.sendOTP);
+router.post('/register', authController.register);
+router.post('/forgot-password', authController.resetPassword);
+router.post('/refresh-token', authController.refreshToken);
+router.post('/logout', authController.logout);
 
-router.patch('/change-password', authenticate, changePasswordController);
-router.patch('/update-profile', authenticate, upload.single('avatar'), updateProfileController);
-router.patch('/change-activate-user', authenticate, changeActivateUserController);
+router.patch('/change-password', authenticate, authController.changePassword);
+router.patch('/update-profile', authenticate, upload.single('avatar'), authController.updateProfileController);
 
-router.get('/check-role', checkRole);
-router.get('/users', authenticate, getAllUsersController);
+router.get('/check-role', authController.checkRole);
 
 export default router;

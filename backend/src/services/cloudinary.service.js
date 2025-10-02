@@ -1,6 +1,6 @@
 import cloudinary from "cloudinary";
 import streamifier from "streamifier";
-import { config } from "../config/env.js";
+import { config } from "../config/env.config.js";
 
 cloudinary.v2.config({
   cloud_name: config.cloudinaryCloudName,

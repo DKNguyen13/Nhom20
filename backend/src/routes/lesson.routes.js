@@ -11,5 +11,6 @@ router.get('/:id', LessonController.getLessonById);
 router.put('/:id',authenticate, LessonController.updateLesson);
 
 router.patch('/:id/delete', authenticate, LessonController.deleteLesson);
+router.patch('/:id/views', LessonController.incrementViews);
 
 export default router;

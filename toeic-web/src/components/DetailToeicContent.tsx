@@ -10,13 +10,14 @@ import {
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Select } from "../components/ui/select";
+import CommentSection from "./Comment/CommentSection";
 
 type Comment = {
-  id: string;
-  user: string;
-  date: string;
-  text: string;
-  pinned?: boolean;
+
+  _id: string;
+  content: string;
+  noOfLikes: number;  
+  noOfChildren: number;
 };
 
 type ToeicTestProps = {
@@ -32,7 +33,7 @@ type ToeicTestProps = {
     totalQuestions: number;
     tags: string[];
   }>;
-  comments: Comment[];
+  comments: Comment[]; // list of comments to display
   defaultActiveTab?: "practice" | "fulltest" | "discussion";
 
   // props từ MockDetailTests
@@ -43,6 +44,7 @@ type ToeicTestProps = {
   onStartPractice: (mode?: "practice" | "fulltest") => void;
   sessionLoading?: boolean;
   sessionError?: string | null;
+  testId: string;
 };
 
 type TabType = "practice" | "fulltest" | "discussion";
@@ -55,7 +57,6 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
   practicedCount,
   commentsCount,
   parts,
-  comments,
   defaultActiveTab = "practice",
   selectedParts,
   setSelectedParts,
@@ -64,23 +65,28 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
   onStartPractice,
   sessionLoading,
   sessionError,
+  testId
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultActiveTab);
-
   const handlePartToggle = (partId: number) => {
+
     if (selectedParts.includes(partId)) {
       // Bỏ phần đã chọn
       setSelectedParts(selectedParts.filter((id) => id !== partId));
     } else {
+
       // Thêm phần mới
       setSelectedParts([...selectedParts, partId]);
     }
+
   };
 
   const generateTimeOptions = () => {
+
     const options = [] as { value: number; label: string }[];
     for (let i = 0; i <= 135; i += 5) {
       options.push({
+
         value: i,
         label: i === 0 ? "Unlimited" : `${i} minutes`,
       });
@@ -229,6 +235,7 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
                       <input
                         type="checkbox"
                         id={`part-${part._id}`}
+
                         checked={selectedParts.includes(part._id)}
                         onChange={() => handlePartToggle(part._id)}
                         className="mt-1 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-600 focus:ring-2"
@@ -271,9 +278,11 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
                   <div className="w-full sm:w-64">
                     <Select
                       value={selectedTime}
+
                       onValueChange={(val) => setSelectedTime(val)}
                       placeholder="Chọn thời gian"
                       options={generateTimeOptions().map((opt) => ({
+
                         value: opt.value,
                         label:
                           opt.label === "Unlimited"
@@ -326,70 +335,18 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
               )}
             </div>
           )}
-
-          {/* Discussion Tab */}
-          {activeTab === "discussion" && (
-            <div
-              role="tabpanel"
-              id="discussion-panel"
-              aria-labelledby="discussion-tab"
-              className="text-center py-12"
-            >
-              <MessageCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Diễn đàn thảo luận
-              </h3>
-              <p className="text-gray-500 max-w-md mx-auto">
-                Tham gia thảo luận với {formatNumber(commentsCount)} bình luận
-                từ các thí sinh khác. Chia sẻ kinh nghiệm, đặt câu hỏi và học
-                hỏi cùng nhau.
-              </p>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Comments Section */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-900">Comments</h3>
-        </div>
-        <div className="p-6 space-y-4">
-          {comments.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
-              Vui lòng đăng nhập để bình luận
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {comments.map((comment) => (
-                <div
-                  key={comment.id}
-                  className={`p-4 rounded-lg border ${
-                    comment.pinned
-                      ? "border-blue-600 bg-blue-50"
-                      : "border-gray-200 bg-gray-100"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900">
-                        {comment.user}
-                      </span>
-                      {comment.pinned && (
-                        <Pin className="w-4 h-4 text-blue-600" />
-                      )}
-                    </div>
-                    <span className="text-sm text-gray-500">
-                      {comment.date}
-                    </span>
-                  </div>
-                  <p className="text-gray-900 text-sm">{comment.text}</p>
-                </div>
-              ))}
-            </div>
-          )}
+      <div>
+        {/* Discussion Tab */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="mt-3 mb-5">
+            <CommentSection testId={testId} comments={[]} />
+          </div>
         </div>
       </div>
+      
     </div>
   );
 };
