@@ -63,7 +63,7 @@ export const googleLogin = async (req, res) => {
 export const register = async (req, res) => {
     try{
         const { fullname, email, password, phone, dob, avatarUrl, otp } = req.body;
-        await AuthService.register({ fullname, email, password, phone, dob, avatarUrl, otp });
+        await AuthService.registerService({ fullname, email, password, phone, dob, avatarUrl, otp });
         return success(res, 'Đăng ký thành công. Vui lòng đăng nhập!')
     }
     catch (err){

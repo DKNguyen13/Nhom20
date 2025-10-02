@@ -95,6 +95,9 @@ export const registerService = async ({ fullname, email, password, phone, dob, a
         dobDate = new Date(`${year}-${month}-${day}`); // chuyển sang YYYY-MM-DD
         if (isNaN(dobDate.getTime())) throw new Error('Ngày sinh không hợp lệ!');
     }
+    else {
+        console.log('Dob null!');
+    }
 
     const hashedPassword = await bcrypt.hash(password, await bcrypt.genSalt(10));
 
