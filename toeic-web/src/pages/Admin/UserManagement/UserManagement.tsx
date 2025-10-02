@@ -4,8 +4,8 @@ import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
 import api from "../../../config/axios";
 
 interface User {
-  id: number; // displayId
-  _id: string; // MongoDB _id
+  id: number;
+  _id: string;
   fullname: string;
   email: string;
   phone: string;
