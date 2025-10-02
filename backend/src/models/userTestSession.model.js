@@ -104,7 +104,7 @@ userTestSessionSchema.index({ sessionCode: 1 }, { unique: true });
 userTestSessionSchema.index({ status: 1, createdAt: -1 });
 
 // Generate session code
-userTestSessionSchema.pre('save', function (next) {
+userTestSessionSchema.pre('validate', function (next) {
     if (this.isNew) {
         const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');

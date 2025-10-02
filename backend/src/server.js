@@ -14,9 +14,9 @@ import vipRouter from './routes/vipPackage.routes.js';
 import wishlistRouter from './routes/wishlist.routes.js';
 import questionRoutes from './routes/question.routes.js';
 import * as InitData from './services/initData.service.js';
-import chatbotRoute from "./routes/chatbot.route.js";
-import {GoogleGenAI} from "@google/genai";
+import sessionRoutes from "./routes/session.routes.js";
 import {Server} from "socket.io";
+import {GoogleGenAI} from "@google/genai";
 import {promptPrefix} from "./utils/constant.js";
 
 const app = express()
@@ -36,10 +36,11 @@ app.use('/api/wishlist', wishlistRouter);
 app.use('/api/vip', vipRouter);
 app.use("/api/payment", vnpayRoutes);
 app.use('/api/comments', commentRoute);
-app.use('/api/chat', chatbotRoute);
+// app.use('/api/chat', chatbotRoute);
 app.use('/api/test', testRoutes);
 app.use('/api/test/:slug', partRoutes);
 app.use('/api/test/:slug', questionRoutes);
+app.use('/api/session', sessionRoutes);
 
 await connectDB();
 await InitData.createAdminIfNotExist();

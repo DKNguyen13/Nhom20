@@ -1,52 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Choice, Question } from "../interface/interfaces"; // import interface
 
-// Interface remains the same
-interface ToeicTestProps {
+interface NavigationProps {
   isView: boolean;
-  toeicTest: {
-    id: number;
-    title: string;
-    level: string;
-    listening: {
-      part1: { options: string[] }[];
-      part2: { options: string[] }[];
-      part3: { questions: { options: string[] }[] }[];
-      part4: { questions: { options: string[] }[] }[];
-    };
-    reading: {
-      part5: { options: string[] }[];
-      part6: { blanks: { options: string[] }[] }[];
-      part7: { questions: { options: string[] }[] }[];
-    };
-  };
+  questions: Question[];
+  currentPart: number;
   currentQuestion: number;
   answers: (number | null)[];
-  onNavigate: (questionIndex: number) => void;
+  onNavigate: (indexInPart: number) => void;
+  onSubmit?: () => void;
 }
 
-const Navigation: React.FC<ToeicTestProps> = ({
+const Navigation: React.FC<NavigationProps> = ({
   isView,
-  toeicTest,
+  questions,
+  currentPart,
   currentQuestion,
   answers,
   onNavigate,
+  onSubmit,
 }) => {
-  // Set initial time to 2 hours (7200 seconds)
   const [time, setTime] = useState(7200);
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   useEffect(() => {
-    // Only start timer if time is greater than 0
     if (time > 0) {
-      const timer = setInterval(() => {
-        setTime((prevTime) => prevTime - 1);
-      }, 1000);
-
-      // Cleanup interval on component unmount or when time changes
+      const timer = setInterval(() => setTime((prev) => prev - 1), 1000);
       return () => clearInterval(timer);
     }
-  }, [time]); // Add time as dependency to re-run effect when time reaches 0
+  }, [time]);
 
   const formatTime = (timeInSeconds: number) => {
     const minutes = Math.floor(timeInSeconds / 60);
@@ -57,40 +39,37 @@ const Navigation: React.FC<ToeicTestProps> = ({
     )}`;
   };
 
-  let questionCounter = 1;
-
-  const renderQuestionButtons = (numQuestions: number) => {
-    return Array.from({ length: numQuestions }, (_, index) => {
-      const questionNumber = questionCounter++;
-      const questionIndex = questionNumber - 1;
-      return (
-        <button
-          key={index}
-          onClick={() => onNavigate(questionIndex)}
-          className={`border rounded-md text-center text-sm transition-all duration-200 p-1 ${
-            currentQuestion === questionIndex
-              ? "bg-blue-500 text-white"
-              : answers[questionIndex] != null
-              ? "bg-green-500 text-white"
-              : "hover:bg-blue-500 hover:text-white"
-          }`}
-        >
-          {questionNumber}
-        </button>
-      );
-    });
-  };
-
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
+      document.exitFullscreen();
     }
     setIsFullScreen(!isFullScreen);
   };
+
+  // Lọc câu hỏi trong part hiện tại
+  const questionsInPart = questions.filter((q) => q.partNumber === currentPart);
+
+  const renderQuestionButtons = () =>
+    questionsInPart.map((q, idx) => {
+      const answered = answers[q.globalQuestionNumber - 1] != null;
+      return (
+        <button
+          key={q._id}
+          onClick={() => onNavigate(idx)}
+          className={`border rounded-md text-center text-sm transition-all duration-200 p-1 ${
+            currentQuestion === idx
+              ? "bg-blue-500 text-white"
+              : answered
+              ? "bg-green-500 text-white"
+              : "hover:bg-blue-500 hover:text-white"
+          }`}
+        >
+          {q.globalQuestionNumber}
+        </button>
+      );
+    });
 
   return (
     <div className="max-w-xs mx-auto p-4 bg-white h-full bottom-5 w-44">
@@ -103,6 +82,7 @@ const Navigation: React.FC<ToeicTestProps> = ({
             </span>
           </div>
         )}
+
         <div className="mb-4 flex justify-end">
           <button
             onClick={toggleFullScreen}
@@ -112,101 +92,18 @@ const Navigation: React.FC<ToeicTestProps> = ({
           </button>
         </div>
 
-        {/* Rest of the sections remain the same */}
-        {toeicTest.listening.part1.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Part 1: Listening</h3>
-            <div className="grid grid-cols-4 gap-2 mb-4">
-              {renderQuestionButtons(toeicTest.listening.part1.length)}
-            </div>
-          </div>
-        )}
+        <div className="grid grid-cols-4 gap-2 mb-4">{renderQuestionButtons()}</div>
 
-        {toeicTest.listening.part2.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Part 2: Listening</h3>
-            <div className="grid grid-cols-4 gap-2 mb-4">
-              {renderQuestionButtons(toeicTest.listening.part2.length)}
-            </div>
-          </div>
-        )}
-
-        {toeicTest.listening.part3.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Part 3: Listening</h3>
-            {toeicTest.listening.part3.map((item, index) =>
-              item.questions.length > 0 ? (
-                <div key={index} className="space-y-2">
-                  <div className="grid grid-cols-4 gap-2 mb-4">
-                    {renderQuestionButtons(item.questions.length)}
-                  </div>
-                </div>
-              ) : null
-            )}
-          </div>
-        )}
-
-        {toeicTest.listening.part4.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Part 4: Listening</h3>
-            {toeicTest.listening.part4.map((item, index) =>
-              item.questions.length > 0 ? (
-                <div key={index} className="space-y-2">
-                  <div className="grid grid-cols-4 gap-2 mb-4">
-                    {renderQuestionButtons(item.questions.length)}
-                  </div>
-                </div>
-              ) : null
-            )}
-          </div>
-        )}
-
-        {toeicTest.reading.part5.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Part 5: Reading</h3>
-            <div className="grid grid-cols-4 gap-2 mb-4">
-              {renderQuestionButtons(toeicTest.reading.part5.length)}
-            </div>
-          </div>
-        )}
-
-        {toeicTest.reading.part6.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Part 6: Reading</h3>
-            {toeicTest.reading.part6.map((item, index) =>
-              item.blanks.length > 0 ? (
-                <div key={index} className="space-y-2">
-                  <div className="grid grid-cols-4 gap-2 mb-4">
-                    {renderQuestionButtons(item.blanks.length)}
-                  </div>
-                </div>
-              ) : null
-            )}
-          </div>
-        )}
-
-        {toeicTest.reading.part7.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Part 7: Reading</h3>
-            {toeicTest.reading.part7.map((item, index) =>
-              item.questions.length > 0 ? (
-                <div key={index} className="space-y-2">
-                  <div className="grid grid-cols-4 gap-2 mb-4">
-                    {renderQuestionButtons(item.questions.length)}
-                  </div>
-                </div>
-              ) : null
-            )}
-          </div>
-        )}
-
-        <div className="mt-4 text-center">
-          <Link to={`/result/${toeicTest.id}`}>
-            <button className="bg-blue-500 text-white p-2 rounded-md w-full hover:bg-blue-600">
-              Submit Test
+        {onSubmit && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={onSubmit}
+              className="bg-blue-500 text-white p-2 rounded-md w-full hover:bg-blue-600"
+            >
+              Nộp bài
             </button>
-          </Link>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
