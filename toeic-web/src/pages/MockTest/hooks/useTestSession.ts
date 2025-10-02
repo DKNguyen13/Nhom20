@@ -4,7 +4,7 @@ import { Question, Session } from "../interface/interfaces";
 import { getSession, getSessionQuestions } from "../../../service/sessionService";
 
 export const useTestSession = () => {
-  const { id: sessionId } = useParams<{ id: string }>();
+  const sessionId = localStorage.getItem("toeic-session-id");
   const navigate = useNavigate();
 
   const [session, setSession] = useState<Session| null>(null);

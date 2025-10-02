@@ -26,6 +26,7 @@ export const useTestSession = (testData) => {
 
     try {
       const session = await startSession(payload);
+      localStorage.setItem('toeic-session-id', session.id);
       navigate(`/session/${session.id}`);
     } catch (err) {
       setSessionError(err.message || "Failed to start session");
