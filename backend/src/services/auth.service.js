@@ -112,16 +112,20 @@ export const registerService = async ({ fullname, email, password, phone, dob, a
 export const sendRegisterOTPService = async (email) => {
     if (!email) throw new Error('Vui lòng nhập email!');
 
-    if (await User.findOne({ email })) throw new Error('Email đã tồn tại!');
-
+    const user = await User.findOne({ email });
+    if (!user) throw new Error('Không tìm thấy email này!');
+    if (user.authType === 'google') throw new Error('Tài khoản này đăng nhập bằng Google, không thể đặt lại mật khẩu qua email.');
     const existingOtp = await redisClient.get(`otp:${email}`);
-    if (existingOtp) await redisClient.del(`otp:${email}`);
+    if (existingOtp) {
+        const ttl = await redisClient.ttl(`otp:${email}`); // Lấy thời gian còn lại
+        throw new Error(`OTP đã được gửi. Vui lòng thử lại sau ${ttl} giây.`);
+    }
 
     const otp = crypto.randomInt(100000, 999999).toString();
-    await redisClient.setEx(`otp:${email}`, 600, otp);
-
+    await redisClient.setEx(`otp:${email}`, 60, otp);// TTL 60 giây
     await sendOTPEmail(email, otp);
-    return 'Gửi OTP thành công. Vui lòng kiểm tra email!';
+
+    return { message: "Gửi OTP thành công. Vui lòng kiểm tra email!", cooldown: 60 };
 };
 
 //Reset password

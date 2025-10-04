@@ -76,11 +76,11 @@ export const register = async (req, res) => {
 export const sendOTP = async (req, res) => {
     try {
         const { email } = req.body;
-        const message = await AuthService.sendRegisterOTPService(email);
-        return success(res, message);
+        const result = await AuthService.sendRegisterOTPService(email);
+        return success(res, result.message, { cooldown: result.cooldown });
     } catch (err) {
         console.log("Send register OTP fail:", err.message);
-        return error(res, err.message, 400);
+        return error(res, err.message, 400, { cooldown: err.ttl || 0 });
     }
 };
 
