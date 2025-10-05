@@ -19,7 +19,8 @@ import Result from "../pages/MockTest/Result";
 import Settings from "../pages/Settings/Settings";
 import EditSettings from "../pages/Settings/EditSettings/EditSettings";
 import Payment from "../pages/Payment/Payment";
-import PaymentForm from "../pages/Payment/PaymentForm/PaymentForm"; // Giả lập trạng thái Auth
+import PurchaseHistory from "../pages/Payment/PurchaseHistory";
+import PaymentForm from "../pages/Payment/PaymentForm/PaymentForm";
 import Resource from "../pages/Resource/Resource";
 import History from "../pages/History/History";
 //import { Practice } from "../pages/Practice/Practice";
@@ -226,6 +227,14 @@ const routes = [
 		element: (
 			<MainLayout>
 				<History />
+			</MainLayout>
+		),
+	},
+	{
+		path: "/purchase-history",
+		element: (
+			<MainLayout>
+				<PurchaseHistory />
 			</MainLayout>
 		),
 	},
