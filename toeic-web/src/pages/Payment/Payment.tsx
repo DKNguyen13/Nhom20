@@ -49,7 +49,6 @@ const PaymentPage: React.FC = () => {
     }
   };
 
-  // Khi quay lại từ VNPay, check code và navigate
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
@@ -91,15 +90,18 @@ const PaymentPage: React.FC = () => {
               return (
                 <div
                   key={pkg._id}
-                  className={`p-6 flex flex-col justify-between ${
-                    pkg.durationMonths === 12
-                      ? "bg-blue-50 border border-blue-500 shadow-md"
-                      : "bg-gray-100 border border-gray-400"
-                  } rounded-lg`}
+                  className={`
+                    p-6 flex flex-col justify-between rounded-lg transition-all duration-300 transform
+                    ${
+                      pkg.durationMonths === 2
+                        ? "bg-blue-50 border border-blue-500 shadow-md hover:shadow-xl hover:-translate-y-2 hover:bg-blue-100"
+                        : "bg-gray-100 border border-gray-400 hover:shadow-lg hover:-translate-y-1 hover:bg-gray-200"
+                    }
+                  `}
                 >
                   {/* Package Info */}
                   <div className="mb-4 text-center">
-                    <h3 className="text-xl font-semibold text-blue-600">
+                    <h3 className="text-xl font-semibold text-red-600">
                       {pkg.durationMonths} tháng
                     </h3>
                     <p className="text-lg text-gray-700 line-through">
@@ -123,7 +125,8 @@ const PaymentPage: React.FC = () => {
                   {/* Button */}
                   <button
                     onClick={() => handleBuy(pkg._id)}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-300 w-full text-center mt-auto"
+                    className="bg-blue-600 text-white px-6 py-2 rounded-md w-full text-center mt-auto
+                               hover:bg-blue-700 hover:scale-105 transition-transform duration-300"
                   >
                     Đăng ký ngay
                   </button>
@@ -181,7 +184,7 @@ const PaymentPage: React.FC = () => {
         <div className="text-center pt-10 pb-10">
           <Link
             to="/payment/paymentform"
-            className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition duration-300"
+            className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 hover:scale-105 transition-transform duration-300"
           >
             Đăng ký
           </Link>
@@ -195,7 +198,7 @@ const PaymentPage: React.FC = () => {
             <p className="text-gray-800 mb-4">{popupMessage}</p>
             <button
               onClick={() => setPopupMessage(null)}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 hover:scale-105 transition-transform duration-300"
             >
               Đóng
             </button>
