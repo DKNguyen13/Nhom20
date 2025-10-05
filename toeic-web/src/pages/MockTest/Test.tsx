@@ -22,6 +22,7 @@ export const Test: React.FC<TestProps> = ({ isView = false }) => {
     handleGoBack,
     setCurrentPart,
     setCurrentQuestion,
+    handleSubmitSession,
   } = useTestSession();
 
   return (
@@ -140,9 +141,7 @@ export const Test: React.FC<TestProps> = ({ isView = false }) => {
             currentQuestion={currentQuestion}
             answers={answers}
             onNavigate={handleNavigateQuestion}
-            onSubmit={() => {
-              console.log("Redirect to result page");
-            }}
+            onSubmit={handleSubmitSession}
           />
         </div>
       </div>

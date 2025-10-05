@@ -1,10 +1,12 @@
 import { success, error } from '../utils/response.js';
 
+import User from "../models/user.model.js";
 import Test from "../models/test.model.js";
 import Part from "../models/part.model.js";
 import Question from "../models/question.model.js";
 import UserTestSession from "../models/userTestSession.model.js";
 import UserAnswer from "../models/userAnswer.model.js";
+import { calculateScore } from "../services/score.service.js";
 
 // [POST] /api/session/start
 export const startSession = async (req, res) => {
@@ -372,7 +374,7 @@ export const submitBulkAnswers = async (req, res) => {
             if (!question) continue;
 
             const isCorrect = answer.selectedAnswer === question.correctAnswer;
-            const isSkipped = !answer.selectedAnswer;
+            const isSkipped = answer.selectedAnswer === null || answer.selectedAnswer === undefined;
 
             const existingAnswerIndex = userAnswer.questions.findIndex(
                 q => q.questionId.toString() === answer.questionId
@@ -393,7 +395,7 @@ export const submitBulkAnswers = async (req, res) => {
                 userAnswer.questions[existingAnswerIndex] = {
                     ...userAnswer.questions[existingAnswerIndex],
                     ...answerData,
-                    timeSpent: userAnswer.questions[existingAnswerIndex].timeSpent + (answer.timeSpent || 0)
+                    timeSpent: (userAnswer.questions[existingAnswerIndex].timeSpent || 0) + (answer.timeSpent || 0)
                 };
             } else {
                 // Add new answer
@@ -431,7 +433,7 @@ export const submitBulkAnswers = async (req, res) => {
         );
 
     } catch (err) {
-        return error(res, 'Error submitting bulk answers');
+        return error(res, 'Error submitting bulk answers', err.message);
     }
 };
 
@@ -448,11 +450,11 @@ export const submitSession = async (req, res) => {
         });
 
         if (!session) {
-            return error(res, 'Sesion not found')
+            return error(res, 'Sesion not found');
         }
 
         // Calculate results
-        const results = await this.calculateSessionResults(sessionId, userId);
+        const results = await calculateSessionResults(sessionId, userId);
 
         // Update session
         session.status = 'completed';
@@ -485,7 +487,7 @@ export const submitSession = async (req, res) => {
         );
 
     } catch (err) {
-        return error(res, 'Error submitting session')
+        return error(res, 'Error submitting session', err.message);
     }
 };
 // [PUT] /api/session/:sessionId/pause
@@ -541,7 +543,7 @@ export const resumeSession = async (req, res) => {
         });
 
         if (!session) {
-            return error(res, 'Paused session not found')
+            return error(res, 'Paused session not found');
         }
 
         // Check if session expired
@@ -567,7 +569,7 @@ export const resumeSession = async (req, res) => {
             }
         );
     } catch (err) {
-        return error(res, 'Error resuming session')
+        return error(res, 'Error resuming session');
     }
 };
 
@@ -661,7 +663,7 @@ export const getUserSessions = async (req, res) => {
     }
 };
 
-// Helper calculate session results
+// calculate session results
 const calculateSessionResults = async function (sessionId, userId) {
     // Get UserAnswer with all questions
     const userAnswer = await UserAnswer.findOne({
@@ -684,12 +686,26 @@ const calculateSessionResults = async function (sessionId, userId) {
     const answers = userAnswer.questions;
 
     const totalQuestions = answers.length;
-    const answeredCount = answers.filter(a => !a.isSkipped).length;
-    const correctCount = answers.filter(a => a.isCorrect).length;
-    const incorrectCount = answers.filter(a => !a.isCorrect && !a.isSkipped).length;
-    const skippedCount = answers.filter(a => a.isSkipped).length;
 
-    const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+    const answeredCount = 0;
+    const correctCount = 0;
+    const incorrectCount = 0;
+    const skippedCount = 0;
+    for (const a of answers) {
+        if (a.isSkipped) {
+            skippedCount++;
+        } else {
+            answeredCount++;
+            if (a.isCorrect) {
+                correctCount++;
+            } else {
+                incorrectCount++;
+            }
+        }
+    }
+
+
+    const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
 
     // Calculate part results
     const partResults = [];
@@ -711,8 +727,8 @@ const calculateSessionResults = async function (sessionId, userId) {
     }
 
     // Calculate TOEIC scores if full test
-    let listeningScore = null;
-    let readingScore = null;
+    let listeningScore = 0;
+    let readingScore = 0;
     let totalScore = null;
 
     const listeningAnswers = answers.filter(a =>
@@ -722,12 +738,13 @@ const calculateSessionResults = async function (sessionId, userId) {
         a.questionId && a.questionId.partNumber > 4
     );
 
-    if (listeningAnswers.length >= 90 && readingAnswers.length >= 90) {
+    // listening and reading
+    if (listeningAnswers.length > 0 && readingAnswers.length > 0) {
         const listeningCorrect = listeningAnswers.filter(a => a.isCorrect).length;
         const readingCorrect = readingAnswers.filter(a => a.isCorrect).length;
 
-        listeningScore = await scoreService.calculateScore('listening', listeningCorrect);
-        readingScore = await scoreService.calculateScore('reading', readingCorrect);
+        listeningScore = await calculateScore('listening', listeningCorrect);
+        readingScore = await calculateScore('reading', readingCorrect);
         totalScore = listeningScore + readingScore;
     }
 

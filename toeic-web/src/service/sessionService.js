@@ -16,3 +16,18 @@ export const getSessionQuestions = async (sessionId) => {
     console.log("Get Session questions: ", res.data.data);
     return res.data.data;
 };
+
+export const submitBulkAnswers = async (sessionId, answers) => {
+    const res = await api.post(`/session/${sessionId}/answers/bulk`, {answers});
+    return res.data.data;
+};
+
+export const submitSession = async (sessionId) => {
+    const res = await api.post(`/session/${sessionId}/submit`);
+    return res.data.data;
+};
+
+export const getSessionResults = async (sessionId) => {
+    const res = await api.get(`/session/${sessionId}/results`);
+    return res.data.data;
+}

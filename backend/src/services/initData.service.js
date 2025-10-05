@@ -4,7 +4,8 @@ import User from "../models/user.model.js";
 import Lesson from "../models/lesson.model.js";
 import VipPackage from "../models/vipPackage.model.js";
 import PaymentOrder from "../models/paymentOrder.model.js";
-
+import ScoreMapping from "../models/scoreMapping.model.js";
+import { estimateScore } from "../services/score.service.js";
 
 export const seedRevenue = async () => {
   const count = await PaymentOrder.countDocuments();
@@ -203,4 +204,96 @@ export const seedLessons = async () => {
 
   await Lesson.insertMany(lessons);
   console.log("✅ Seeded 10 realistic English lessons successfully!");
+};
+
+
+export const seedScoreMappings = async () => {
+  const mappings = [];
+
+  const listeningMapping = [
+    { correctAnswers: 0, scaledScore: 5 },
+    { correctAnswers: 10, scaledScore: 55 },
+    { correctAnswers: 20, scaledScore: 110 },
+    { correctAnswers: 30, scaledScore: 170 },
+    { correctAnswers: 40, scaledScore: 230 },
+    { correctAnswers: 50, scaledScore: 285 },
+    { correctAnswers: 60, scaledScore: 345 },
+    { correctAnswers: 70, scaledScore: 400 },
+    { correctAnswers: 80, scaledScore: 455 },
+    { correctAnswers: 90, scaledScore: 485 },
+    { correctAnswers: 100, scaledScore: 495 },
+  ];
+
+  const readingMapping = [
+    { correctAnswers: 0, scaledScore: 5 },
+    { correctAnswers: 10, scaledScore: 60 },
+    { correctAnswers: 20, scaledScore: 120 },
+    { correctAnswers: 30, scaledScore: 175 },
+    { correctAnswers: 40, scaledScore: 230 },
+    { correctAnswers: 50, scaledScore: 285 },
+    { correctAnswers: 60, scaledScore: 340 },
+    { correctAnswers: 70, scaledScore: 390 },
+    { correctAnswers: 80, scaledScore: 440 },
+    { correctAnswers: 90, scaledScore: 480 },
+    { correctAnswers: 100, scaledScore: 495 },
+  ];
+
+  // Create mappings for both sections
+  for (const mapping of listeningMapping) {
+    mappings.push({
+      section: 'listening',
+      correctAnswers: mapping.correctAnswers,
+      scaledScore: mapping.scaledScore,
+      version: 'estimated-v1',
+      source: 'Custom',
+      isActive: true,
+      effectiveFrom: new Date(),
+      createdBy: null // System generated
+    });
+  }
+
+  for (const mapping of readingMapping) {
+    mappings.push({
+      section: 'reading',
+      correctAnswers: mapping.correctAnswers,
+      scaledScore: mapping.scaledScore,
+      version: 'estimated-v1',
+      source: 'Custom',
+      isActive: true,
+      effectiveFrom: new Date(),
+      createdBy: null // System generated
+    });
+  }
+
+  // Fill in intermediate values
+  for (let section of ['listening', 'reading']) {
+    const sectionMappings = mappings.filter(m => m.section === section);
+
+    for (let i = 0; i < 100; i++) {
+      if (!sectionMappings.find(m => m.correctAnswers === i)) {
+        // Interpolate score
+        const score = estimateScore(section, i);
+        mappings.push({
+          section,
+          correctAnswers: i,
+          scaledScore: score,
+          version: 'estimated-v1',
+          source: 'Custom',
+          isActive: true,
+          effectiveFrom: new Date(),
+          createdBy: null
+        });
+      }
+    }
+  }
+
+  try {
+    await ScoreMapping.deleteMany({}); // clear old data
+    await ScoreMapping.insertMany(mappings);
+    console.log('Score mappings seeded successfully!');
+  } catch (err) {
+    console.error('Error seeding score mappings:', err);
+  } finally {
+    mongoose.connection.close();
+  }
 };
