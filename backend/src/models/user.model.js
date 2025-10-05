@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
   vip: {
     isActive: { type: Boolean, default: false },
     endDate: { type: Date, default: null },
-    type: { type: String, enum: ['basic','pro','premium'], default: null }
+    type: { type: String, enum: ['basic','advanced','premium'], default: null }
   }
 }, { timestamps: true });
 
