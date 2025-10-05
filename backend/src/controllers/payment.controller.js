@@ -1,7 +1,8 @@
 import moment from "moment";
 import crypto from "crypto";
-import { config } from "../config/env.config.js";
 import User from "../models/user.model.js";
+import { config } from "../config/env.config.js";
+import { success, error } from '../utils/response.js';
 import VipPackage from "../models/vipPackage.model.js";
 import PaymentOrder from "../models/paymentOrder.model.js";
 
@@ -126,8 +127,14 @@ export const returnPayment = async (req, res) => {
     if (!pkg) return res.redirect(`${config.frontendUrl}${config.paymentFailPath}`);
 
     const now = new Date();
-    const currentEnd = user.vip.endDate && user.vip.endDate > now ? user.vip.endDate : now;
-    const newEndDate = new Date(currentEnd.setMonth(currentEnd.getMonth() + pkg.durationMonths));
+    const currentEnd = user.vip?.endDate && user.vip.endDate > now ? new Date(user.vip.endDate) : new Date(now);
+
+    const newEndDate = new Date(currentEnd);
+    newEndDate.setMonth(newEndDate.getMonth() + pkg.durationMonths);
+
+    order.startDate = now;
+    order.endDate = newEndDate;
+
 
     await User.findByIdAndUpdate(user._id, {
       "vip.isActive": true,
@@ -148,3 +155,29 @@ export const returnPayment = async (req, res) => {
   }
 };
 
+// Get user purchase history
+export const getUserPurchaseHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const orders = await PaymentOrder.find({ userId })
+      .populate("packageId", "name durationMonths discountedPrice type")
+      .sort({ createdAt: -1 });
+
+    const formattedOrders = orders.map((o) => ({
+      _id: o._id,
+      orderId: o.orderId,
+      packageName: o.packageId.name,
+      startDate: o.startDate,
+      endDate: o.endDate,
+      pricePaid: o.pricePaid,
+      status: o.status,
+      isActive: o.isActive,
+    }));
+
+    return success(res, "Lấy lịch sử mua hàng thành công", formattedOrders);
+  } catch (err) {
+    console.error(err);
+    return error(res, "Lỗi khi lấy lịch sử mua hàng");
+  }
+};
