@@ -1,8 +1,7 @@
-import { CiUser } from "react-icons/ci";
 import React, { useState, useEffect, useRef } from "react";
 import api, { setAccessToken } from "../../config/axios.js";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FaHome, FaClipboardList, FaFileAlt, FaSearch, FaCrown, FaSignOutAlt, FaShoppingCart, FaHistory, FaUser } from "react-icons/fa";
+import { FaHome, FaClipboardList, FaFileAlt, FaSearch, FaCrown, FaSignOutAlt, FaHistory, FaUser } from "react-icons/fa";
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -12,11 +11,24 @@ const Header: React.FC = () => {
   const [openMenu, setOpenMenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const updateUser = () => {
     setFullname(localStorage.getItem("fullname"));
     const avatar = localStorage.getItem("avatarUrl");
-    if (avatar) setAvatarUrl(avatar);
+    setAvatarUrl(avatar || "/img/avatar/default_avatar.jpg");
+  };
+
+  useEffect(() => {
+    // Set initial user
+    updateUser();
+
+    const handleUserUpdated = () => updateUser();
+    window.addEventListener("userUpdated", handleUserUpdated);
+
+    return () => {
+      window.removeEventListener("userUpdated", handleUserUpdated);
+    };
   }, []);
+
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -37,10 +49,14 @@ const Header: React.FC = () => {
     } finally {
       localStorage.clear();
       setAccessToken(null);
+      setFullname(null);
+      window.dispatchEvent(new Event("userUpdated"));
+      setAvatarUrl("/img/avatar/default_avatar.jpg");
       setOpenMenu(false);
       navigate("/login");
     }
   };
+
 
   const navLinks = [
     { to: "/", label: "Trang chủ", icon: <FaHome className="text-xl" /> },
