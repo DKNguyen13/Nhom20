@@ -34,10 +34,9 @@ import PaymentFail from "../pages/Payment/PaymentFail";
 import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 import FlashcardPage from "../pages/FlashCard/FlashcardPage";
 
-
 const RefreshTokenLoader = () => {
   useRefreshTokenOnLoad();
-  return null; // Không render gì
+  return null;
 };
 
 // Cấu hình routes
