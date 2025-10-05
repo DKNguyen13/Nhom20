@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
+import useRefreshTokenOnLoad from "../hooks/useRefreshTokenOnLoad";
 
 // Các trang (các phần này sẽ thêm sau)
 import HomePage from "../pages/Home/Home";
@@ -33,14 +34,23 @@ import PaymentFail from "../pages/Payment/PaymentFail";
 import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 import FlashcardPage from "../pages/FlashCard/FlashcardPage";
 
+
+const RefreshTokenLoader = () => {
+  useRefreshTokenOnLoad();
+  return null; // Không render gì
+};
+
 // Cấu hình routes
 const routes = [
   {
     path: "/", // Trang Home, cho mọi user
     element: (
-      <MainLayout>
-        <HomePage />
-      </MainLayout>
+		<>
+        <RefreshTokenLoader />
+        <MainLayout>
+          <HomePage />
+        </MainLayout>
+      </>
     ),
   },
   {
