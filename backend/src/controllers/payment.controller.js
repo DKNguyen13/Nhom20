@@ -127,8 +127,14 @@ export const returnPayment = async (req, res) => {
     if (!pkg) return res.redirect(`${config.frontendUrl}${config.paymentFailPath}`);
 
     const now = new Date();
-    const currentEnd = user.vip.endDate && user.vip.endDate > now ? user.vip.endDate : now;
-    const newEndDate = new Date(currentEnd.setMonth(currentEnd.getMonth() + pkg.durationMonths));
+    const currentEnd = user.vip?.endDate && user.vip.endDate > now ? new Date(user.vip.endDate) : new Date(now);
+
+    const newEndDate = new Date(currentEnd);
+    newEndDate.setMonth(newEndDate.getMonth() + pkg.durationMonths);
+
+    order.startDate = now;
+    order.endDate = newEndDate;
+
 
     await User.findByIdAndUpdate(user._id, {
       "vip.isActive": true,
