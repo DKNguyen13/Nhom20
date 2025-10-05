@@ -27,7 +27,7 @@ const Header: React.FC = () => {
     { to: "/", label: "Trang chủ", icon: <FaHome className="text-xl" /> },
     {
       to: "/practice",
-      label: "Luyện tập",
+      label: "Flashcards",
       icon: <FaClipboardList className="text-xl" />,
     },
     {

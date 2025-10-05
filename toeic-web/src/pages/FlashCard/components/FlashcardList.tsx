@@ -10,7 +10,6 @@ export interface Flashcard {
   meaning: string;
   example?: string;
   note?: string;
-  audioUrl?: string;
 }
 
 const FlashcardList: React.FC = () => {
