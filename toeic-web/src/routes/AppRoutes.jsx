@@ -118,7 +118,7 @@ const routes = [
     ),
   },
   {
-    path: "/result/:id",
+    path: "/session/:id/results",
     element: (
       <MainLayout>
         <Result

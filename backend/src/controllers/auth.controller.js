@@ -9,9 +9,9 @@ import { verifyRefreshToken, generateAccessToken } from '../utils/jwt.js';
 // Normal Login
 export const login = async (req, res) => {
     try {
-        const { user, accessToken, refreshToken }  = await AuthService.normalLoginService(req.body);
+        const { user, accessToken, refreshToken } = await AuthService.normalLoginService(req.body);
 
-        await redisClient.set(`refreshToken:${user._id}`, refreshToken, { EX: 7*24*60*60 });
+        await redisClient.set(`refreshToken:${user._id}`, refreshToken, { EX: 7 * 24 * 60 * 60 });
 
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
@@ -20,8 +20,8 @@ export const login = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
-        return success(res, 'Login successfull', { 
-            user: { fullname: user.fullname, email : user.email, phone : user.phone, avatarUrl : user.avatarUrl, role : user.role },
+        return success(res, 'Login successfull', {
+            user: { fullname: user.fullname, email: user.email, phone: user.phone, avatarUrl: user.avatarUrl, role: user.role },
             accessToken
         });
     } catch (err) {
@@ -36,7 +36,7 @@ export const googleLogin = async (req, res) => {
         const { tokenId } = req.body;
         const { user, accessToken, refreshToken } = await AuthService.googleLoginService({ tokenId });
 
-        await redisClient.set(`refreshToken:${user.id}`, refreshToken, { EX: 7*24*60*60 });
+        await redisClient.set(`refreshToken:${user.id}`, refreshToken, { EX: 7 * 24 * 60 * 60 });
 
         // Set cookie refresh token
         res.cookie('refreshToken', refreshToken, {
@@ -46,8 +46,8 @@ export const googleLogin = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
         });
 
-        return success(res, 'Google login successful', { 
-            user: { fullname: user.fullname, email : user.email, avatarUrl: user.avatarUrl },
+        return success(res, 'Google login successful', {
+            user: { fullname: user.fullname, email: user.email, avatarUrl: user.avatarUrl },
             accessToken
         });
     } catch (err) {
@@ -58,12 +58,12 @@ export const googleLogin = async (req, res) => {
 
 // Register account
 export const register = async (req, res) => {
-    try{
+    try {
         const { fullname, email, password, phone, dob, avatarUrl, otp } = req.body;
         await AuthService.register({ fullname, email, password, phone, dob, avatarUrl, otp });
         return success(res, 'Register successful. Please login.')
     }
-    catch (err){
+    catch (err) {
         console.log("Register fail:", err.message);
         return error(res, 'Register fail. Please try again!', 400);
     }
@@ -101,11 +101,11 @@ export const resetPassword = async (req, res) => {
 
 // Logout
 export const logout = async (req, res) => {
-    try{
+    try {
         const token = req.cookies.refreshToken;
         if (token) {
-        const decoded = verifyRefreshToken(token);
-        await redisClient.del(`refreshToken:${decoded.id}`);
+            const decoded = verifyRefreshToken(token);
+            await redisClient.del(`refreshToken:${decoded.id}`);
         }
 
         res.clearCookie("refreshToken", {
@@ -115,7 +115,7 @@ export const logout = async (req, res) => {
         });
         return success(res, "Logged out successfully");
     }
-    catch(err){
+    catch (err) {
         console.error("Error logging out user: ", err);
         return error(res, "Logout failed", 500);
     }
@@ -144,18 +144,18 @@ export const refreshToken = async (req, res) => {
 
 // Update profile
 export const updateProfileController = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const fullname = req.body.fullname || '';
-    const fileBuffer = req.file?.buffer || null;
+    try {
+        const userId = req.user.id;
+        const fullname = req.body.fullname || '';
+        const fileBuffer = req.file?.buffer || null;
 
-    const updatedUser = await AuthService.updateProfileService({
-        userId,
-        fullname: fullname,
-        fileBuffer,
-    });
+        const updatedUser = await AuthService.updateProfileService({
+            userId,
+            fullname: fullname,
+            fileBuffer,
+        });
 
-    return success(res, 'Cập nhật profile thành công', updatedUser);
+        return success(res, 'Cập nhật profile thành công', updatedUser);
     } catch (err) {
         console.log("Update profile fail:", err.message);
         return error(res, "Update profile fail");
@@ -175,9 +175,8 @@ export const changePassword = async (req, res) => {
 };
 
 // Check role
-export const checkRole = [ authenticate, (req, res) => {
-    try 
-    {
+export const checkRole = [authenticate, (req, res) => {
+    try {
         console.log('User role:', req.user.role);
         return success(res, 'Role hiện tại', { role: req.user.role });
     } catch (err) {

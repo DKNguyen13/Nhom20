@@ -58,3 +58,7 @@ export interface Session {
   testId: TestId;
   timeRemaining: number; // milliseconds còn lại
 }
+
+export interface Result {
+  
+}

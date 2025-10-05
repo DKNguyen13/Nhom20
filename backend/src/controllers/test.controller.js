@@ -12,8 +12,8 @@ export const getAllTest = async (req, res) => {
         }
         return success(res, 'Get all test success', { tests });
 
-    } catch (error) {
-        return error(res, 'Get all test error');
+    } catch (err) {
+        return error(res, 'Get all test error', 500, err.message);
     }
 };
 
@@ -40,19 +40,19 @@ export const getTestDetail = async (req, res) => {
             res,
             'Get test detail success',
             {
-            test,
-            parts,
-            questions,
-            summary: {
-                totalPart: parts.length,
-                totalQuestions: questions.length,
-                questionByPart: parts.map(part => ({
-                    partNumber: part.partNumber,
-                    title: part.title,
-                    questionCount: questions.filter(q => q.partNumber === part.partNumber)
-                }))
-            }
-        });
+                test,
+                parts,
+                questions,
+                summary: {
+                    totalPart: parts.length,
+                    totalQuestions: questions.length,
+                    questionByPart: parts.map(part => ({
+                        partNumber: part.partNumber,
+                        title: part.title,
+                        questionCount: questions.filter(q => q.partNumber === part.partNumber)
+                    }))
+                }
+            });
     } catch (error) {
         return error(res, 'Error fetching test');
     }
@@ -94,7 +94,7 @@ export const updateTest = async (req, res) => {
             return error(res, 'Test not found');
         }
 
-        return success(res,'Update test success', { test })
+        return success(res, 'Update test success', { test })
     } catch (error) {
         return error(res, 'Update test error');
     }
@@ -114,7 +114,7 @@ export const deleteTest = async (req, res) => {
         if (!test) {
             return error(res, 'Test not found');
         }
-        
+
         return success(res, 'Delete test success');
     } catch (error) {
         return error(res, 'Delete test error');

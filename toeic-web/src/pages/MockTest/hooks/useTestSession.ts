@@ -149,6 +149,7 @@ export const useTestSession = () => {
       console.log("Session submitted:", result);
 
       // redirect sang trang result
+      navigate(`/session/${sessionId}/results`);
     } catch (error) {
       
     }
