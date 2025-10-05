@@ -15,9 +15,10 @@ import wishlistRouter from './routes/wishlist.routes.js';
 import questionRoutes from './routes/question.routes.js';
 import * as InitData from './services/initData.service.js';
 import sessionRoutes from "./routes/session.routes.js";
-import {Server} from "socket.io";
-import {GoogleGenAI} from "@google/genai";
-import {promptPrefix} from "./utils/constant.js";
+import flashcardRoutes from './routes/flashcard.routes.js';
+import { Server } from "socket.io";
+import { GoogleGenAI } from "@google/genai";
+import { promptPrefix } from "./utils/constant.js";
 
 const app = express()
 
@@ -29,6 +30,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
+
 app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/lessons', lessonRouter);
@@ -41,6 +43,7 @@ app.use('/api/test', testRoutes);
 app.use('/api/test/:slug', partRoutes);
 app.use('/api/test/:slug', questionRoutes);
 app.use('/api/session', sessionRoutes);
+app.use('/api/flashcard', flashcardRoutes);
 
 await connectDB();
 await InitData.createAdminIfNotExist();
