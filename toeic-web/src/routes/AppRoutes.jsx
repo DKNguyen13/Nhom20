@@ -21,7 +21,7 @@ import Payment from "../pages/Payment/Payment";
 import PaymentForm from "../pages/Payment/PaymentForm/PaymentForm"; // Giả lập trạng thái Auth
 import Resource from "../pages/Resource/Resource";
 import History from "../pages/History/History";
-import { Practice } from "../pages/Practice/Practice";
+//import { Practice } from "../pages/Practice/Practice";
 import ResourceDetail from "../pages/Resource/ResourceDetail";
 import DashboardPage from "../pages/Admin/Dashboard/Dashboard";
 import UserManagementPage from "../pages/Admin/UserManagement/UserManagement";
@@ -31,6 +31,7 @@ import { Wishlist } from "../pages/Wishlist/Wishlist";
 import VipManagement from "../pages/Admin/VipManagement/VipManagement";
 import PaymentFail from "../pages/Payment/PaymentFail";
 import PaymentSuccess from "../pages/Payment/PaymentSuccess";
+import FlashcardPage from "../pages/FlashCard/FlashcardPage";
 
 // Cấu hình routes
 const routes = [
@@ -223,7 +224,7 @@ const routes = [
 		path: "/practice",
 		element: (
 			<MainLayout>
-				<Practice />
+				<FlashcardPage />
 			</MainLayout>
 		),
 	},
