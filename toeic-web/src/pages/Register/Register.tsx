@@ -1,9 +1,10 @@
+import { format } from "date-fns";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import api from "../../config/axios.js";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -83,7 +84,7 @@ const Register: React.FC = () => {
         email,
         password,
         phone,
-        dob,
+        dob: dob ? format(dob, "dd/MM/yyyy") : null,
         otp,
       });
 

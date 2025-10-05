@@ -10,6 +10,8 @@ import { verifyRefreshToken, generateAccessToken } from '../utils/jwt.js';
 export const login = async (req, res) => {
     try {
         const { user, accessToken, refreshToken } = await AuthService.normalLoginService(req.body);
+        
+        if (!user.isActive) return error(res, "Tài khoản đã bị vô hiệu hóa!", 403);
 
         await redisClient.set(`refreshToken:${user._id}`, refreshToken, { EX: 7 * 24 * 60 * 60 });
 
@@ -20,13 +22,14 @@ export const login = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
-        return success(res, 'Login successfull', {
-            user: { fullname: user.fullname, email: user.email, phone: user.phone, avatarUrl: user.avatarUrl, role: user.role },
+
+        return success(res, 'Đăng nhập thành công', { 
+            user: { fullname: user.fullname, email : user.email, phone : user.phone, avatarUrl : user.avatarUrl, role : user.role },
             accessToken
         });
     } catch (err) {
         console.log('Normal login error:', err.message);
-        return error(res, "Login error. Please try again!", 400);
+        return error(res, err.message, 400);
     }
 };
 
@@ -36,7 +39,8 @@ export const googleLogin = async (req, res) => {
         const { tokenId } = req.body;
         const { user, accessToken, refreshToken } = await AuthService.googleLoginService({ tokenId });
 
-        await redisClient.set(`refreshToken:${user.id}`, refreshToken, { EX: 7 * 24 * 60 * 60 });
+        if (!user.isActive) return error(res, "Tài khoản đã bị vô hiệu hóa!", 403);
+        await redisClient.set(`refreshToken:${user.id}`, refreshToken, { EX: 7*24*60*60 });
 
         // Set cookie refresh token
         res.cookie('refreshToken', refreshToken, {
@@ -46,26 +50,31 @@ export const googleLogin = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
         });
 
-        return success(res, 'Google login successful', {
-            user: { fullname: user.fullname, email: user.email, avatarUrl: user.avatarUrl },
+
+        return success(res, 'Đăng nhập google thành công', { 
+            user: { fullname: user.fullname, email : user.email, avatarUrl: user.avatarUrl },
             accessToken
         });
     } catch (err) {
         console.error("Google login error:", err);
-        return error(res, "Google login error. Please try again!", 400);
+        return error(res, err.message, 400);
     }
 };
 
 // Register account
 export const register = async (req, res) => {
+
     try {
         const { fullname, email, password, phone, dob, avatarUrl, otp } = req.body;
-        await AuthService.register({ fullname, email, password, phone, dob, avatarUrl, otp });
-        return success(res, 'Register successful. Please login.')
+
+        await AuthService.registerService({ fullname, email, password, phone, dob, avatarUrl, otp });
+        return success(res, 'Đăng ký thành công. Vui lòng đăng nhập!')
     }
+
     catch (err) {
         console.log("Register fail:", err.message);
-        return error(res, 'Register fail. Please try again!', 400);
+
+        return error(res, err.message, 400);
     }
 };
 
@@ -77,7 +86,7 @@ export const sendOTP = async (req, res) => {
         return success(res, message);
     } catch (err) {
         console.log("Send register OTP fail:", err.message);
-        return error(res, "Send OTP fail. Please try again", 400);
+        return error(res, err.message, 400);
     }
 };
 
@@ -101,9 +110,11 @@ export const resetPassword = async (req, res) => {
 
 // Logout
 export const logout = async (req, res) => {
+
     try {
         const token = req.cookies.refreshToken;
         if (token) {
+
             const decoded = verifyRefreshToken(token);
             await redisClient.del(`refreshToken:${decoded.id}`);
         }
@@ -113,11 +124,14 @@ export const logout = async (req, res) => {
             secure: config.cookieSecure,
             sameSite: config.cookieSameSite,
         });
-        return success(res, "Logged out successfully");
+
+        return success(res, "Đăng xuất thành công!");
     }
+
     catch (err) {
         console.error("Error logging out user: ", err);
-        return error(res, "Logout failed", 500);
+
+        return error(res, err.message, 500);
     }
 };
 
@@ -125,35 +139,42 @@ export const logout = async (req, res) => {
 export const refreshToken = async (req, res) => {
     try {
         const token = req.cookies.refreshToken;
-        if (!token) return error(res, 'No refresh token provided', 401);
+
+        if (!token) return error(res, 'Không có refresh token', 401);
 
         const decoded = verifyRefreshToken(token);
         const user = await User.findById(decoded.id);
         const storedToken = await redisClient.get(`refreshToken:${user._id}`);
 
-        if (!user || !user.isActive) throw new Error('User not found or inactive');
-        if (!storedToken || storedToken !== token) return error(res, 'Invalid or revoked refresh token', 401);
+
+        if (!user || !user.isActive) throw new Error('Người dùng không tồn tại hoặc đã bị vô hiệu hóa');
+        if (!storedToken || storedToken !== token) return error(res, 'Refresh token không hợp lệ hoặc đã bị thu hồi', 401);
         const newAccessToken = generateAccessToken({ id: user._id, role: user.role });
 
-        return success(res, 'New access token', { newAccessToken });
+
+        return success(res, 'Cấp mới access token thành công', { newAccessToken });
     } catch (err) {
         console.log('Refresh access token invalid', err.message)
-        return error(res, 'Refresh access token invalid', 401);
+
+        return error(res, err.message, 401);
     }
 };
 
 // Update profile
 export const updateProfileController = async (req, res) => {
+
     try {
         const userId = req.user.id;
         const fullname = req.body.fullname || '';
         const fileBuffer = req.file?.buffer || null;
+
 
         const updatedUser = await AuthService.updateProfileService({
             userId,
             fullname: fullname,
             fileBuffer,
         });
+
 
         return success(res, 'Cập nhật profile thành công', updatedUser);
     } catch (err) {
@@ -175,6 +196,7 @@ export const changePassword = async (req, res) => {
 };
 
 // Check role
+
 export const checkRole = [authenticate, (req, res) => {
     try {
         console.log('User role:', req.user.role);

@@ -178,12 +178,15 @@ const Login: React.FC = () => {
                       localStorage.setItem("avatarUrl", user.avatarUrl);
                       navigate("/");
                     }
-                  } catch (err) {
-                    console.error("Google login failed", err);
+                    else{
+                      setErrors({ general: res.data.message || "Đăng nhập Google thất bại" });
+                    }
+                  } catch (err : any) {
+                    setErrors({ general: err.response?.data?.message || "Lỗi kết nối server" });
                   }
                 }}
                 onError={() => {
-                  console.log("Google Login Failed");
+                  console.log("Đăng nhập Google thất bại");
                 }}
               />
             </div>
