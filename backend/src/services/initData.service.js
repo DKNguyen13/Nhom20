@@ -293,7 +293,5 @@ export const seedScoreMappings = async () => {
     console.log('Score mappings seeded successfully!');
   } catch (err) {
     console.error('Error seeding score mappings:', err);
-  } finally {
-    mongoose.connection.close();
   }
 };

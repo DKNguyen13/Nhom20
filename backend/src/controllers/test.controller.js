@@ -12,8 +12,8 @@ export const getAllTest = async (req, res) => {
         }
         return success(res, 'Get all test success', { tests });
 
-    } catch (error) {
-        return error(res, 'Get all test error');
+    } catch (err) {
+        return error(res, 'Get all test error', 500, err.message);
     }
 };
 

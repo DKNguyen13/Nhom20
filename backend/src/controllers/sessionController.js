@@ -487,7 +487,7 @@ export const submitSession = async (req, res) => {
         );
 
     } catch (err) {
-        return error(res, 'Error submitting session', err.message);
+        return error(res, 'Error submitting session', 500, err.message);
     }
 };
 // [PUT] /api/session/:sessionId/pause
@@ -687,10 +687,10 @@ const calculateSessionResults = async function (sessionId, userId) {
 
     const totalQuestions = answers.length;
 
-    const answeredCount = 0;
-    const correctCount = 0;
-    const incorrectCount = 0;
-    const skippedCount = 0;
+    let answeredCount = 0;
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let skippedCount = 0;
     for (const a of answers) {
         if (a.isSkipped) {
             skippedCount++;
