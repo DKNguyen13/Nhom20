@@ -3,7 +3,7 @@ import vipPackageModel from '../models/vipPackage.model.js';
 // Get all packages
 export const getAllPackages = async () => {
   const packages = await vipPackageModel.find();
-  const order = ["basic", "pro", "premium"];
+  const order = ["basic", "advanced", "premium"];
   return packages.sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
 };
 

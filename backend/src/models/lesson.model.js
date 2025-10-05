@@ -8,7 +8,7 @@ const lessonSchema = new mongoose.Schema(
     views: { type: Number, default: 0 },
     accessLevel: {
       type: String,
-      enum: ["free", "basic", "pro", "premium"],
+      enum: ["free", "basic", "advanced", "premium"],
       default: "free",
     },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

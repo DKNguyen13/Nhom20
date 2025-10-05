@@ -12,7 +12,7 @@ interface Package {
   originalPrice: number;
   discountedPrice: number;
   description?: string;
-  type: "basic" | "pro" | "premium";
+  type: "basic" | "advanced" | "premium";
 }
 
 const PaymentPage: React.FC = () => {
@@ -52,7 +52,7 @@ const PaymentPage: React.FC = () => {
   // Khi quay lại từ VNPay, check code và navigate
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get("code"); // code trả về từ BE
+    const code = params.get("code");
     if (code === "00") {
       navigate("/payment/success");
     } else if (code) {
