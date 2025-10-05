@@ -2,7 +2,7 @@ import { CiUser } from "react-icons/ci";
 import React, { useState, useEffect, useRef } from "react";
 import api, { setAccessToken } from "../../config/axios.js";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FaHome, FaClipboardList, FaFileAlt, FaSearch, FaCrown, FaSignOutAlt } from "react-icons/fa";
+import { FaHome, FaClipboardList, FaFileAlt, FaSearch, FaCrown, FaSignOutAlt, FaShoppingCart, FaHistory, FaUser } from "react-icons/fa";
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -103,7 +103,7 @@ const Header: React.FC = () => {
               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 shadow-xl rounded-xl overflow-hidden z-50 transition transform duration-200 ease-out scale-100 opacity-100">
                 <Link to="/settings" onClick={() => setOpenMenu(false)}
                   className="flex items-center px-4 py-3 gap-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition font-medium">
-                  <CiUser className="text-lg" />
+                  <FaUser className="text-lg" />
                   Thông tin cá nhân
                 </Link>
                 <Link to="/history" onClick={() => setOpenMenu(false)}
@@ -113,7 +113,7 @@ const Header: React.FC = () => {
                 </Link>
                 <Link to="/purchase-history" onClick={() => setOpenMenu(false)}
                   className="flex items-center px-4 py-3 gap-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition font-medium">
-                  <FaClipboardList className="text-lg" />
+                  <FaHistory className="text-lg" />
                   Lịch sử mua hàng
                 </Link>
                 <button onClick={handleLogout}

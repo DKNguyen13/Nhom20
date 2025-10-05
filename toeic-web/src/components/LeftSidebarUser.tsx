@@ -1,7 +1,7 @@
 import React from "react";
 import api, { setAccessToken } from "../config/axios.js";
 import { Link, useNavigate } from "react-router-dom";
-import { FaHistory, FaCog, FaSignOutAlt, FaShoppingCart } from "react-icons/fa";
+import { FaHistory, FaCog, FaSignOutAlt, FaShoppingCart, FaClipboardList } from "react-icons/fa";
 
 interface LeftSidebarUserProps {
   customHeight?: string;
@@ -39,9 +39,9 @@ const LeftSidebarUser: React.FC<LeftSidebarUserProps> = ({
   };
 
   const menuItems: MenuItem[] = [
-    { label: "Lịch sử làm bài", icon: <FaHistory />, to: "/history" },
+    { label: "Lịch sử làm bài", icon: <FaClipboardList />, to: "/history" },
     { label: "Cài đặt", icon: <FaCog />, to: "/settings" },
-    { label: "Lịch sử mua hàng", icon: <FaShoppingCart />, to: "/purchase-history" },
+    { label: "Lịch sử mua hàng", icon: <FaHistory />, to: "/purchase-history" },
     { label: "Đăng xuất", icon: <FaSignOutAlt />, textColor: "text-red-500", action: handleLogout },
   ];
 
@@ -68,18 +68,12 @@ const LeftSidebarUser: React.FC<LeftSidebarUserProps> = ({
           {menuItems.map((item) => (
             <li key={item.label} className="mb-2">
               {item.action ? (
-                <button
-                  onClick={item.action}
-                  className={`flex items-center w-full p-2 rounded hover:bg-blue-100 ${item.textColor || "text-gray-700"}`}
-                >
+                <button onClick={item.action} className={`flex items-center w-full p-2 rounded hover:bg-blue-100 ${item.textColor || "text-gray-700"}`}>
                   <span className="mr-3">{item.icon}</span>
                   {item.label}
                 </button>
               ) : (
-                <Link
-                  to={item.to || "#"}
-                  className={`flex items-center p-2 rounded hover:bg-blue-100 ${item.textColor || "text-gray-700"}`}
-                >
+                <Link to={item.to || "#"} className={`flex items-center p-2 rounded hover:bg-blue-100 ${item.textColor || "text-gray-700"}`}>
                   <span className="mr-3">{item.icon}</span>
                   {item.label}
                 </Link>
