@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { isLoggedIn } from "../../config/axios";
 import FlashcardSetList from "./components/FlashcardSetList";
 
 const FlashcardPage: React.FC = () => {
@@ -44,8 +45,8 @@ const FlashcardPage: React.FC = () => {
 
       {/* Flashcard list */}
       <div className="mt-10 px-8">
-        {activeTab === "myList" && <FlashcardSetList type="myList" />}
-        {activeTab === "explore" && <FlashcardSetList type="explore" />}
+        {activeTab === "myList" && <FlashcardSetList type="myList" isLoggedIn={isLoggedIn()}/>}
+        {activeTab === "explore" && <FlashcardSetList type="explore" isLoggedIn={isLoggedIn()} />}
       </div>
     </div>
   );
