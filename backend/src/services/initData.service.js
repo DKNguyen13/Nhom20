@@ -334,9 +334,8 @@ export const seedFlashcards = async () => {
       }));
 
       await Flashcard.insertMany(flashcards);
-
-      console.log("✅ Seeded all TOEIC flashcards successfully!");
     }
+    console.log("✅ Seeded all TOEIC flashcards successfully!");
   } catch (err) {
     console.error("Error seeding flashcards:", err);
   }

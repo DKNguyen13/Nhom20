@@ -22,9 +22,10 @@ export const createSet = async (req, res) => {
                     case 'premium': limit = 100; break;
                 }
             }
+            const count = await FlashcardSet.countDocuments({ user: userId });  
             if (count >= limit) return error(res, `Bạn đã đạt giới hạn ${limit} tạo bộ flashcard. Nâng cấp VIP để tạo thêm!`, 403);
         }
-        const count = await FlashcardSet.countDocuments({ user: userId });        
+      
         const newSet = await FlashcardSet.create({
             user: userId,
             name,
@@ -133,6 +134,23 @@ export const getAllFlashcards = async (req, res) => {
         return error(res, 'Lỗi khi lấy danh sách flashcard.');
     }
 };
+
+// Get all flashcardfree
+export const getAllFlashcardsFree = async (req, res) => {
+    try{
+        const admin = await User.findOne({ role: 'admin' });
+        if (!admin) {
+            console.log("Admin không tồn tại, vui lòng chạy createAdminIfNotExist trước.");
+            return error(res, 'Hiện tại chưa có dữ liệu.');;
+        }
+        const flashcards = await FlashcardSet.find({ user: admin._id }).sort({ createdAt: -1 });
+        return success(res, 'Lấy danh sách flashcard thành công', flashcards);
+    }
+    catch (err){
+        console.error(err);
+        return error(res, 'Lỗi khi lấy danh sách flashcard.');
+    }
+}
 
 // Delete flashcard
 export const deleteFlashcard = async (req, res) => {
