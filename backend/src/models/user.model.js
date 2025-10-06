@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import { meiliClient } from '../config/meilisearch.config.js';
+
 
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
@@ -21,7 +23,7 @@ const userSchema = new mongoose.Schema({
   vip: {
     isActive: { type: Boolean, default: false },
     endDate: { type: Date, default: null },
-    type: { type: String, enum: ['basic', 'pro', 'premium'], default: null }
+    type: { type: String, enum: ['basic', 'advanced', 'premium'], default: null }
   },
 
   statistics: {
@@ -31,27 +33,72 @@ const userSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+userSchema.post("save", async function (doc) {
+  try {
+    if (!doc || doc.role === "admin") return;
+    const index = meiliClient.index("users");
+    await index.addDocuments([{
+      id: doc._id.toString(),
+      fullname: doc.fullname,
+      email: doc.email,
+      phone: doc.phone,
+      role: doc.role,
+      isActive: doc.isActive,
+      authType: doc.authType
+    }]);
+    console.log("[Meili] Added:", doc.fullname);
+  } catch (err) {
+    console.error("[Meili] Add error:", err.message);
+  }
+});
 
-userSchema.methods.updateStatistics = async function(results) {
+userSchema.post("findOneAndUpdate", async function (doc) {
+  if (!doc || doc.role === "admin") return;
+  try {
+    const index = meiliClient.index("users");
+    await index.updateDocuments([{
+      id: doc._id.toString(),
+      fullname: doc.fullname,
+      email: doc.email,
+      phone: doc.phone,
+      role: doc.role,
+      isActive: doc.isActive,
+      authType: doc.authType
+    }]);
+    console.log("[Meili] Updated:", doc.fullname);
+  } catch (err) {
+    console.error("[Meili] Update error:", err.message);
+  }
+});
+
+userSchema.post("findOneAndDelete", async function (doc) {
+  if (!doc || doc.role === "admin") return;
+  try {
+    const index = meiliClient.index("users");
+    await index.deleteDocument(doc._id.toString());
+    console.log("[Meili] Deleted:", doc.fullname);
+  } catch (err) {
+    console.error("[Meili] Delete error:", err.message);
+  }
+});
+userSchema.methods.updateStatistics = async function (results) {
   try {
     const score = results.totalScore || 0;
 
-    // cập nhật tổng số bài test
+    // c?p nh?t t?ng s? b�i test
     this.totalTests = (this.totalTests || 0) + 1;
 
-    // tính điểm trung bình
+    // t�nh �i?m trung b?nh
     this.avgScore = Math.round(((this.avgScore || 0) * (this.totalTests - 1) + score) / this.totalTests);
 
-    // cập nhật điểm cao nhất
+    // c?p nh?t �i?m cao nh?t
     if (score > (this.bestScore || 0)) {
       this.bestScore = score;
     }
 
     await this.save();
-    console.log('✅ [User] Updated statistics for user:', this.email);
+    console.log('? [User] Updated statistics for user:', this.email);
   } catch (err) {
-    console.error('❌ [User] Error updating statistics:', err);
+    console.error('? [User] Error updating statistics:', err);
   }
-};
-
-export default mongoose.model('User', userSchema);
+}; export default mongoose.model('User', userSchema);

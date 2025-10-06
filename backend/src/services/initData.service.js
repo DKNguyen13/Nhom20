@@ -3,10 +3,23 @@ import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import Lesson from "../models/lesson.model.js";
 import VipPackage from "../models/vipPackage.model.js";
+import { syncUsersToMeili } from "../utils/meiliSync.js";
 import PaymentOrder from "../models/paymentOrder.model.js";
 import ScoreMapping from "../models/scoreMapping.model.js";
 import { estimateScore } from "../services/score.service.js";
 
+// Sync mail
+export const syncMeiliUsersOnce = async () => {
+  try {
+    console.log("Syncing existing users to Meilisearch...");
+    await syncUsersToMeili();
+    console.log("Meilisearch sync complete!");
+  } catch (err) {
+    console.error("Error syncing Meilisearch:", err);
+  }
+};
+
+// Seed revenue
 export const seedRevenue = async () => {
   const count = await PaymentOrder.countDocuments();
   if (count > 0) {
@@ -73,25 +86,28 @@ export const seedPackages = async () => {
     {
       name: "Basic",
       durationMonths: 1,
-      originalPrice: 299000,
-      discountedPrice: 249000,
-      description: "Truy cập cơ bản, giới hạn tính năng và bài học.",
+      originalPrice: 199000,
+      discountedPrice: 99000,
+      description: "Truy cập cơ bản, giới hạn flashcard và tính năng. Phù hợp cho người mới bắt đầu.",
       type: "basic",
     },
     {
-      name: "Pro",
+
+      name: "Advanced",
       durationMonths: 6,
-      originalPrice: 499000,
+
+      originalPrice: 599000,
       discountedPrice: 399000,
-      description: "Truy cập toàn bộ bài học, luyện tập nâng cao.",
-      type: "pro",
+
+      description: "Toàn bộ bài học và luyện tập nâng cao. Tạo tối đa 500 flashcard, phù hợp người học trung cấp.",
+      type: "advanced",
     },
     {
       name: "Premium",
       durationMonths: 12,
-      originalPrice: 799000,
-      discountedPrice: 599000,
-      description: "Truy cập không giới hạn, hỗ trợ đầy đủ, ưu tiên VIP.",
+      originalPrice: 999000,
+      discountedPrice: 699000,
+      description: "Truy cập không giới hạn tất cả tính năng, ưu tiên VIP, tạo tối đa 1000 flashcard. Dành cho học chuyên sâu.",
       type: "premium",
     },
   ];
@@ -142,7 +158,8 @@ export const seedLessons = async () => {
       content: "Practice phrases: 'Excuse me, where is the bus stop?' and 'Can you tell me how to get to the museum?'.",
       type: "reading",
       views: 140,
-      accessLevel: "pro",
+
+      accessLevel: "advanced",
       createdBy: null,
       isDeleted: false,
     },
@@ -151,7 +168,8 @@ export const seedLessons = async () => {
       content: "Vocabulary: apple, banana, sandwich, coffee, tea. Example sentence: 'I would like a cup of coffee, please.'",
       type: "vocabulary",
       views: 200,
-      accessLevel: "pro",
+
+      accessLevel: "advanced",
       createdBy: null,
       isDeleted: false,
     },

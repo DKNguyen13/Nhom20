@@ -1,4 +1,5 @@
 import axios from "axios";
+import userModel from "../models/user.model.js";
 import { config } from "../config/env.config.js";
 import redisClient from "../config/redis.config.js";
 import { success, error } from '../utils/response.js';
@@ -128,15 +129,23 @@ export const logout = async (req, res) => {
 export const refreshToken = async (req, res) => {
     try {
         const token = req.cookies.refreshToken;
+        //console.log("Received refresh token:", token);
         if (!token) return error(res, 'Không có refresh token', 401);
 
         const decoded = verifyRefreshToken(token);
-        const user = await User.findById(decoded.id);
+        //console.log("Decoded refresh token:", decoded);
+
+        const user = await userModel.findById(decoded.id);
+        //console.log("Found user:", user ? user.email : null);
+        
         const storedToken = await redisClient.get(`refreshToken:${user._id}`);
+        //console.log("Stored token in Redis:", storedToken);
 
         if (!user || !user.isActive) throw new Error('Người dùng không tồn tại hoặc đã bị vô hiệu hóa');
         if (!storedToken || storedToken !== token) return error(res, 'Refresh token không hợp lệ hoặc đã bị thu hồi', 401);
+        
         const newAccessToken = generateAccessToken({ id: user._id, role: user.role });
+        //console.log("Generated new access token:", newAccessToken);
 
         return success(res, 'Cấp mới access token thành công', { newAccessToken });
     } catch (err) {

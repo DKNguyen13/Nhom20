@@ -9,17 +9,19 @@ interface LeftSidebarAdminProps {
 
 const LeftSidebarAdmin: React.FC<LeftSidebarAdminProps> = ({ customHeight }) => {
   const navigate = useNavigate();
-  const fullname = localStorage.getItem("fullname") || "Admin";
-  const avatarUrl = localStorage.getItem("avatarUrl") || "/img/avatar/default_avatar.jpg";
+  const [fullname, setFullname] = React.useState(localStorage.getItem("fullname") || "Guest User");
+  const [avatarUrl, setAvatarUrl] = React.useState(localStorage.getItem("avatarUrl") || "/img/avatar/default_avatar.jpg");
 
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
       localStorage.clear();
     } catch (err) {
-      console.error("Logout failed:", err);
+      console.error("Logout server failed:", err);
     } finally {
       setAccessToken(null);
+      setFullname("Guest User");
+      setAvatarUrl("/img/avatar/default_avatar.jpg");
       navigate("/login", { replace: true });
     }
   };

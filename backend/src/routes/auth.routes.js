@@ -1,6 +1,7 @@
 import multer from 'multer';
 import express from 'express';
 import { authenticate } from '../middleware/authenticate.js';
+import { getUserPurchaseHistory } from '../controllers/payment.controller.js'
 import * as authController from '../controllers/auth.controller.js';
 import limitRequest from '../middleware/limitRequest.middleware.js';
 
@@ -19,5 +20,6 @@ router.patch('/change-password', authenticate, authController.changePassword);
 router.patch('/update-profile', authenticate, upload.single('avatar'), authController.updateProfileController);
 
 router.get('/check-role', authController.checkRole);
+router.get('/purchase-history', authenticate, getUserPurchaseHistory);
 
 export default router;

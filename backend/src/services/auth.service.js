@@ -27,7 +27,9 @@ export const normalLoginService = async ({ email, password }) => {
     const payload = { id: user._id, role: user.role };
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
-    
+
+    await redisClient.set(`refreshToken:${user.id}`, refreshToken, { EX: 7*24*60*60 });
+
     const safeUser = { id: user._id, fullname: user.fullname, email: user.email, phone: user.phone, avatarUrl: user.avatarUrl, isActive : user.isActive, role: user.role };
 
     return { user : safeUser, accessToken, refreshToken };
@@ -73,6 +75,8 @@ export const googleLoginService = async ({ tokenId }) => {
         avatarUrl: user.avatarUrl, 
         role: user.role 
     };
+    
+    await redisClient.set(`refreshToken:${user.id}`, refreshToken, { EX: 7*24*60*60 });
 
     return { user: safeUser, accessToken, refreshToken };
 };

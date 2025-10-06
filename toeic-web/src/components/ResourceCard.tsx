@@ -1,7 +1,7 @@
 import React from "react";
 import { FaEye, FaHeart, FaBookOpen, FaPen, FaCog, FaVideo } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../config/axios"; // import axios đã config
+import api from "../config/axios";
 
 interface ResourceCardProps {
   id: string | number;

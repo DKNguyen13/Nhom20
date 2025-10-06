@@ -38,6 +38,7 @@ const Login: React.FC = () => {
         localStorage.setItem("phone", user.phone);
         localStorage.setItem("avatarUrl", user.avatarUrl);
         localStorage.setItem("role", user.role);
+        window.dispatchEvent(new Event("userUpdated"));
 
         if (user.role === "admin") {
           navigate("/admin/dashboard");
@@ -176,6 +177,7 @@ const Login: React.FC = () => {
                       localStorage.setItem("fullname", user.fullname);
                       localStorage.setItem("email", user.email);
                       localStorage.setItem("avatarUrl", user.avatarUrl);
+                      window.dispatchEvent(new Event("userUpdated"));
                       navigate("/");
                     }
                     else{
