@@ -3,6 +3,7 @@ import api from "../../../config/axios";
 import FlashcardItem from "./FlashcardItem";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useParams } from "react-router-dom";
 
 export interface Flashcard {
   _id?: string;
@@ -12,17 +13,24 @@ export interface Flashcard {
   note?: string;
 }
 
-const FlashcardList: React.FC = () => {
+interface FlashcardListProps {
+  setId?: string;
+}
+
+const FlashcardList: React.FC<FlashcardListProps> = ({ setId }) => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ word: "", meaning: "", example: "", note: "" });
   const [mode, setMode] = useState("Xem toàn bộ thẻ");
-
+  
+  const setIDFinal = setId;
+  
   const fetchFlashcards = async () => {
+    if (!setIDFinal) return;
     try {
       setLoading(true);
-      const res = await api.get("/flashcard");
+      const res = await api.get("/flashcard", { params: { set: setIDFinal }});
       setFlashcards(res.data.data || []);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Không thể tải flashcard!");
@@ -36,8 +44,14 @@ const FlashcardList: React.FC = () => {
       toast.warn("Nhập đầy đủ từ và nghĩa!");
       return;
     }
+    
+    if (!setIDFinal) {
+      toast.warn("Bạn phải chọn một set để tạo flashcard!");
+      return;
+    }
+
     try {
-      const res = await api.post("/flashcard", form);
+      const res = await api.post("/flashcard", { ...form, set: setIDFinal });
       setFlashcards((prev) => [...prev, res.data.data]);
       setShowModal(false);
       setForm({ word: "", meaning: "", example: "", note: "" });
@@ -57,26 +71,22 @@ const FlashcardList: React.FC = () => {
     }
   };
 
-
   useEffect(() => {
     fetchFlashcards();
-  }, []);
+  }, [setIDFinal]);
 
   if (loading) return <p className="text-center mt-4">Đang tải...</p>;
 
   return (
     <div className="p-6 max-w-5xl mx-auto relative">
-      {/* 🔹 Thanh chọn chế độ */}
+      {/* Thanh chọn chế độ */}
       <div className="absolute left-6 top-6 flex items-center gap-2">
         <label htmlFor="mode" className="text-sm font-medium text-gray-700">
           Chế độ:
         </label>
-        <select
-          id="mode"
-          value={mode}
+        <select id="mode" value={mode}
           onChange={(e) => setMode(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-blue-500 focus:border-blue-500"
-        >
+          className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-blue-500 focus:border-blue-500">
           <option value="Xem toàn bộ thẻ">📖 Xem toàn bộ thẻ</option>
           <option value="Học">🧠 Học</option>
           <option value="Ôn tập">🔁 Ôn tập</option>
@@ -89,10 +99,8 @@ const FlashcardList: React.FC = () => {
       {/* Lưới flashcards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {/* Nút thêm flashcard */}
-        <div
-          onClick={() => setShowModal(true)}
-          className="border-2 border-dashed border-blue-400 rounded-xl flex justify-center items-center h-48 text-blue-500 hover:bg-blue-50 cursor-pointer transition"
-        >
+        <div onClick={() => setShowModal(true)}
+          className="border-2 border-dashed border-blue-400 rounded-xl flex justify-center items-center h-48 text-blue-500 hover:bg-blue-50 cursor-pointer transition">
           <span className="text-5xl font-bold">+</span>
         </div>
 
@@ -111,14 +119,10 @@ const FlashcardList: React.FC = () => {
 
       {/* Modal tạo flashcard */}
       {showModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-          onClick={() => setShowModal(false)}
-        >
-          <div
-            className="bg-white rounded-lg p-6 w-96 shadow-lg scale-95 animate-[fadeIn_0.2s_ease-out_forwards]"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+          onClick={() => setShowModal(false)}>
+          <div className="bg-white rounded-lg p-6 w-96 shadow-lg scale-95 animate-[fadeIn_0.2s_ease-out_forwards]"
+            onClick={(e) => e.stopPropagation()}>
             <h2 className="text-xl font-semibold text-center mb-4">✨ Tạo Flashcard Mới</h2>
 
             <input
@@ -151,16 +155,12 @@ const FlashcardList: React.FC = () => {
             />
 
             <div className="flex justify-between items-center mt-4">
-              <button
-                onClick={handleAdd}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 active:scale-95 transition"
-              >
+              <button onClick={handleAdd}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 active:scale-95 transition">
                 Thêm
               </button>
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 active:scale-95 transition"
-              >
+              <button onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 active:scale-95 transition">
                 Hủy
               </button>
             </div>

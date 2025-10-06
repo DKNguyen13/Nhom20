@@ -2,7 +2,6 @@ import User from '../models/user.model.js';
 import Flashcard from '../models/flashcard.model.js';
 import { success, error } from '../utils/response.js';
 import FlashcardSet from '../models/flashcardSet.model.js';
-import userModel from '../models/user.model.js';
 
 // Create flashcard set
 export const createSet = async (req, res) => {
@@ -15,7 +14,7 @@ export const createSet = async (req, res) => {
         
         let limit = 1;
 
-        if(req.user.role !== 'admin'){
+        if(user.role !== 'admin'){
             if (user.vip.isActive) {
                 switch (user.vip.type) {
                     case 'basic': limit = 5; break;
@@ -23,11 +22,9 @@ export const createSet = async (req, res) => {
                     case 'premium': limit = 100; break;
                 }
             }
+            if (count >= limit) return error(res, `Bạn đã đạt giới hạn ${limit} tạo bộ flashcard. Nâng cấp VIP để tạo thêm!`, 403);
         }
-        const count = await FlashcardSet.countDocuments({ user: userId });
-        
-        if (count >= limit) return error(res, `Bạn đã đạt giới hạn ${limit} tạo bộ flashcard. Nâng cấp VIP để tạo thêm!`, 403);
-        
+        const count = await FlashcardSet.countDocuments({ user: userId });        
         const newSet = await FlashcardSet.create({
             user: userId,
             name,
@@ -90,7 +87,7 @@ export const createFlashcard = async (req, res) => {
         const count = await Flashcard.countDocuments({ user: userId });
 
         let limit = 5;
-        if(req.user.role !== 'admin'){
+        if(user.role !== 'admin'){
             if (user.vip.isActive) {
                 switch (user.vip.type) {
                     case 'basic': limit = 5; break;
@@ -98,9 +95,8 @@ export const createFlashcard = async (req, res) => {
                     case 'premium': limit = 100; break;
                 }
             }
+            if (count >= limit) return error(res, `Bạn đã đạt giới hạn ${limit} flashcard. Nâng cấp VIP để tạo thêm!`, 403);        
         }
-
-        if (count >= limit) return error(res, `Bạn đã đạt giới hạn ${limit} flashcard. Nâng cấp VIP để tạo thêm!`, 403);
 
         const flashcard = await Flashcard.create({
             user: userId,

@@ -34,6 +34,7 @@ import VipManagement from "../pages/Admin/VipManagement/VipManagement";
 import PaymentFail from "../pages/Payment/PaymentFail";
 import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 import FlashcardPage from "../pages/FlashCard/FlashcardPage";
+import FlashcardListPage from "../pages/FlashCard/FlashcardListPage";
 
 const RefreshTokenLoader = () => {
   useRefreshTokenOnLoad();
@@ -243,6 +244,14 @@ const routes = [
 		element: (
 			<MainLayout>
 				<FlashcardPage />
+			</MainLayout>
+		),
+	},
+	{
+		path: "/flashcards/:setId",
+		element: (
+			<MainLayout>
+				<FlashcardListPage />
 			</MainLayout>
 		),
 	},

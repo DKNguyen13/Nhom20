@@ -1,5 +1,6 @@
 import api from "../../../config/axios";
 import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 
@@ -16,6 +17,7 @@ const FlashcardSetList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: "", description: "" });
+  const navigate = useNavigate();
 
   const fetchSets = async () => {
     try {
@@ -62,7 +64,7 @@ const FlashcardSetList: React.FC = () => {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       {/* Header */}
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Bộ Flashcard Của Bạn</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Bộ từ vựng Của Bạn</h1>
 
       {/* Loading State */}
       {loading ? (
@@ -86,8 +88,8 @@ const FlashcardSetList: React.FC = () => {
           {/* Flashcard Sets */}
           {sets.length > 0 ? (
             sets.map((set) => (
-              <div key={set._id}
-                className="relative bg-white rounded-lg p-4 shadow-sm hover:shadow-lg transition-all duration-300 h-48 flex flex-col justify-between">
+              <div key={set._id} onClick={() => navigate(`/flashcards/${set._id}`)}
+                className="relative bg-white rounded-lg p-4 shadow-sm hover:shadow-lg transition-all duration-300 h-48 flex flex-col justify-between cursor-pointer">
                 <div className="overflow-hidden">
                   <h2 className="text-lg font-semibold text-gray-800 truncate">{set.name}</h2>
                   <p className="text-sm text-gray-600 mt-1 line-clamp-3">
@@ -96,7 +98,7 @@ const FlashcardSetList: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center mt-3">
                   <p className="text-xs text-gray-500">Số flashcard: {set.count || 0}</p>
-                  <button onClick={() => handleDelete(set._id!)}
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(set._id!); }}
                     className="text-red-500 hover:text-red-600 font-medium text-sm transition-colors">
                     Xóa
                   </button>
@@ -139,14 +141,14 @@ const FlashcardSetList: React.FC = () => {
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none h-24"
               />
             </div>
-            <div className="flex justify-end gap-3 mt-6">
-              <button onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
-                Hủy
-              </button>
+            <div className="flex justify-between items-center mt-6">
               <button onClick={handleAdd}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition">
                 Thêm
+              </button>
+              <button onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+                Hủy
               </button>
             </div>
           </div>

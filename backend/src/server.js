@@ -51,6 +51,7 @@ await connectDB();
 await InitData.createAdminIfNotExist();
 await InitData.seedPackages();
 await InitData.seedLessons();
+await InitData.seedFlashcards();
 //await InitData.seedRevenue();
 //await InitData.syncMeiliUsersOnce();
 
