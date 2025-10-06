@@ -50,7 +50,7 @@ await InitData.createAdminIfNotExist();
 await InitData.seedPackages();
 await InitData.seedLessons();
 //await InitData.seedRevenue();
-
+await InitData.syncMeiliUsersOnce();
 
 function chat(){
     const io = new Server(8081, {

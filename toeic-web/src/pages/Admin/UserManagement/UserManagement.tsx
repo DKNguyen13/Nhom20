@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { FaEllipsisH } from "react-icons/fa";
-import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
 import api from "../../../config/axios";
+import { FaSearch, FaEllipsisH } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
 
 interface User {
   id: number;
@@ -23,6 +23,8 @@ const UserManagementPage: React.FC = () => {
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [totalUsers, setTotalUsers] = useState(0);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState(""); // new
+  const [isSearching, setIsSearching] = useState(false); // new
 
   // Fetch users from backend
   const fetchUsers = async (page: number) => {
@@ -39,7 +41,7 @@ const UserManagementPage: React.FC = () => {
           email: user.email,
           phone: user.phone,
           role: user.role,
-          authType: user.authType || 'normal',
+          authType: user.authType || "normal",
           registerDate: user.createdAt
             ? new Date(user.createdAt).toLocaleDateString()
             : "",
@@ -58,27 +60,59 @@ const UserManagementPage: React.FC = () => {
     fetchUsers(currentPage);
   }, [currentPage]);
 
+  // Search from MeiliSearch
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchTerm.trim()) {
+      fetchUsers(1);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const res = await api.get(`/admin/search-users?q=${encodeURIComponent(searchTerm)}`);
+      const data = res.data.data.hits || [];
+
+      setUsers(
+        data.map((user: any, index: number) => ({
+          id: index + 1,
+          _id: user.id,
+          fullname: user.fullname,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          authType: user.authType || "normal",
+          registerDate: "",
+          status: user.isActive ? "Active" : "Inactive",
+        }))
+      );
+      setTotalUsers(data.length);
+    } catch (err) {
+      console.error("Lỗi khi tìm kiếm:", err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Hide menu on outside click
   useEffect(() => {
     const handleClickOutside = () => setMenuOpenId(null);
     window.addEventListener("click", handleClickOutside);
     return () => window.removeEventListener("click", handleClickOutside);
   }, []);
-  
+
   const totalPages = Math.max(1, Math.ceil(totalUsers / pageSize));
 
-  // Toggle dropdown menu
   const toggleMenu = (userId: string, event: React.MouseEvent) => {
     event.stopPropagation();
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     setMenuOpenId(menuOpenId === userId ? null : userId);
     setMenuPosition({
-      x: rect.right - 160, // lùi một chút cho vừa khung
+      x: rect.right - 160,
       y: rect.bottom + window.scrollY,
     });
   };
 
-
-  // Inactivate / Activate user
   const handleToggleStatus = async (user: User) => {
     try {
       await api.patch("/admin/activate", { email: user.email });
@@ -101,10 +135,24 @@ const UserManagementPage: React.FC = () => {
     <div className="min-h-screen flex flex-row">
       <LeftSidebarAdmin customHeight="h-auto w-64" />
       <div className="flex-1 p-8 bg-gray-100">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">
-          Quản lý người dùng
-        </h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">Quản lý người dùng</h1>
+          {/* Search box */}
+          <form onSubmit={handleSearch} className="relative">
+            <input type="text" 
+              placeholder="Tìm kiếm..."
+              value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+              className="border border-gray-300 rounded-full py-2 pl-10 pr-4 w-80 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+            <FaSearch className="absolute left-3 top-3 text-gray-500" />
+            <button type="submit"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-700">
+              {isSearching ? "..." : "Tìm"}
+            </button>
+          </form>
+        </div>
 
+        {/* User Table */}
         <div className="overflow-x-auto bg-white rounded-lg shadow-md mb-4">
           <table className="w-full table-auto">
             <thead className="bg-blue-600 text-white">
@@ -119,9 +167,10 @@ const UserManagementPage: React.FC = () => {
                 <th className="px-6 py-3 text-center">Tùy chọn</th>
               </tr>
             </thead>
-            <tbody> {users.length > 0 ? (
+            <tbody>
+              {users.length > 0 ? (
                 users.map((user) => (
-                  <tr key={user._id} className="border-t relative">
+                  <tr key={user._id} className="border-t hover:bg-gray-50 transition">
                     <td className="px-6 py-3">{user.id}</td>
                     <td className="px-6 py-3">{user.fullname}</td>
                     <td className="px-6 py-3">{user.email}</td>
@@ -147,7 +196,9 @@ const UserManagementPage: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="text-center py-6 text-gray-500 italic bg-gray-50"> Chưa có người dùng nào.</td>
+                  <td colSpan={8} className="text-center py-6 text-gray-500 italic bg-gray-50">
+                    Không tìm thấy người dùng nào.
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -155,42 +206,41 @@ const UserManagementPage: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        {users.length > 0 && (
+        {!searchTerm && users.length > 0 && (
           <div className="flex justify-center space-x-4 mt-4">
             <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}
-              className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"> Trước
+              className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50">
+              Trước
             </button>
             <span className="px-4 py-2">
               {currentPage} / {totalPages}
             </span>
             <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}
-              className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"> Sau
+              className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50">Sau
             </button>
           </div>
         )}
+      </div>
 
-      </div>
       {menuOpenId && menuPosition && (
-      <div
-        className="fixed bg-white shadow-lg border rounded w-40 z-[9999]"
-        style={{
-          top: `${menuPosition.y}px`,
-          left: `${menuPosition.x}px`,
-        }}
-      >
-        <button
-          className="w-full px-4 py-2 text-left hover:bg-gray-100"
-          onClick={() => {
-            const user = users.find((u) => u._id === menuOpenId);
-            if (user) handleToggleStatus(user);
-          }}
-        >
-          {users.find((u) => u._id === menuOpenId)?.status === "Active"
-            ? "Vô hiệu hóa"
-            : "Kích hoạt"}
-        </button>
-      </div>
-    )}
+        <div
+          className="fixed bg-white shadow-lg border rounded w-40 z-[9999]"
+          style={{
+            top: `${menuPosition.y}px`,
+            left: `${menuPosition.x}px`,
+          }}>
+          <button
+            className="w-full px-4 py-2 text-left hover:bg-gray-100"
+            onClick={() => {
+              const user = users.find((u) => u._id === menuOpenId);
+              if (user) handleToggleStatus(user);
+            }}>
+            {users.find((u) => u._id === menuOpenId)?.status === "Active"
+              ? "Vô hiệu hóa"
+              : "Kích hoạt"}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

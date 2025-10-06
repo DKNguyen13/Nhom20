@@ -3,9 +3,21 @@ import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import Lesson from "../models/lesson.model.js";
 import VipPackage from "../models/vipPackage.model.js";
+import { syncUsersToMeili } from "../utils/meiliSync.js";
 import PaymentOrder from "../models/paymentOrder.model.js";
 
+// Sync mail
+export const syncMeiliUsersOnce = async () => {
+  try {
+    console.log("Syncing existing users to Meilisearch...");
+    await syncUsersToMeili();
+    console.log("Meilisearch sync complete!");
+  } catch (err) {
+    console.error("Error syncing Meilisearch:", err);
+  }
+};
 
+// Seed revenue
 export const seedRevenue = async () => {
   const count = await PaymentOrder.countDocuments();
   if (count > 0) {
