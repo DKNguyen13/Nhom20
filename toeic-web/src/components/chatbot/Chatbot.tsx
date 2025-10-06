@@ -166,7 +166,7 @@ const Chatbot: React.FC<ChatbotProps> = ({
 
       {/* Chatbot Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-5 w-96 h-[600px] bg-white rounded-lg shadow-2xl z-40 flex flex-col overflow-hidden">
+        <div className="fixed bottom-24 right-5 w-96 h-[550px] bg-white rounded-lg shadow-2xl z-40 flex flex-col overflow-hidden">
           {/* Header */}
           <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
             <div className="flex items-center space-x-2">
