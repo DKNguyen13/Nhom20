@@ -1,6 +1,6 @@
 import React from "react";
 import { FaRegClock } from "react-icons/fa";
-import LeftSidebarUser from "../../components/LeftSideBarUser";
+import LeftSidebarUser from "../../components/LeftSidebarUser";
 import HistoryTestCard from "../../components/HistoryTestCard";
 import { Line } from "react-chartjs-2";
 import {

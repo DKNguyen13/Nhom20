@@ -18,7 +18,7 @@ const userTestSessionSchema = new mongoose.Schema({
     },
     sessionType: {
         type: String,
-        enum: ['part', 'full-test'],
+        enum: ['practice', 'full-test'],
         required: true
     },
     testConfig: {

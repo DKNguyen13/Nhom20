@@ -671,6 +671,9 @@ const calculateSessionResults = async function (sessionId, userId) {
         userId
     }).populate('questions.questionId', 'partNumber');
 
+    const session = await UserTestSession.findById(sessionId)
+        .populate('testId', 'questions');
+
     if (!userAnswer || !userAnswer.questions) {
         return {
             totalQuestions: 0,
@@ -685,25 +688,23 @@ const calculateSessionResults = async function (sessionId, userId) {
 
     const answers = userAnswer.questions;
 
-    const totalQuestions = answers.length;
+    const totalQuestions = 200;
 
     let answeredCount = 0;
     let correctCount = 0;
     let incorrectCount = 0;
     let skippedCount = 0;
     for (const a of answers) {
-        if (a.isSkipped) {
-            skippedCount++;
+        answeredCount++;
+        if (a.isCorrect) {
+            correctCount++;
         } else {
-            answeredCount++;
-            if (a.isCorrect) {
-                correctCount++;
-            } else {
-                incorrectCount++;
-            }
+            incorrectCount++;
         }
     }
 
+    // calc with part not select ans
+    skippedCount = totalQuestions - answeredCount;
 
     const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
 
@@ -729,7 +730,7 @@ const calculateSessionResults = async function (sessionId, userId) {
     // Calculate TOEIC scores if full test
     let listeningScore = 0;
     let readingScore = 0;
-    let totalScore = null;
+    let totalScore = 0;
 
     const listeningAnswers = answers.filter(a =>
         a.questionId && a.questionId.partNumber <= 4
@@ -739,12 +740,17 @@ const calculateSessionResults = async function (sessionId, userId) {
     );
 
     // listening and reading
-    if (listeningAnswers.length > 0 && readingAnswers.length > 0) {
+    if (listeningAnswers.length > 0) {
         const listeningCorrect = listeningAnswers.filter(a => a.isCorrect).length;
-        const readingCorrect = readingAnswers.filter(a => a.isCorrect).length;
-
         listeningScore = await calculateScore('listening', listeningCorrect);
+    }
+
+    if (readingAnswers.length > 0) {
+        const readingCorrect = readingAnswers.filter(a => a.isCorrect).length;
         readingScore = await calculateScore('reading', readingCorrect);
+    }
+
+    if (listeningScore || readingScore) {
         totalScore = listeningScore + readingScore;
     }
 

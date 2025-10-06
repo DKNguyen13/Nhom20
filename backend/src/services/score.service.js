@@ -14,7 +14,7 @@ export const calculateScore = async (section, correctAnswers) => {
         }
 
         // Fallback calculation if no mapping found
-        return scoreService.estimateScore(section, correctAnswers);
+        return estimateScore(section, correctAnswers);
     } catch (error) {
         console.error('Error calculating score:', error);
         return estimateScore(section, correctAnswers);
@@ -36,5 +36,18 @@ export const estimateScore = (section, correctAnswers) => {
     const percentage = correctAnswers / maxQuestions;
     const adjustedPercentage = Math.pow(percentage, 0.85); // Slight curve
 
-    return Math.round(minScore + (maxScore - minScore) * adjustedPercentage);
+    let finalScore =  Math.round(minScore + (maxScore - minScore) * adjustedPercentage);
+
+    // lam tron diem chia het cho 5
+    finalScore = Math.round(finalScore / 5) * 5;
+
+    if(finalScore < minScore) {
+        return minScore;
+    }
+
+    if(finalScore > maxScore) {
+        return maxScore;
+    }
+
+    return finalScore;
 };

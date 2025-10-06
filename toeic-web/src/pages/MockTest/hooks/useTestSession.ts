@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Question, Session } from "../interface/interfaces";
-import { getSession, getSessionQuestions, submitBulkAnswers, submitSession } from "../../../service/sessionService";
+import { getSession, getSessionQuestions, getSessionResults, submitBulkAnswers, submitSession } from "../../../service/sessionService";
 
 export const useTestSession = () => {
   const sessionId = localStorage.getItem("toeic-session-id");
@@ -149,6 +149,8 @@ export const useTestSession = () => {
 
       // redirect sang trang result
       navigate(`/session/${sessionId}/results`);
+      const resultResponse = await getSessionResults(sessionId);
+      console.log(resultResponse);
     } catch (error) {
       
     }
@@ -170,4 +172,53 @@ export const useTestSession = () => {
     setCurrentQuestion,
     handleSubmitSession
   };
-}
+};
+
+export const useResult = () => {
+  const sessionId = localStorage.getItem("toeic-session-id");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [resultData, setResultData] = useState<any>(null);
+  const [listeningScore, setListeningScore] = useState<number | 0>(0);
+  const [readingScore, setReadingScore] = useState<number | 0>(0);
+  const [testTitle, setTestTitle] = useState<string>("");
+
+  useEffect(() => {
+    const fetchResult = async () => {
+      try {
+        const res = await getSessionResults(sessionId);
+
+        const session = res.session;
+        const results = session?.results;
+
+        if (results) {
+          setResultData(results);
+          setListeningScore(results.listeningScore ?? 0);
+          setReadingScore(results.readingScore ?? 0);
+          setTestTitle(session?.test?.title ?? "Unknown Test");
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to load result");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (sessionId) {
+      fetchResult();
+    } else {
+      setError("No session ID found");
+      setLoading(false);
+    }
+  }, [sessionId]);
+
+  return {
+    loading,
+    error,
+    resultData,
+    listeningScore,
+    readingScore,
+    testTitle,
+  };
+};
