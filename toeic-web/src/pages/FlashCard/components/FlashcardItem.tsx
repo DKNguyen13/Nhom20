@@ -21,8 +21,7 @@ const FlashcardItem: React.FC<FlashcardItemProps> = ({ flashcard, onDelete }) =>
       style={{
         perspective: "1000px",
       }}
-      onClick={() => setFlipped(!flipped)}
-    >
+      onClick={() => setFlipped(!flipped)}>
       <div
         style={{
           position: "relative",
@@ -32,8 +31,8 @@ const FlashcardItem: React.FC<FlashcardItemProps> = ({ flashcard, onDelete }) =>
           transformStyle: "preserve-3d",
           transition: "transform 0.6s",
           transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
-        }}
-      >
+        }}>
+
         {/* Mặt trước */}
         <div
           style={{
@@ -42,8 +41,7 @@ const FlashcardItem: React.FC<FlashcardItemProps> = ({ flashcard, onDelete }) =>
             height: "100%",
             backfaceVisibility: "hidden",
           }}
-          className="bg-white border shadow-md p-4 rounded-lg flex flex-col justify-center items-center"
-        >
+          className="bg-white border shadow-md p-4 rounded-lg flex flex-col justify-center items-center">
           <h2 className="text-xl font-bold text-blue-600">{flashcard.word}</h2>
           <button
             onClick={(e) => {
@@ -64,8 +62,7 @@ const FlashcardItem: React.FC<FlashcardItemProps> = ({ flashcard, onDelete }) =>
             backfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
           }}
-          className="bg-blue-50 border shadow-md p-4 rounded-lg flex flex-col justify-center items-center"
-        >
+          className="bg-blue-50 border shadow-md p-4 rounded-lg flex flex-col justify-center items-center">
           <p className="text-gray-800 font-semibold">{flashcard.meaning}</p>
           {flashcard.example && (
             <p className="italic text-gray-600 mt-1">{flashcard.example}</p>
