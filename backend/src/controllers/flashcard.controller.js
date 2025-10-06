@@ -39,38 +39,6 @@ export const createSet = async (req, res) => {
     }
 };
 
-// Delete flashcard set
-export const deleteSet = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const { id } = req.params;
-
-        const set = await FlashcardSet.findOne({ _id: id, user: userId });
-        if (!set) return error(res, 'Set không tồn tại hoặc không thuộc bạn!', 404);
-
-        await Flashcard.deleteMany({ set: set._id, user: userId });
-
-        await FlashcardSet.findByIdAndDelete(set._id);
-
-        return success(res, 'Đã xóa set và tất cả flashcard liên quan!');
-    } catch (err) {
-        console.error(err);
-        return error(res, 'Lỗi khi xóa set.');
-    }
-};
-
-// Get all flashcard set
-export const getAllFlashcardSet = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const sets = await FlashcardSet.find({ user: userId }).sort({ createdAt: -1 });
-        return success(res, 'Lấy danh sách bộ flashcard thành công', sets);
-    } catch (err) {
-        console.error(err);
-        return error(res, 'Lỗi khi lấy danh sách bộ flashcard.');
-    }
-};
-
 // Create flashcard
 export const createFlashcard = async (req, res) => {
     try {
@@ -126,7 +94,7 @@ export const getAllFlashcards = async (req, res) => {
         const query = { user: userId };
         if (setId) query.set = setId;
 
-        const flashcards = await Flashcard.find({ user: userId }).sort({ createdAt: -1 });
+        const flashcards = await Flashcard.find(query).sort({ createdAt: -1 });
 
         return success(res, 'Lấy danh sách flashcard thành công', flashcards);
     } catch (err) {
@@ -135,7 +103,36 @@ export const getAllFlashcards = async (req, res) => {
     }
 };
 
-// Get all flashcardfree
+// Get all flashcard set
+export const getAllFlashcardSet = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const sets = await FlashcardSet.find({ user: userId }).sort({ createdAt: -1 });
+        return success(res, 'Lấy danh sách bộ flashcard thành công', sets);
+    } catch (err) {
+        console.error(err);
+        return error(res, 'Lỗi khi lấy danh sách bộ flashcard.');
+    }
+};
+
+// Get all flashcardset free
+export const getAllFlashcardSetFree = async (req, res) => {
+    try{
+        const admin = await User.findOne({ role: 'admin' });
+        if (!admin) {
+            console.log("Admin không tồn tại, vui lòng chạy createAdminIfNotExist trước.");
+            return error(res, 'Hiện tại chưa có dữ liệu.');;
+        }
+        const sets = await FlashcardSet.find({ user: admin._id }).sort({ createdAt: -1 });
+        return success(res, 'Lấy danh sách bộ từ thành công', sets);
+    }
+    catch (err){
+        console.error(err);
+        return error(res, 'Lỗi khi lấy danh sách flashcard.');
+    }
+}
+
+// Get all flashcard free
 export const getAllFlashcardsFree = async (req, res) => {
     try{
         const admin = await User.findOne({ role: 'admin' });
@@ -143,7 +140,12 @@ export const getAllFlashcardsFree = async (req, res) => {
             console.log("Admin không tồn tại, vui lòng chạy createAdminIfNotExist trước.");
             return error(res, 'Hiện tại chưa có dữ liệu.');;
         }
-        const flashcards = await FlashcardSet.find({ user: admin._id }).sort({ createdAt: -1 });
+        const { set: setId } = req.query;
+        const query = { user: admin._id };
+
+        if (setId) query.set = setId;
+
+        const flashcards = await Flashcard.find(query).sort({ createdAt: -1 });
         return success(res, 'Lấy danh sách flashcard thành công', flashcards);
     }
     catch (err){
@@ -169,5 +171,25 @@ export const deleteFlashcard = async (req, res) => {
     } catch (err) {
         console.error(err);
         return error(res, 'Lỗi khi xóa flashcard.');
+    }
+};
+
+// Delete flashcard set
+export const deleteSet = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { id } = req.params;
+
+        const set = await FlashcardSet.findOne({ _id: id, user: userId });
+        if (!set) return error(res, 'Set không tồn tại hoặc không thuộc bạn!', 404);
+
+        await Flashcard.deleteMany({ set: set._id, user: userId });
+
+        await FlashcardSet.findByIdAndDelete(set._id);
+
+        return success(res, 'Đã xóa set và tất cả flashcard liên quan!');
+    } catch (err) {
+        console.error(err);
+        return error(res, 'Lỗi khi xóa set.');
     }
 };

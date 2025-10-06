@@ -3,7 +3,7 @@ import { Flashcard } from "./FlashcardList";
 
 interface FlashcardItemProps {
   flashcard: Flashcard;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 const FlashcardItem: React.FC<FlashcardItemProps> = ({ flashcard, onDelete }) => {
@@ -70,14 +70,14 @@ const FlashcardItem: React.FC<FlashcardItemProps> = ({ flashcard, onDelete }) =>
           {flashcard.note && (
             <p className="text-sm text-gray-500 mt-1">{flashcard.note}</p>
           )}
-          {flashcard._id && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(flashcard._id!);
-              }}
-              className="mt-3 text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition">
-              Xóa</button>
+          {flashcard._id && onDelete && (
+          <button onClick={(e) => {
+              e.stopPropagation();
+              onDelete(flashcard._id!); // chắc chắn onDelete tồn tại
+            }}
+            className="mt-3 text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition">
+            Xóa
+          </button>
           )}
         </div>
       </div>

@@ -7,13 +7,11 @@ const FlashcardPage: React.FC = () => {
   return (
     <div className="min-h-screen">
       {/* Panel header */}
-      <div
-        className="w-full shadow-lg py-8 px-8"
+      <div className="w-full shadow-lg py-8 px-8"
         style={{
           background:
             "linear-gradient(to right, #f5efe6ff 0%, #D6EAF8 60%, #D6EAF8 100%)",
-        }}
-      >
+        }}>
         <div className="flex items-center mb-6">
           <i className="far fa-clone text-4xl mr-4 text-white"></i>
           <span className="text-3xl font-extrabold text-black">
@@ -46,8 +44,8 @@ const FlashcardPage: React.FC = () => {
 
       {/* Flashcard list */}
       <div className="mt-10 px-8">
-        {activeTab === "myList" && <FlashcardSetList />}
-        {activeTab === "explore" && <div>Hiện nội dung Khám phá ở đây</div>}
+        {activeTab === "myList" && <FlashcardSetList type="myList" />}
+        {activeTab === "explore" && <FlashcardSetList type="explore" />}
       </div>
     </div>
   );

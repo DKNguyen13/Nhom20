@@ -12,7 +12,11 @@ export interface FlashcardSet {
   count?: number;
 }
 
-const FlashcardSetList: React.FC = () => {
+interface FlashcardSetListProps {
+  type?: "myList" | "explore";
+}
+
+const FlashcardSetList: React.FC<FlashcardSetListProps> = ({ type = "myList" }) => {
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -22,7 +26,7 @@ const FlashcardSetList: React.FC = () => {
   const fetchSets = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/flashcard-set");
+      const res = type === "myList" ? await api.get("/flashcard-set") : await api.get("/flashcard-set/free");
       setSets(res.data.data || []);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Không thể tải bộ flashcard!");
@@ -78,17 +82,24 @@ const FlashcardSetList: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+
           {/* Add Flashcard Set Button */}
+          {type === "myList" && (
           <div onClick={() => setShowModal(true)}
             className="border-2 border-dashed border-blue-500 rounded-lg flex flex-col justify-center items-center h-48 bg-white hover:bg-blue-50 cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md">
             <span className="text-4xl font-bold text-blue-500">+</span>
             <p className="text-sm font-medium text-blue-600 mt-2">Thêm bộ mới</p>
           </div>
+          )}
 
           {/* Flashcard Sets */}
           {sets.length > 0 ? (
             sets.map((set) => (
-              <div key={set._id} onClick={() => navigate(`/flashcards/${set._id}`)}
+              <div key={set._id} onClick={() => {
+                navigate(`/flashcards/${set._id}`, {
+                  state: { type }
+                });
+              }}
                 className="relative bg-white rounded-lg p-4 shadow-sm hover:shadow-lg transition-all duration-300 h-48 flex flex-col justify-between cursor-pointer">
                 <div className="overflow-hidden">
                   <h2 className="text-lg font-semibold text-gray-800 truncate">{set.name}</h2>
@@ -98,24 +109,25 @@ const FlashcardSetList: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center mt-3">
                   <p className="text-xs text-gray-500">Số flashcard: {set.count || 0}</p>
+                  {type === "myList" && (
                   <button onClick={(e) => { e.stopPropagation(); handleDelete(set._id!); }}
                     className="text-red-500 hover:text-red-600 font-medium text-sm transition-colors">
                     Xóa
-                  </button>
+                  </button>)}
                 </div>
               </div>
             ))
           ) : (
             <div className="col-span-full flex flex-col justify-center items-center py-12 text-gray-500 bg-gray-50 rounded-lg">
-              <p className="text-lg font-medium mb-2">Chưa có bộ từ vựng nào</p>
-              <p className="text-sm text-center">Nhấn dấu + để tạo bộ từ vựng đầu tiên của bạn!</p>
+              <p className="text-lg font-medium mb-2">{type === "myList" ? "Chưa có bộ từ vựng nào" : "Hiện chưa có flashcards miễn phí"}</p>
+              <p className="text-sm text-center"> {type === "myList" ? "Nhấn dấu + để tạo bộ từ vựng đầu tiên của bạn!" : ""}</p>
             </div>
           )}
         </div>
       )}
 
       {/* Modal for Creating Flashcard Set */}
-      {showModal && (
+      {type === "myList" && showModal && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
           onClick={() => setShowModal(false)}>

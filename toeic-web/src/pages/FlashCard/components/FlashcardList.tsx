@@ -3,7 +3,7 @@ import api from "../../../config/axios";
 import FlashcardItem from "./FlashcardItem";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 export interface Flashcard {
   _id?: string;
@@ -15,22 +15,26 @@ export interface Flashcard {
 
 interface FlashcardListProps {
   setId?: string;
+  type?: "myList" | "explore";
 }
 
-const FlashcardList: React.FC<FlashcardListProps> = ({ setId }) => {
+const FlashcardList: React.FC<FlashcardListProps> = ({ setId, type: propType }) => {
+  const location = useLocation();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ word: "", meaning: "", example: "", note: "" });
   const [mode, setMode] = useState("Xem toàn bộ thẻ");
-  
-  const setIDFinal = setId;
-  
+  const type = propType || location.state?.type || "myList";
+
+  const editable = type === "myList";
+
   const fetchFlashcards = async () => {
-    if (!setIDFinal) return;
+    if (!setId) return;
     try {
       setLoading(true);
-      const res = await api.get("/flashcard", { params: { set: setIDFinal }});
+      const url = type === "explore" ? "/flashcard/free" : "/flashcard";
+      const res = await api.get(url, { params: { set: setId } });
       setFlashcards(res.data.data || []);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Không thể tải flashcard!");
@@ -44,14 +48,10 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId }) => {
       toast.warn("Nhập đầy đủ từ và nghĩa!");
       return;
     }
-    
-    if (!setIDFinal) {
-      toast.warn("Bạn phải chọn một set để tạo flashcard!");
-      return;
-    }
+    if (!setId) return;
 
     try {
-      const res = await api.post("/flashcard", { ...form, set: setIDFinal });
+      const res = await api.post("/flashcard", { ...form, set: setId });
       setFlashcards((prev) => [...prev, res.data.data]);
       setShowModal(false);
       setForm({ word: "", meaning: "", example: "", note: "" });
@@ -73,7 +73,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId }) => {
 
   useEffect(() => {
     fetchFlashcards();
-  }, [setIDFinal]);
+  }, [setId]);
 
   if (loading) return <p className="text-center mt-4">Đang tải...</p>;
 
@@ -84,7 +84,8 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId }) => {
         <label htmlFor="mode" className="text-sm font-medium text-gray-700">
           Chế độ:
         </label>
-        <select id="mode" value={mode}
+        <select id="mode"
+          value={mode}
           onChange={(e) => setMode(e.target.value)}
           className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-blue-500 focus:border-blue-500">
           <option value="Xem toàn bộ thẻ">📖 Xem toàn bộ thẻ</option>
@@ -98,27 +99,37 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId }) => {
 
       {/* Lưới flashcards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {/* Nút thêm flashcard */}
-        <div onClick={() => setShowModal(true)}
-          className="border-2 border-dashed border-blue-400 rounded-xl flex justify-center items-center h-48 text-blue-500 hover:bg-blue-50 cursor-pointer transition">
-          <span className="text-5xl font-bold">+</span>
-        </div>
+        {/* Nút thêm flashcard chỉ hiện khi editable */}
+        {editable && (
+          <div
+            onClick={() => setShowModal(true)}
+            className="border-2 border-dashed border-blue-400 rounded-xl flex justify-center items-center h-48 text-blue-500 hover:bg-blue-50 cursor-pointer transition"
+          >
+            <span className="text-5xl font-bold">+</span>
+          </div>
+        )}
 
         {/* Danh sách flashcards */}
         {flashcards.length > 0 ? (
           flashcards.map((card) => (
-            <FlashcardItem key={card._id} flashcard={card} onDelete={handleDelete} />
+            <FlashcardItem
+              key={card._id}
+              flashcard={card}
+              onDelete={editable ? handleDelete : undefined}
+            />
           ))
         ) : (
           <div className="col-span-full flex flex-col justify-center items-center py-16 text-gray-500">
-            <p className="text-lg font-medium mb-2">📭 Hiện tại bạn chưa có flashcard nào</p>
-            <p className="text-sm">Nhấn dấu + để tạo flashcard đầu tiên!</p>
+            <p className="text-lg font-medium mb-2">
+              📭 {editable ? "Hiện tại bạn chưa có flashcard nào" : "Chưa có flashcard trong set này"}
+            </p>
+            {editable && <p className="text-sm">Nhấn dấu + để tạo flashcard đầu tiên!</p>}
           </div>
         )}
       </div>
 
-      {/* Modal tạo flashcard */}
-      {showModal && (
+      {/* Modal tạo flashcard chỉ khi editable */}
+      {editable && showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
           onClick={() => setShowModal(false)}>
           <div className="bg-white rounded-lg p-6 w-96 shadow-lg scale-95 animate-[fadeIn_0.2s_ease-out_forwards]"
@@ -155,12 +166,16 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId }) => {
             />
 
             <div className="flex justify-between items-center mt-4">
-              <button onClick={handleAdd}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 active:scale-95 transition">
+              <button
+                onClick={handleAdd}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 active:scale-95 transition"
+              >
                 Thêm
               </button>
-              <button onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 active:scale-95 transition">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 active:scale-95 transition"
+              >
                 Hủy
               </button>
             </div>
