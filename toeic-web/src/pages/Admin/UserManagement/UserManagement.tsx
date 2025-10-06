@@ -10,6 +10,7 @@ interface User {
   email: string;
   phone: string;
   role: string;
+  authType: string;
   registerDate?: string;
   status?: "Active" | "Inactive";
 }
@@ -19,6 +20,7 @@ const UserManagementPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
+  const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [totalUsers, setTotalUsers] = useState(0);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
@@ -37,6 +39,7 @@ const UserManagementPage: React.FC = () => {
           email: user.email,
           phone: user.phone,
           role: user.role,
+          authType: user.authType || 'normal',
           registerDate: user.createdAt
             ? new Date(user.createdAt).toLocaleDateString()
             : "",
@@ -55,12 +58,25 @@ const UserManagementPage: React.FC = () => {
     fetchUsers(currentPage);
   }, [currentPage]);
 
-  const totalPages = Math.ceil(totalUsers / pageSize);
+  useEffect(() => {
+    const handleClickOutside = () => setMenuOpenId(null);
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
+  
+  const totalPages = Math.max(1, Math.ceil(totalUsers / pageSize));
 
   // Toggle dropdown menu
-  const toggleMenu = (userId: string) => {
+  const toggleMenu = (userId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     setMenuOpenId(menuOpenId === userId ? null : userId);
+    setMenuPosition({
+      x: rect.right - 160, // lùi một chút cho vừa khung
+      y: rect.bottom + window.scrollY,
+    });
   };
+
 
   // Inactivate / Activate user
   const handleToggleStatus = async (user: User) => {
@@ -97,75 +113,84 @@ const UserManagementPage: React.FC = () => {
                 <th className="px-6 py-3 text-left">Tên</th>
                 <th className="px-6 py-3 text-left">Email</th>
                 <th className="px-6 py-3 text-left">Số điện thoại</th>
+                <th className="px-6 py-3 text-left">Loại đăng nhập</th>
                 <th className="px-6 py-3 text-left">Ngày đăng ký</th>
                 <th className="px-6 py-3 text-left">Trạng thái</th>
                 <th className="px-6 py-3 text-center">Tùy chọn</th>
               </tr>
             </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user._id} className="border-t relative">
-                  <td className="px-6 py-3">{user.id}</td>
-                  <td className="px-6 py-3">{user.fullname}</td>
-                  <td className="px-6 py-3">{user.email}</td>
-                  <td className="px-6 py-3">{user.phone}</td>
-                  <td className="px-6 py-3">{user.registerDate}</td>
-                  <td className="px-6 py-3">
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-white ${
-                        user.status === "Active" ? "bg-green-500" : "bg-gray-400"
-                      }`}
-                    >
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3 text-center relative">
-                    <button
-                      className="text-gray-600 hover:text-gray-900"
-                      onClick={() => toggleMenu(user._id)}
-                    >
-                      <FaEllipsisH />
-                    </button>
-
-                    {/* Dropdown menu */}
-                    {menuOpenId === user._id && (
-                      <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg border rounded z-50">
-                        <button
-                          className="w-full px-4 py-2 text-left hover:bg-gray-100"
-                          onClick={() => handleToggleStatus(user)}
-                        >
-                          {user.status === "Active" ? "Vô hiệu hóa" : "Kích hoạt"}
-                        </button>
-                      </div>
-                    )}
-                  </td>
+            <tbody> {users.length > 0 ? (
+                users.map((user) => (
+                  <tr key={user._id} className="border-t relative">
+                    <td className="px-6 py-3">{user.id}</td>
+                    <td className="px-6 py-3">{user.fullname}</td>
+                    <td className="px-6 py-3">{user.email}</td>
+                    <td className="px-6 py-3">{user.phone}</td>
+                    <td className="px-6 py-3 capitalize">
+                      {user.authType === "google" ? "Google" : "Thường"}
+                    </td>
+                    <td className="px-6 py-3">{user.registerDate}</td>
+                    <td className="px-6 py-3">
+                      <span className={`inline-block px-3 py-1 rounded-full text-white ${
+                          user.status === "Active" ? "bg-green-500" : "bg-gray-400"
+                        }`}>
+                        {user.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-center relative">
+                      <button className="text-gray-600 hover:text-gray-900"
+                        onClick={(e) => toggleMenu(user._id, e)}>
+                        <FaEllipsisH />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="text-center py-6 text-gray-500 italic bg-gray-50"> Chưa có người dùng nào.</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination */}
-        <div className="flex justify-center space-x-4">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-            className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
-          >
-            Trước
-          </button>
-          <span className="px-4 py-2">
-            {currentPage} / {totalPages}
-          </span>
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
-          >
-            Sau
-          </button>
-        </div>
+        {users.length > 0 && (
+          <div className="flex justify-center space-x-4 mt-4">
+            <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}
+              className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"> Trước
+            </button>
+            <span className="px-4 py-2">
+              {currentPage} / {totalPages}
+            </span>
+            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}
+              className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"> Sau
+            </button>
+          </div>
+        )}
+
       </div>
+      {menuOpenId && menuPosition && (
+      <div
+        className="fixed bg-white shadow-lg border rounded w-40 z-[9999]"
+        style={{
+          top: `${menuPosition.y}px`,
+          left: `${menuPosition.x}px`,
+        }}
+      >
+        <button
+          className="w-full px-4 py-2 text-left hover:bg-gray-100"
+          onClick={() => {
+            const user = users.find((u) => u._id === menuOpenId);
+            if (user) handleToggleStatus(user);
+          }}
+        >
+          {users.find((u) => u._id === menuOpenId)?.status === "Active"
+            ? "Vô hiệu hóa"
+            : "Kích hoạt"}
+        </button>
+      </div>
+    )}
     </div>
   );
 };

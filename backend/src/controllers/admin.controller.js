@@ -1,6 +1,7 @@
 import { success, error } from "../utils/response.js";
 import * as AdminService from "../services/admin.service.js";
 
+// Get revenue
 export const getRevenueStatsController = async (req, res) => {
     try {
         if (req.user.role !== "admin") return error(res, "Không có quyền truy cập", 403);
