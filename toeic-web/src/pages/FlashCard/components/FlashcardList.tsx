@@ -25,8 +25,9 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId, type: propType }) 
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ word: "", meaning: "", example: "", note: "" });
   const [mode, setMode] = useState("Xem toàn bộ thẻ");
-  const type = propType || location.state?.type || "myList";
+  const [randomIndex, setRandomIndex] = useState(0);
 
+  const type = propType || location.state?.type || "myList";
   const editable = type === "myList";
 
   const fetchFlashcards = async () => {
@@ -66,14 +67,29 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId, type: propType }) 
       await api.delete(`/flashcard/${id}`);
       setFlashcards((prev) => prev.filter((f) => f._id !== id));
       toast.success("Đã xóa flashcard thành công!");
+      // Nếu xóa card hiện tại, reset randomIndex
+      if (randomIndex >= flashcards.length - 1) setRandomIndex(0);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Không thể xóa flashcard!");
     }
   };
 
+  const nextCard = () => {
+    setRandomIndex((prev) => (prev + 1) % flashcards.length);
+  };
+
+  const prevCard = () => {
+    setRandomIndex((prev) => (prev - 1 + flashcards.length) % flashcards.length);
+  };
+
   useEffect(() => {
     fetchFlashcards();
   }, [setId]);
+
+  // Reset card ngẫu nhiên khi đổi mode
+  useEffect(() => {
+    if (mode === "Ngẫu nhiên") setRandomIndex(0);
+  }, [mode]);
 
   if (loading) return <p className="text-center mt-4">Đang tải...</p>;
 
@@ -85,50 +101,69 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId, type: propType }) 
           Chế độ:
         </label>
         <select id="mode"
-          value={mode}
-          onChange={(e) => setMode(e.target.value)}
+          value={mode} onChange={(e) => setMode(e.target.value)}
           className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-blue-500 focus:border-blue-500">
           <option value="Xem toàn bộ thẻ">📖 Xem toàn bộ thẻ</option>
-          <option value="Học">🧠 Học</option>
-          <option value="Ôn tập">🔁 Ôn tập</option>
+          <option value="Ngẫu nhiên">🔁 Ngẫu nhiên</option>
           <option value="Trắc nghiệm">📝 Trắc nghiệm</option>
         </select>
       </div>
 
       <h1 className="text-2xl font-bold text-center mb-10">📚 Flashcards ({mode})</h1>
 
-      {/* Lưới flashcards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {/* Nút thêm flashcard chỉ hiện khi editable */}
-        {editable && (
-          <div
-            onClick={() => setShowModal(true)}
-            className="border-2 border-dashed border-blue-400 rounded-xl flex justify-center items-center h-48 text-blue-500 hover:bg-blue-50 cursor-pointer transition"
-          >
-            <span className="text-5xl font-bold">+</span>
-          </div>
-        )}
-
-        {/* Danh sách flashcards */}
-        {flashcards.length > 0 ? (
-          flashcards.map((card) => (
+      {/* Chế độ Ngẫu nhiên ngẫu nhiên */}
+      {mode === "Ngẫu nhiên" && flashcards.length > 0 ? (
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-full max-w-md h-80">
             <FlashcardItem
-              key={card._id}
-              flashcard={card}
-              onDelete={editable ? handleDelete : undefined}
+              flashcard={flashcards[randomIndex]}
+              onDelete={editable ? () => handleDelete(flashcards[randomIndex]._id!) : undefined}
             />
-          ))
-        ) : (
-          <div className="col-span-full flex flex-col justify-center items-center py-16 text-gray-500">
-            <p className="text-lg font-medium mb-2">
-              📭 {editable ? "Hiện tại bạn chưa có flashcard nào" : "Chưa có flashcard trong set này"}
-            </p>
-            {editable && <p className="text-sm">Nhấn dấu + để tạo flashcard đầu tiên!</p>}
           </div>
-        )}
-      </div>
 
-      {/* Modal tạo flashcard chỉ khi editable */}
+          <div className="flex gap-4 mt-2">
+            <button onClick={prevCard}
+              disabled={flashcards.length <= 1}
+              className={`px-4 py-2 rounded ${flashcards.length > 1 ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
+              ← Trước
+            </button>
+            <button onClick={nextCard}
+              disabled={flashcards.length <= 1}
+              className={`px-4 py-2 rounded ${flashcards.length > 1 ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
+              Tiếp →
+            </button>
+          </div>
+        </div>
+      ) : (
+        // Grid mnode
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {editable && (
+            <div onClick={() => setShowModal(true)}
+              className="border-2 border-dashed border-blue-400 rounded-xl flex justify-center items-center h-48 text-blue-500 hover:bg-blue-50 cursor-pointer transition">
+              <span className="text-5xl font-bold">+</span>
+            </div>
+          )}
+
+          {flashcards.length > 0 ? (
+            flashcards.map((card) => (
+              <FlashcardItem
+                key={card._id}
+                flashcard={card}
+                onDelete={editable ? handleDelete : undefined}
+              />
+            ))
+          ) : (
+            <div className="col-span-full flex flex-col justify-center items-center py-16 text-gray-500">
+              <p className="text-lg font-medium mb-2">
+                📭 {editable ? "Hiện tại bạn chưa có flashcard nào" : "Chưa có flashcard trong set này"}
+              </p>
+              {editable && <p className="text-sm">Nhấn dấu + để tạo flashcard đầu tiên!</p>}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Modal tạo flashcard */}
       {editable && showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
           onClick={() => setShowModal(false)}>

@@ -42,13 +42,13 @@ const FlashcardItem: React.FC<FlashcardItemProps> = ({ flashcard, onDelete }) =>
             backfaceVisibility: "hidden",
           }}
           className="bg-white border shadow-md p-4 rounded-lg flex flex-col justify-center items-center">
-          <h2 className="text-xl font-bold text-blue-600">{flashcard.word}</h2>
+          <h2 className="text-xl font-bold text-blue-800">{flashcard.word}</h2>
           <button
             onClick={(e) => {
               e.stopPropagation();
               speakWord();
             }}
-            className="mt-3 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
+            className="mt-5 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
             🔊 Phát âm
           </button>
         </div>
@@ -73,7 +73,7 @@ const FlashcardItem: React.FC<FlashcardItemProps> = ({ flashcard, onDelete }) =>
           {flashcard._id && onDelete && (
           <button onClick={(e) => {
               e.stopPropagation();
-              onDelete(flashcard._id!); // chắc chắn onDelete tồn tại
+              onDelete(flashcard._id!);
             }}
             className="mt-3 text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition">
             Xóa
