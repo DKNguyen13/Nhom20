@@ -58,7 +58,7 @@ await InitData.seedFlashcards();
 //await InitData.seedScoreMappings();
 await InitData.seedScoreMappings();
 
-function chat(){
+function chat() {
     const io = new Server(8081, {
         cors: {
             origin: "*",          // Cho phép mọi nguồn truy cập (FE mở file local cũng được)
@@ -81,7 +81,7 @@ function chat(){
             // message = extraPrompt + message;
             message = promptPrefix + message;
             console.log(message)
-            const response = await chat.sendMessage({message: message});
+            const response = await chat.sendMessage({ message: message });
             console.log(response.text)
             socket.emit('response', response.text);
         });

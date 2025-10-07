@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Question, Session } from "../interface/interfaces";
 import { getSession, getSessionQuestions, getSessionResults, submitBulkAnswers, submitSession } from "../../../service/sessionService";
 
