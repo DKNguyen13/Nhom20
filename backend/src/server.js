@@ -15,7 +15,7 @@ import wishlistRouter from './routes/wishlist.routes.js';
 import questionRoutes from './routes/question.routes.js';
 import * as InitData from './services/initData.service.js';
 import sessionRoutes from "./routes/session.routes.js";
-
+import flashcardRoutes from './routes/flashcard.routes.js';
 import flashcardSetRoutes from './routes/flashcardSet.routes.js';
 import { Server } from "socket.io";
 import { GoogleGenAI } from "@google/genai";
