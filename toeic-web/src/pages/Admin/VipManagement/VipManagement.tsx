@@ -22,7 +22,7 @@ const VipManagementPage: React.FC = () => {
     const fetchPackages = async () => {
       try {
         const res = await api.get("/vip");
-        const order = ["basic", "pro", "premium"];
+        const order = ["basic", "advanced", "premium"];
         const sorted = res.data.data.sort(
           (a: Package, b: Package) =>
             order.indexOf(a.type) - order.indexOf(b.type)
@@ -43,7 +43,7 @@ const VipManagementPage: React.FC = () => {
     value: string | number
   ) => {
     const updated = [...packages];
-    // ép kiểu nếu là number
+
     if (field === "originalPrice" || field === "discountedPrice") {
       updated[index][field] = Number(value);
     } else {
@@ -59,10 +59,10 @@ const VipManagementPage: React.FC = () => {
         discountedPrice: pkg.discountedPrice,
         description: pkg.description,
       });
-      alert(`✅ Lưu thành công gói ${pkg.name}`);
+      alert(`Lưu thành công gói ${pkg.name}`);
     } catch (err: any) {
       console.error("Lỗi cập nhật:", err);
-      alert("❌ Cập nhật thất bại");
+      alert("Cập nhật thất bại");
     }
   };
 

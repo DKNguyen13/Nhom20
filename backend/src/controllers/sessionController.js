@@ -487,7 +487,8 @@ export const submitSession = async (req, res) => {
         );
 
     } catch (err) {
-        return error(res, 'Error submitting session', err.message);
+
+        return error(res, 'Error submitting session', 500, err.message);
     }
 };
 // [PUT] /api/session/:sessionId/pause
@@ -663,6 +664,7 @@ export const getUserSessions = async (req, res) => {
     }
 };
 
+
 // calculate session results
 const calculateSessionResults = async function (sessionId, userId) {
     // Get UserAnswer with all questions
@@ -670,6 +672,9 @@ const calculateSessionResults = async function (sessionId, userId) {
         sessionId,
         userId
     }).populate('questions.questionId', 'partNumber');
+
+    const session = await UserTestSession.findById(sessionId)
+        .populate('testId', 'questions');
 
     if (!userAnswer || !userAnswer.questions) {
         return {
@@ -685,25 +690,23 @@ const calculateSessionResults = async function (sessionId, userId) {
 
     const answers = userAnswer.questions;
 
-    const totalQuestions = answers.length;
+    const totalQuestions = 200;
 
-    const answeredCount = 0;
-    const correctCount = 0;
-    const incorrectCount = 0;
-    const skippedCount = 0;
+    let answeredCount = 0;
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let skippedCount = 0;
     for (const a of answers) {
-        if (a.isSkipped) {
-            skippedCount++;
+        answeredCount++;
+        if (a.isCorrect) {
+            correctCount++;
         } else {
-            answeredCount++;
-            if (a.isCorrect) {
-                correctCount++;
-            } else {
-                incorrectCount++;
-            }
+            incorrectCount++;
         }
     }
 
+    // calc with part not select ans
+    skippedCount = totalQuestions - answeredCount;
 
     const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
 
@@ -729,7 +732,7 @@ const calculateSessionResults = async function (sessionId, userId) {
     // Calculate TOEIC scores if full test
     let listeningScore = 0;
     let readingScore = 0;
-    let totalScore = null;
+    let totalScore = 0;
 
     const listeningAnswers = answers.filter(a =>
         a.questionId && a.questionId.partNumber <= 4
@@ -739,12 +742,17 @@ const calculateSessionResults = async function (sessionId, userId) {
     );
 
     // listening and reading
-    if (listeningAnswers.length > 0 && readingAnswers.length > 0) {
+    if (listeningAnswers.length > 0) {
         const listeningCorrect = listeningAnswers.filter(a => a.isCorrect).length;
-        const readingCorrect = readingAnswers.filter(a => a.isCorrect).length;
-
         listeningScore = await calculateScore('listening', listeningCorrect);
+    }
+
+    if (readingAnswers.length > 0) {
+        const readingCorrect = readingAnswers.filter(a => a.isCorrect).length;
         readingScore = await calculateScore('reading', readingCorrect);
+    }
+
+    if (listeningScore || readingScore) {
         totalScore = listeningScore + readingScore;
     }
 

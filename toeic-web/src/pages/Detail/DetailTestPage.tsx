@@ -1,7 +1,6 @@
-import DetailToeicTest from "../../components/DetailToeicContent";
+import DetailToeicTest from "./DetailTest.js";
 import { useParams } from "react-router-dom";
-import { useTestData } from "../../hooks/useTestData.js";
-import { useTestSession } from "../../hooks/useTestSession.js";
+import { useTestData, useStartTest } from "../../hooks/useTestData.js";
 
 const sampleComments = [
   {
@@ -37,7 +36,7 @@ function MockDetailTests() {
     handleStartPractice,
     sessionLoading,
     sessionError,
-  } = useTestSession(testData);
+  } = useStartTest(testData);
 
   if (loading) {
     return (
@@ -58,24 +57,25 @@ function MockDetailTests() {
   return (
     <div className="min-h-screen bg-background">
       <DetailToeicTest
-      testName={testData.data.test.title}
-      durationMinutes={120}
-      totalParts={7}
-      totalQuestions={200}
-      practicedCount={2500000}
-      commentsCount={3000}
-      parts={testData.data.parts}
-      defaultActiveTab="practice"
-      selectedParts={selectedParts}
-      setSelectedParts={setSelectedParts}
-      selectedTime={selectedTime}
-      setSelectedTime={setSelectedTime}
-      onStartPractice={handleStartPractice}
-      sessionLoading={sessionLoading}
-      sessionError={sessionError}
-      comments={sampleComments}
-	    testId={testData.data.test._id}
-    />
+      
+        testName={testData.data.test.title}
+        durationMinutes={120}
+        totalParts={7}
+        totalQuestions={200}
+        practicedCount={2500000}
+        commentsCount={3000}
+        parts={testData.data.parts}
+        defaultActiveTab="practice"
+        selectedParts={selectedParts}
+        setSelectedParts={setSelectedParts}
+        selectedTime={selectedTime}
+        setSelectedTime={setSelectedTime}
+        onStartPractice={handleStartPractice}
+        sessionLoading={sessionLoading}
+        sessionError={sessionError}
+        comments={sampleComments}
+        testId={testData.data.test._id}
+      />
     </div>
   );
 }

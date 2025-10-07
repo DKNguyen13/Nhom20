@@ -22,19 +22,25 @@ ChartJS.register(
 );
 
 type ResultProps = {
+  testTitle: string;
   totalQuestions: number;
   correctAnswers: number;
   wrongAnswers: number;
   skippedQuestions: number;
-  score: number;
+  listeningScore: number;
+  readingScore: number;
+  totalScore: number;
 };
 
 const Result: React.FC<ResultProps> = ({
+  testTitle,
   totalQuestions,
   correctAnswers,
   wrongAnswers,
   skippedQuestions,
-  score,
+  listeningScore,
+  readingScore,
+  totalScore,
 }) => {
   const navigate = useNavigate();
   const handleGoBack = () => {
@@ -50,8 +56,8 @@ const Result: React.FC<ResultProps> = ({
     datasets: [
       {
         data: [correctPercentage, wrongPercentage, skippedPercentage],
-        backgroundColor: ["#4CAF50", "#F44336", "#FF9800"],
-        hoverBackgroundColor: ["#45a049", "#e53935", "#fb8c00"],
+        backgroundColor: ["#4CAF50", "#F44336", "#BDBDBD"],
+        hoverBackgroundColor: ["#45a049", "#e53935", "#9E9E9E"],
         borderColor: "#fff",
         borderWidth: 1,
       },
@@ -60,19 +66,29 @@ const Result: React.FC<ResultProps> = ({
 
   return (
     <div className="max-w-4xl min-w-[700px] mx-auto p-6 bg-white rounded-lg shadow-lg">
+      <h2 className="text-center text-3xl font-bold text-blue-700 mb-4">
+        {testTitle}
+      </h2>
+
       <div className="text-center mb-8">
-        <div className="text-9xl text-yellow-500 mb-16">🏆</div>
-        <h1 className="text-4xl font-bold text-gray-800">{`Your Score: ${score}/100`}</h1>
+        <div className="text-7xl text-yellow-500 mb-8">🏆</div>
+        <h1 className="text-4xl font-bold text-gray-800">{`Your Score: ${totalScore ?? 0}/990`}</h1>
         <p className="mt-2 text-lg text-gray-500">
           Đây là trình độ ước tính của bạn. Để cải thiện điểm số, bạn có thể tìm
           hiểu các tài nguyên học tập của trang web.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-20">
+      <div className="grid grid-cols-2 gap-4 mb-8">
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Tổng số câu hỏi:</span>
           <span className="font-semibold text-gray-800">{totalQuestions}</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-gray-600">Số câu bỏ qua:</span>
+          <span className="font-semibold text-gray-400">
+            {skippedQuestions}
+          </span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Số câu đúng:</span>
@@ -80,13 +96,22 @@ const Result: React.FC<ResultProps> = ({
         </div>
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Số câu sai:</span>
-          <span className="font-semibold text-red-600">{wrongAnswers}</span>
+          <span className="font-semibold text-red-500">{wrongAnswers}</span>
         </div>
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600">Số câu bỏ qua:</span>
-          <span className="font-semibold text-orange-600">
-            {skippedQuestions}
-          </span>
+      </div>
+
+      <div className="grid grid-cols-2 text-center mb-16">
+        <div>
+          <p className="text-gray-600">Listening</p>
+          <p className="text-2xl font-semibold text-gray-800">
+            {listeningScore}/495
+          </p>
+        </div>
+        <div>
+          <p className="text-gray-600">Reading</p>
+          <p className="text-2xl font-semibold text-gray-800">
+            {readingScore}/495
+          </p>
         </div>
       </div>
 
@@ -100,14 +125,20 @@ const Result: React.FC<ResultProps> = ({
       </div>
 
       <div className="text-center">
-        <p className="text-lg text-blue-500">
+        {/* <p className="text-lg text-blue-500">
           Bạn cần cải thiện Phần 3 - Hội thoại ngắn
-        </p>
+        </p> */}
         <div className="space-x-9">
-          <button onClick={handleGoBack} className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600">
+          <button
+            onClick={handleGoBack}
+            className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600"
+          >
             Xem lại bài làm
           </button>
-          <button onClick={()=>navigate('/leaderboard')} className="mt-4 px-6 py-2 bg-yellow-500 text-white rounded-lg shadow-md hover:bg-yellow-600">
+          <button
+            onClick={() => navigate("/leaderboard")}
+            className="mt-4 px-6 py-2 bg-yellow-500 text-white rounded-lg shadow-md hover:bg-yellow-600"
+          >
             Bảng xếp hạng
           </button>
         </div>

@@ -6,7 +6,7 @@ const vipPackageSchema = new mongoose.Schema({
     originalPrice: { type: Number, required: true },
     discountedPrice: { type: Number, required: true },
     description: { type: String },
-    type: { type: String, enum: ['basic','pro','premium'], required: true }
+    type: { type: String, enum: ['basic','advanced','premium'], required: true }
 }, { timestamps: true });
 
 export default mongoose.model('VipPackage', vipPackageSchema);

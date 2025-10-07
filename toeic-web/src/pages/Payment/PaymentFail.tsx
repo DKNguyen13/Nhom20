@@ -9,11 +9,8 @@ const PaymentFail: React.FC = () => {
         <p className="text-gray-700 mb-4">
           Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại.
         </p>
-        <Link
-          to="/payment"
-          className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition"
-        >
-          Quay lại trang gói VIP
+        <Link to="/payment" className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition">
+          Quay lại mua hàng
         </Link>
       </div>
     </div>

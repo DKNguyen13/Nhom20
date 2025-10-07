@@ -8,15 +8,14 @@ import {
   Info,
   Pin,
 } from "lucide-react";
-import { Button } from "../components/ui/button";
-import { Select } from "../components/ui/select";
-import CommentSection from "./Comment/CommentSection";
+import { Button } from "../../components/ui/button";
+import { Select } from "../../components/ui/select";
+import CommentSection from "../../components/Comment/CommentSection";
 
 type Comment = {
-
   _id: string;
   content: string;
-  noOfLikes: number;  
+  noOfLikes: number;
   noOfChildren: number;
 };
 
@@ -30,6 +29,7 @@ type ToeicTestProps = {
   parts: Array<{
     _id: number;
     title: string;
+    partNumber: number;
     totalQuestions: number;
     tags: string[];
   }>;
@@ -65,28 +65,23 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
   onStartPractice,
   sessionLoading,
   sessionError,
-  testId
+  testId,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultActiveTab);
-  const handlePartToggle = (partId: number) => {
-
-    if (selectedParts.includes(partId)) {
+  const handlePartToggle = (partNumber: number) => {
+    if (selectedParts.includes(partNumber)) {
       // Bỏ phần đã chọn
-      setSelectedParts(selectedParts.filter((id) => id !== partId));
+      setSelectedParts(selectedParts.filter((id) => id !== partNumber));
     } else {
-
       // Thêm phần mới
-      setSelectedParts([...selectedParts, partId]);
+      setSelectedParts([...selectedParts, partNumber]);
     }
-
   };
 
   const generateTimeOptions = () => {
-
     const options = [] as { value: number; label: string }[];
     for (let i = 0; i <= 135; i += 5) {
       options.push({
-
         value: i,
         label: i === 0 ? "Unlimited" : `${i} minutes`,
       });
@@ -235,9 +230,8 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
                       <input
                         type="checkbox"
                         id={`part-${part._id}`}
-
-                        checked={selectedParts.includes(part._id)}
-                        onChange={() => handlePartToggle(part._id)}
+                        checked={selectedParts.includes(part.partNumber)}
+                        onChange={() => handlePartToggle(part.partNumber)}
                         className="mt-1 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-600 focus:ring-2"
                         aria-describedby={`part-${part._id}-description`}
                       />
@@ -278,11 +272,9 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
                   <div className="w-full sm:w-64">
                     <Select
                       value={selectedTime}
-
                       onValueChange={(val) => setSelectedTime(val)}
                       placeholder="Chọn thời gian"
                       options={generateTimeOptions().map((opt) => ({
-
                         value: opt.value,
                         label:
                           opt.label === "Unlimited"
@@ -346,7 +338,6 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
           </div>
         </div>
       </div>
-      
     </div>
   );
 };
