@@ -34,6 +34,7 @@ import PaymentFail from "../pages/Payment/PaymentFail";
 import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 import ResultPage from "../pages/MockTest/result/ResultPage";
 import FlashcardPage from "../pages/FlashCard/FlashcardPage";
+import FlashcardListPage from "../pages/FlashCard/FlashcardListPage";
 
 const RefreshTokenLoader = () => {
   useRefreshTokenOnLoad();
@@ -239,6 +240,14 @@ const routes = [
 		element: (
 			<MainLayout>
 				<FlashcardPage />
+			</MainLayout>
+		),
+	},
+	{
+		path: "/flashcards/:setId",
+		element: (
+			<MainLayout>
+				<FlashcardListPage />
 			</MainLayout>
 		),
 	},

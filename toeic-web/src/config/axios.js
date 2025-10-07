@@ -77,3 +77,5 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+export const isLoggedIn = () => !!sessionStorage.getItem("accessToken");

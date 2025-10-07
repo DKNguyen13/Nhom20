@@ -16,7 +16,7 @@ import questionRoutes from './routes/question.routes.js';
 import * as InitData from './services/initData.service.js';
 import sessionRoutes from "./routes/session.routes.js";
 
-import flashcardRoutes from './routes/flashcard.routes.js';
+import flashcardSetRoutes from './routes/flashcardSet.routes.js';
 import { Server } from "socket.io";
 import { GoogleGenAI } from "@google/genai";
 import { promptPrefix } from "./utils/constant.js";
@@ -45,14 +45,15 @@ app.use('/api/test/:slug', partRoutes);
 app.use('/api/test/:slug', questionRoutes);
 app.use('/api/session', sessionRoutes);
 app.use('/api/flashcard', flashcardRoutes);
+app.use('/api/flashcard-set', flashcardSetRoutes);
 
 await connectDB();
 await InitData.createAdminIfNotExist();
 await InitData.seedPackages();
 await InitData.seedLessons();
-
+await InitData.seedFlashcards();
 //await InitData.seedRevenue();
-await InitData.syncMeiliUsersOnce();
+//await InitData.syncMeiliUsersOnce();
 //await InitData.seedScoreMappings();
 
 function chat(){
