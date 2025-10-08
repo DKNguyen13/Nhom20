@@ -9,7 +9,7 @@ const MainLayout = ({ children }) => {
 	return (
 		<>
 			<Header />
-			<main className="min-h-screen p-4">
+			<main className="min-h-screen">
 				{React.cloneElement(children, { setIsOpen })} {/* Truyền setIsOpen xuống component con */}
 			</main>
 			<Chatbot isOpen={isOpen} setIsOpen={setIsOpen} socketUrl="http://localhost:8081"/>

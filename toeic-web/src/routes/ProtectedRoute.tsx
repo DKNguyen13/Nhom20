@@ -1,4 +1,4 @@
-import React, { useEffect, useState, ReactNode } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import { useLocation, Navigate } from "react-router-dom";
 import api, { setAccessToken } from "../config/axios";
 import NotFound from "../pages/NotFound/NotFound";
