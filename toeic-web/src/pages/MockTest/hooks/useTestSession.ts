@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Question, Session } from "../interface/interfaces";
-import { getSession, getSessionQuestions, getSessionResults, submitBulkAnswers, submitSession } from "../../../service/sessionService";
+import { getSession, getSessionQuestions, getSessionResults, getSessionsUser, submitBulkAnswers, submitSession } from "../../../service/sessionService";
 
 export const useTestSession = () => {
   const sessionId = localStorage.getItem("toeic-session-id");
@@ -176,7 +176,7 @@ export const useTestSession = () => {
 };
 
 export const useResult = () => {
-  const sessionId = localStorage.getItem("toeic-session-id");
+  const { id } = useParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -188,7 +188,7 @@ export const useResult = () => {
   useEffect(() => {
     const fetchResult = async () => {
       try {
-        const res = await getSessionResults(sessionId);
+        const res = await getSessionResults(id);
 
         const session = res.session;
         const results = session?.results;
@@ -206,13 +206,13 @@ export const useResult = () => {
       }
     };
 
-    if (sessionId) {
+    if (id) {
       fetchResult();
     } else {
       setError("No session ID found");
       setLoading(false);
     }
-  }, [sessionId]);
+  }, [id]);
 
   return {
     loading,
@@ -222,4 +222,34 @@ export const useResult = () => {
     readingScore,
     testTitle,
   };
+};
+
+export const useSessionsUser = () => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sessions, setSessions] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const res = await getSessionsUser();
+
+        console.log("✅ API response:", res);
+
+        const results = res.sessions;
+        if(results) {
+          setSessions(results);
+        }
+      } catch (err: any) {
+        setError(err || 'Fetch history test fail');
+      }
+      finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSessions();
+  }, []);
+
+  return { loading, error, sessions };
 };

@@ -610,7 +610,8 @@ export const getSessionResults = async (req, res) => {
                     sessionType: session.sessionType,
                     completedAt: session.completedAt,
                     timeSpent: session.timeSpent,
-                    results: session.results
+                    results: session.results,
+                    progress: session.progress
                 },
                 answers: userAnswer ? userAnswer.questions : []
             }
@@ -621,30 +622,28 @@ export const getSessionResults = async (req, res) => {
     }
 };
 
-// [GET] /api/session/user/:userId -- Get user session history
+// [GET] /api/session/user -- Get user session history
 export const getUserSessions = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const userId = req.user.id;
         const { page = 1, limit = 10, status, testId } = req.query;
 
-        // Check authorization
-        if (req.user.id !== userId && req.user.role !== 'admin') {
-            return error(res, 'Access denied');
-        }
-
         const filter = { userId };
-        if (status) filter.status = status;
-        if (testId) filter.testId = testId;
+        if (status) {
+            filter.status = status; // status TOEIC test
+        }
+        if (testId) {
+            filter.testId = testId;
+        }
 
         const sessions = await UserTestSession.find(filter)
             .populate('testId', 'title slug testCode')
             .sort({ createdAt: -1 })
             .limit(limit * 1)
             .skip((page - 1) * limit)
-            .select('sessionCode sessionType status createdAt completedAt results.totalScore results.accuracy');
+            .select('sessionCode progress sessionType status createdAt completedAt results.totalScore results.totalQuestions results.accuracy');
 
         const total = await UserTestSession.countDocuments(filter);
-
 
         return success(
             res,
@@ -659,8 +658,8 @@ export const getUserSessions = async (req, res) => {
             }
         );
 
-    } catch (error) {
-        return error(res, 'Error fetching user sessions');
+    } catch (err) {
+        return error(res, 'Error fetching user sessions', 500, err.message);
     }
 };
 
@@ -690,7 +689,7 @@ const calculateSessionResults = async function (sessionId, userId) {
 
     const answers = userAnswer.questions;
 
-    const totalQuestions = 200;
+    const totalQuestions = session.progress.totalQuestions;
 
     let answeredCount = 0;
     let correctCount = 0;

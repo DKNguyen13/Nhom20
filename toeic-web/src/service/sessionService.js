@@ -31,3 +31,8 @@ export const getSessionResults = async (sessionId) => {
     const res = await api.get(`/session/${sessionId}/results`);
     return res.data.data;
 };
+
+export const getSessionsUser = async () => {
+    const res = await api.get('/session/user');
+    return res.data.data;
+};
