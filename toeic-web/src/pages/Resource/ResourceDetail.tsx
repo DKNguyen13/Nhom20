@@ -1,12 +1,14 @@
-import api from "../../config/axios";
+import api, { isLoggedIn } from "../../config/axios";
 import { useParams } from "react-router-dom";
 import { FaEye, FaHeart } from "react-icons/fa";
 import React, { useEffect, useState } from "react";
+import LoginModal from "../../layouts/common/LoginModal";
 
 const LessonDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [lesson, setLesson] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showLogin, setShowLoginModal] = useState(!isLoggedIn());
 
   // State favorite
   const [isFavorite, setIsFavorite] = useState(false);
@@ -36,6 +38,10 @@ const LessonDetailPage: React.FC = () => {
   // Toggle favorite
   const handleToggleFavorite = async () => {
     if (!lesson) return;
+    if (!isLoggedIn()) {
+      setShowLoginModal(true);
+      return;
+    }
     try {
       const res = await api.patch("/wishlist/toggle", { lessonId: lesson._id });
       setIsFavorite(res.data.data.isFavorite);
@@ -77,6 +83,19 @@ const LessonDetailPage: React.FC = () => {
         className="article-content prose"
         dangerouslySetInnerHTML={{ __html: lesson.content }}
       />
+      {showLogin && (
+      <LoginModal
+        isOpen={showLogin}
+        onClose={() => {
+          setShowLoginModal(false)
+          setTimeout(() => setShowLoginModal(true), 100);
+        }}
+        onSuccess={() => {
+          setShowLoginModal(false);
+          handleToggleFavorite();
+        }}
+      />
+    )}
     </div>
   );
 };
