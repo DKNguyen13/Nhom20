@@ -50,7 +50,7 @@ const LessonDetailPage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto mt-8 bg-white p-6 rounded-lg shadow-lg">
-      <h1 className="text-3xl font-bold mb-4">{lesson.title}</h1>
+      <h1 className="text-3xl font-bold mb-10 text-center">{lesson.title}</h1>
 
       <div className="flex items-center gap-6 text-gray-600 mb-6">
         {/* Views */}
