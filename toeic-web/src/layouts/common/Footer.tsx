@@ -1,11 +1,4 @@
-import {
-  CiFacebook,
-  CiInstagram,
-  CiLocationOn,
-  CiMail,
-  CiPhone,
-  CiYoutube,
-} from "react-icons/ci";
+import { CiFacebook, CiInstagram, CiLocationOn, CiMail, CiPhone, CiYoutube } from "react-icons/ci";
 
 const Footer = () => {
   return (

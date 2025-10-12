@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import bcrypt from 'bcryptjs';
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
@@ -9,6 +11,8 @@ import PaymentOrder from "../models/paymentOrder.model.js";
 import FlashcardSet from "../models/flashcardSet.model.js";
 import ScoreMapping from "../models/scoreMapping.model.js";
 import { estimateScore } from "../services/score.service.js";
+
+const __dirname = path.resolve();
 
 // Sync mail
 export const syncMeiliUsersOnce = async () => {
@@ -350,110 +354,43 @@ export const seedFlashcards = async () => {
 export const seedLessons = async () => {
   const count = await Lesson.countDocuments();
   if (count > 0) {
-    console.log("📚 Lessons already exist, skipping seeding...");
+    console.log("📚 Lessons already exist, skipping...");
     return;
   }
 
-  const lessons = [
-    {
-      title: "Lesson 1: Basic Greetings",
-      content: "Learn basic English greetings like 'Hello', 'Good morning', 'How are you?'. Practice by greeting your classmates.",
-      type: "vocabulary",
-      views: 120,
-      accessLevel: "free",
-      createdBy: null,
-      isDeleted: false,
-    },
-    {
-      title: "Lesson 2: Daily Conversations",
-      content: "Short dialogue between two friends: \nA: How was your weekend?\nB: It was great! I went to the park.\nPractice saying these sentences aloud.",
-      type: "reading",
-      views: 95,
-      accessLevel: "basic",
-      createdBy: null,
-      isDeleted: false,
-    },
-    {
-      title: "Lesson 3: Numbers and Dates",
-      content: "Learn numbers 1-20 and how to say dates in English. Example: 'Today is September 30th, 2025.'",
-      type: "vocabulary",
-      views: 80,
-      accessLevel: "basic",
-      createdBy: null,
-      isDeleted: false,
-    },
-    {
-      title: "Lesson 4: Asking for Directions",
-      content: "Practice phrases: 'Excuse me, where is the bus stop?' and 'Can you tell me how to get to the museum?'.",
-      type: "reading",
-      views: 140,
+  // Folder chứa HTML bài học
+  const lessonsDir = path.join(__dirname, "../backend/src/resources/lessons");
+  const lessonFiles = fs.readdirSync(lessonsDir).filter(f => f.endsWith(".html"));
 
-      accessLevel: "advanced",
-      createdBy: null,
-      isDeleted: false,
-    },
-    {
-      title: "Lesson 5: Food and Drinks",
-      content: "Vocabulary: apple, banana, sandwich, coffee, tea. Example sentence: 'I would like a cup of coffee, please.'",
-      type: "vocabulary",
-      views: 200,
-
-      accessLevel: "advanced",
-      createdBy: null,
-      isDeleted: false,
-    },
-    {
-      title: "Lesson 6: Shopping Phrases",
-      content: "Learn useful phrases: 'How much is this?', 'Do you accept credit cards?', 'Can I try this on?'.",
-      type: "reading",
-      views: 175,
-      accessLevel: "premium",
-      createdBy: null,
-      isDeleted: false,
-    },
-    {
-      title: "Lesson 7: Talking About Hobbies",
-      content: "Practice sentences: 'I enjoy reading books.', 'My favorite hobby is swimming.', 'Do you like playing chess?'.",
-      type: "vocabulary",
-      views: 160,
-      accessLevel: "premium",
-      createdBy: null,
-      isDeleted: false,
-    },
-    {
-      title: "Lesson 8: Simple Present Tense",
-      content: "Understand usage: 'I go to school every day.', 'She plays the piano on Sundays.' Practice writing your own sentences.",
-      type: "reading",
-      views: 145,
-      accessLevel: "basic",
-      createdBy: null,
-      isDeleted: false,
-    },
-    {
-      title: "Lesson 9: Family Members",
-      content: "Vocabulary: father, mother, brother, sister, uncle, aunt. Example: 'My mother is a teacher.'",
-      type: "vocabulary",
-      views: 130,
-      accessLevel: "free",
-      createdBy: null,
-      isDeleted: false,
-    },
-    {
-      title: "Lesson 10: Telling Time",
-      content: "Learn how to tell time: 'It's 3 o'clock.', 'It's half past 7.', 'It's quarter to 5.' Practice with your daily schedule.",
-      type: "reading",
-      views: 110,
-      accessLevel: "basic",
-      createdBy: null,
-      isDeleted: false,
-    },
+  const lessonTitles = [
+    "Bài 1: Từ vựng & cấu trúc bản",
+    "Bài 2: Ngữ pháp cơ bản",
+    "Bài 3: Mẫu câu giao tiếp, email",
+    "Bài 4: Từ vựng & hội thoại thương mại",
+    "Bài 5: Tổng hợp từ vựng nâng cao",
+    "Bài 6: Đọc hiểu văn bản thương mại",
+    "Bài 7: Đọc hiểu tin tức danh nghiệp",
+    "Bài 8: Luyện đọc hiểu (tt)",
+    "Bài 9: Luyện đọc hiểu nâng cao",
+    "Bài 10: Luyện đọc hiểu nâng cao (tt)"
   ];
 
+  const lessons = lessonFiles.map((file, index) => ({
+    title: lessonTitles[index] || `Bài ${index + 1}`,
+    path: `src/resources/lessons/${file}`,
+    content: ``,
+    type: index < 5 ? "vocabulary" : "reading",
+    views: Math.floor(Math.random() * (185 - 100 + 1)) + 100,
+    accessLevel: index < 5 ? "free" : "fee",
+    createdBy: null,
+    isDeleted: false,
+  }));
+
   await Lesson.insertMany(lessons);
-  console.log("✅ Seeded 10 realistic English lessons successfully!");
+  console.log(`✅ Seeded ${lessons.length} lessons (paths only) successfully!`);
 };
 
-
+// Seed score mappings
 export const seedScoreMappings = async () => {
   const mappings = [];
 

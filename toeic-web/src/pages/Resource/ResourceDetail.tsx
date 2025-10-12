@@ -1,12 +1,14 @@
-import api from "../../config/axios";
+import api, { isLoggedIn } from "../../config/axios";
 import { useParams } from "react-router-dom";
 import { FaEye, FaHeart } from "react-icons/fa";
 import React, { useEffect, useState } from "react";
+import LoginModal from "../../layouts/common/LoginModal";
 
 const LessonDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [lesson, setLesson] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showLogin, setShowLoginModal] = useState(!isLoggedIn());
 
   // State favorite
   const [isFavorite, setIsFavorite] = useState(false);
@@ -36,6 +38,10 @@ const LessonDetailPage: React.FC = () => {
   // Toggle favorite
   const handleToggleFavorite = async () => {
     if (!lesson) return;
+    if (!isLoggedIn()) {
+      setShowLoginModal(true);
+      return;
+    }
     try {
       const res = await api.patch("/wishlist/toggle", { lessonId: lesson._id });
       setIsFavorite(res.data.data.isFavorite);
@@ -50,7 +56,7 @@ const LessonDetailPage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto mt-8 bg-white p-6 rounded-lg shadow-lg">
-      <h1 className="text-3xl font-bold mb-4">{lesson.title}</h1>
+      <h1 className="text-3xl font-bold mb-10 text-center">{lesson.title}</h1>
 
       <div className="flex items-center gap-6 text-gray-600 mb-6">
         {/* Views */}
@@ -77,6 +83,19 @@ const LessonDetailPage: React.FC = () => {
         className="article-content prose"
         dangerouslySetInnerHTML={{ __html: lesson.content }}
       />
+      {showLogin && (
+      <LoginModal
+        isOpen={showLogin}
+        onClose={() => {
+          setShowLoginModal(false)
+          setTimeout(() => setShowLoginModal(true), 100);
+        }}
+        onSuccess={() => {
+          setShowLoginModal(false);
+          handleToggleFavorite();
+        }}
+      />
+    )}
     </div>
   );
 };
