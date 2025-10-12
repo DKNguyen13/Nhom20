@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
 import api from "../../../config/axios";
-import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import LoginModal from "../../../layouts/common/LoginModal";
 
 export interface FlashcardSet {
   _id?: string;
@@ -24,6 +25,7 @@ const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: "", description: "" });
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
 
   const fetchSets = async () => {
@@ -44,7 +46,7 @@ const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
 
   const handleAdd = async () => {
     if (!isLoggedIn) {
-      navigate("/login");
+      setShowLoginModal(true);
       return;
     }
 
@@ -75,7 +77,7 @@ const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
 
   const handleSetClick = (setId?: string) => {
     if (!isLoggedIn) {
-      navigate("/login");
+      setShowLoginModal(true);
     } else {
       navigate(`/flashcards/${setId}`, { state: { type } });
     }
@@ -104,7 +106,13 @@ const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {/* Add Button */}
           {type === "myList" && (
-            <div onClick={() => setShowModal(true)}
+            <div onClick={() => {
+              if (!isLoggedIn) {
+                setShowLoginModal(true);
+              } else {
+                setShowModal(true);
+              }
+            }}
               className="border-2 border-dashed border-blue-500 rounded-lg flex flex-col justify-center items-center h-48 bg-white hover:bg-blue-50 cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md">
               <span className="text-4xl font-bold text-blue-500">+</span>
               <p className="text-sm font-medium text-blue-600 mt-2">
@@ -201,14 +209,15 @@ const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
         </div>
       )}
 
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnHover
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false}
+        newestOnTop closeOnClick pauseOnHover
         theme="light"
+      />
+      
+      {/* Modal đăng nhập */}
+      <LoginModal isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={() => window.location.reload()}
       />
     </div>
   );

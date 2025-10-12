@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import api from "../../config/axios";
+import { useParams } from "react-router-dom";
 import { FaEye, FaHeart } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
 
 const LessonDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -60,10 +60,8 @@ const LessonDetailPage: React.FC = () => {
         </div>
 
         {/* Favorite */}
-        <div
-          className="flex items-center gap-2 cursor-pointer select-none"
-          onClick={handleToggleFavorite}
-        >
+        <div className="flex items-center gap-2 cursor-pointer select-none"
+          onClick={handleToggleFavorite}>
           <FaHeart className={isFavorite ? "text-red-500" : "text-gray-400"} />
           <span>{favoriteCount} yêu thích</span>
         </div>
