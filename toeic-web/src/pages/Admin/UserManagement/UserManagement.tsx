@@ -2,6 +2,7 @@ import api from "../../../config/axios";
 import { FaSearch, FaEllipsisH } from "react-icons/fa";
 import React, { useEffect, useState } from "react";
 import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
+import { toast, ToastContainer } from "react-toastify";
 
 interface User {
   id: number;
@@ -23,8 +24,8 @@ const UserManagementPage: React.FC = () => {
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [totalUsers, setTotalUsers] = useState(0);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState(""); // new
-  const [isSearching, setIsSearching] = useState(false); // new
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   // Fetch users from backend
   const fetchUsers = async (page: number) => {
@@ -123,6 +124,7 @@ const UserManagementPage: React.FC = () => {
             : u
         )
       );
+      toast.success(`User ${user.fullname} đã ${user.status === "Active" ? "vô hiệu hóa" : "kích hoạt"}!`);
       setMenuOpenId(null);
     } catch (err) {
       console.error("Cập nhật trạng thái lỗi:", err);
@@ -132,6 +134,7 @@ const UserManagementPage: React.FC = () => {
   if (loading) return <div className="p-8">Đang tải dữ liệu...</div>;
 
   return (
+    <>
     <div className="min-h-screen flex flex-row">
       <LeftSidebarAdmin customHeight="h-auto w-64" />
       <div className="flex-1 p-8 bg-gray-100">
@@ -242,6 +245,11 @@ const UserManagementPage: React.FC = () => {
         </div>
       )}
     </div>
+    <ToastContainer  position="top-right" autoClose={1000}
+      hideProgressBar={false} newestOnTop closeOnClick
+      pauseOnHover draggable theme="light"
+    />
+  </>
   );
 };
 

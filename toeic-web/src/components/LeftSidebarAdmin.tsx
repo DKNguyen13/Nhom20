@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaTachometerAlt, FaUsers, FaFileAlt, FaGift, FaSignOutAlt } from "react-icons/fa";
 import api, { setAccessToken } from "../config/axios.js";
+import { FaTachometerAlt, FaUsers, FaFileAlt, FaGift, FaSignOutAlt, FaBook } from "react-icons/fa";
 
 interface LeftSidebarAdminProps {
   customHeight?: string;
@@ -50,6 +50,12 @@ const LeftSidebarAdmin: React.FC<LeftSidebarAdminProps> = ({ customHeight }) => 
             <Link to="/admin/usermanagement" className="flex items-center p-2 text-gray-700 hover:bg-blue-100 rounded">
               <FaUsers className="mr-3" />
               Người dùng
+            </Link>
+          </li>
+          <li className="mb-2">
+            <Link to="/admin/lessonmanagement" className="flex items-center p-2 text-gray-700 hover:bg-blue-100 rounded">
+              <FaBook className="mr-3" />
+              Bài học
             </Link>
           </li>
           <li className="mb-2">

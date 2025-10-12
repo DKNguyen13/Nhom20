@@ -53,7 +53,7 @@ await InitData.seedPackages();
 await InitData.seedLessons();
 await InitData.seedFlashcards();
 //await InitData.seedRevenue();
-//await InitData.syncMeiliUsersOnce();
+await InitData.syncMeiliUsersOnce();
 //await InitData.seedScoreMappings();
 
 function chat(){
