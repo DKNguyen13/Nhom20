@@ -1,12 +1,12 @@
 import express from 'express';
-import { authenticate } from '../middleware/authenticate.js';
+import {authenticate, optionalAuth} from '../middleware/authenticate.js';
 import * as LessonController from '../controllers/lesson.controller.js';
 
 const router = express.Router();
 
 router.post('/', LessonController.createLesson);
-router.get('/', LessonController.getLessons);
-router.get('/:id', LessonController.getLessonById);
+router.get('/', optionalAuth, LessonController.getLessons);
+router.get('/:id', optionalAuth, LessonController.getLessonById);
 
 router.put('/:id',authenticate, LessonController.updateLesson);
 

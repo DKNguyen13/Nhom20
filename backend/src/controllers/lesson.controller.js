@@ -55,7 +55,7 @@ export const getLessonById = async (req, res) => {
 
     let isFavorite = false;
     if (req.user) {
-      const exists = await Wishlist.exists({ user: req.user._id, lesson: lesson._id });
+      const exists = await Wishlist.exists({ user: req.user.id, lesson: lesson._id });
       isFavorite = !!exists;
     }
 

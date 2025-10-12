@@ -117,8 +117,7 @@ export const sendRegisterOTPService = async (email) => {
     if (!email) throw new Error('Vui lòng nhập email!');
 
     const user = await User.findOne({ email });
-    if (!user) throw new Error('Không tìm thấy email này!');
-    if (user.authType === 'google') throw new Error('Tài khoản này đăng nhập bằng Google, không thể đặt lại mật khẩu qua email.');
+    
     const existingOtp = await redisClient.get(`otp:${email}`);
     if (existingOtp) {
         const ttl = await redisClient.ttl(`otp:${email}`); // Lấy thời gian còn lại
