@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { IoPlayForward } from "react-icons/io5";
+import api, { isLoggedIn } from "../../config/axios.js";
 import { GiBrain } from "react-icons/gi";
 import { FaComments } from "react-icons/fa";
+import { IoPlayForward } from "react-icons/io5";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../../config/axios.js";
+import LoginModal from "../../layouts/common/LoginModal";
 
 interface Package {
   _id: string;
@@ -20,6 +21,7 @@ const PaymentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [popupMessage, setPopupMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     const fetchPackages = async () => {
@@ -36,6 +38,10 @@ const PaymentPage: React.FC = () => {
   }, []);
 
   const handleBuy = async (pkgId: string) => {
+    if (!isLoggedIn()) {
+      setShowLoginModal(true);
+      return;
+    }
     try {
       const res = await api.post("/payment/create", { packageId: pkgId });
       if (res.data.paymentUrl) {
@@ -45,7 +51,7 @@ const PaymentPage: React.FC = () => {
       console.error("Payment error", err);
       const message =
         err.response?.data?.message || "Lỗi khi tạo đơn thanh toán";
-      setPopupMessage(message); // hiển thị popup
+      setPopupMessage(message);
     }
   };
 
@@ -65,6 +71,7 @@ const PaymentPage: React.FC = () => {
   };
 
   return (
+    <>
     <div className="min-h-screen flex flex-col items-center pt-5">
       <div className="max-w-4xl w-full mt-10 bg-white shadow-lg rounded-lg p-6">
         {/* Header */}
@@ -206,6 +213,12 @@ const PaymentPage: React.FC = () => {
         </div>
       )}
     </div>
+    <LoginModal
+      isOpen={showLoginModal}
+      onClose={() => setShowLoginModal(false)}
+      onSuccess={() => window.location.reload()}
+    />
+    </>
   );
 };
 

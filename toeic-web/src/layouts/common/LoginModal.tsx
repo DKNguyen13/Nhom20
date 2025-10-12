@@ -66,11 +66,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSuccess }) =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-8 relative animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-8 relative animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+
         {/* Nút đóng */}
-        <button onClick={onClose}
-          className="absolute right-4 top-3 text-gray-400 hover:text-gray-700 text-2xl font-bold">
+        <button onClick={onClose} className="absolute right-4 top-3 text-gray-400 hover:text-gray-700 text-2xl font-bold">
           ×
         </button>
 
@@ -145,36 +145,40 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSuccess }) =
         </div>
 
         {/* Google Login */}
-        <div className="flex justify-center">
-          <GoogleLogin 
-            onSuccess={async (credentialResponse) => {
-              try {
-                const res = await api.post("/auth/google", {
-                  tokenId: credentialResponse.credential,
-                });
+        <div className="w-full flex justify-center">
+          <div className="w-full max-w-full">
+            <GoogleLogin
+              width="100%"
+              onSuccess={async (credentialResponse) => {
+                try {
+                  const res = await api.post("/auth/google", {
+                    tokenId: credentialResponse.credential,
+                  });
 
-                if (res.data.success) {
-                  const { user, accessToken } = res.data.data;
-                  setAccessToken(accessToken);
-                  localStorage.setItem("fullname", user.fullname);
-                  localStorage.setItem("email", user.email);
-                  localStorage.setItem("avatarUrl", user.avatarUrl);
-                  window.dispatchEvent(new Event("userUpdated"));
-                  onSuccess?.();
-                  onClose();
-                  window.location.reload();
-                } else {
-                  setErrors({ general: res.data.message || "Đăng nhập Google thất bại" });
+                  if (res.data.success) {
+                    const { user, accessToken } = res.data.data;
+                    setAccessToken(accessToken);
+                    localStorage.setItem("fullname", user.fullname);
+                    localStorage.setItem("email", user.email);
+                    localStorage.setItem("avatarUrl", user.avatarUrl);
+                    window.dispatchEvent(new Event("userUpdated"));
+                    onSuccess?.();
+                    onClose();
+                    window.location.reload();
+                  } else {
+                    setErrors({ general: res.data.message || "Đăng nhập Google thất bại" });
+                  }
+                } catch (err: any) {
+                  setErrors({ general: err.response?.data?.message || "Lỗi kết nối server" });
                 }
-              } catch (err: any) {
-                setErrors({ general: err.response?.data?.message || "Lỗi kết nối server" });
-              }
-            }}
-            onError={() => {
-              setErrors({ general: "Đăng nhập Google thất bại" });
-            }}
-          />
+              }}
+              onError={() => {
+                setErrors({ general: "Đăng nhập Google thất bại" });
+              }}
+            />
+          </div>
         </div>
+
 
         {/* Link đăng ký */}
         <div className="mt-6 text-center text-sm text-gray-600">
