@@ -381,7 +381,7 @@ export const seedLessons = async () => {
     content: ``,
     type: index < 5 ? "vocabulary" : "reading",
     views: Math.floor(Math.random() * (185 - 100 + 1)) + 100,
-    accessLevel: index < 5 ? "free" : "fee",
+    accessLevel: index < 5 ? "free" : "basic",
     createdBy: null,
     isDeleted: false,
   }));
