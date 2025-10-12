@@ -104,7 +104,13 @@ const FlashcardSetList: React.FC<FlashcardSetListProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {/* Add Button */}
           {type === "myList" && (
-            <div onClick={() => setShowModal(true)}
+            <div onClick={() => {
+              if (!isLoggedIn) {
+                navigate("/login");
+              } else {
+                setShowModal(true);
+              }
+            }}
               className="border-2 border-dashed border-blue-500 rounded-lg flex flex-col justify-center items-center h-48 bg-white hover:bg-blue-50 cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md">
               <span className="text-4xl font-bold text-blue-500">+</span>
               <p className="text-sm font-medium text-blue-600 mt-2">
