@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 interface HistoryTestCardProps {
   id: string; // sessionCode hoặc sessionId
   title: string; // Tên bài test
-  score?: number; // Điểm doi voi bai thi full test
+  totalScore?: number; // Điểm doi voi bai thi full test
   result: number; // ket qua hoan thanh bao nhieu cau vd: 4/6
   totalQuestions: number; // tong so cau hoi cua bai test/practice
   accuracy?: number; // Độ chính xác (%)
@@ -17,7 +17,7 @@ interface HistoryTestCardProps {
 const HistoryTestCard: React.FC<HistoryTestCardProps> = ({
   id,
   title,
-  score,
+  totalScore,
   result,
   totalQuestions,
   accuracy,
@@ -71,7 +71,7 @@ const HistoryTestCard: React.FC<HistoryTestCardProps> = ({
           </span>
           {sessionType === "full-test" && (
             <span className="ml-2 text-orange-600 font-semibold">
-              (Điểm: {score ?? "—"})
+              (Điểm: {totalScore ?? "—"})
             </span>
           )}
         </p>

@@ -6,10 +6,7 @@ const ResultPage: React.FC = () => {
   const {
     loading,
     error,
-    resultData,
-    listeningScore,
-    readingScore,
-    testTitle,
+    resultData
   } = useResult();
 
   if (loading) return <p className="text-center mt-10">Loading...</p>;
@@ -18,14 +15,15 @@ const ResultPage: React.FC = () => {
 
   return (
     <Result
-      testTitle={testTitle}
-      totalQuestions={resultData.totalQuestions}
-      correctAnswers={resultData.correctCount}
-      wrongAnswers={resultData.incorrectCount}
-      skippedQuestions={resultData.skippedCount}
-      totalScore={resultData.totalScore}
-      listeningScore={listeningScore}
-      readingScore={readingScore}
+      id = {resultData.id}
+      testTitle={resultData.test.title}
+      totalQuestions={resultData.results.totalQuestions}
+      correctAnswers={resultData.results.correctCount}
+      wrongAnswers={resultData.results.incorrectCount}
+      skippedQuestions={resultData.results.skippedCount}
+      totalScore={resultData.results.totalScore}
+      listeningScore={resultData.results.listeningScore}
+      readingScore={resultData.results.readingScore}
     />
   );
 };

@@ -174,10 +174,10 @@ const HistoryPage: React.FC = () => {
               key={item._id}
               id={item._id}
               title={item.testId.title}
-              score={item.results.totalScore}
+              totalScore={item?.results?.totalScore}
               result={item.progress.answeredCount}
               totalQuestions={item.progress.totalQuestions}
-              accuracy={item.results.accuracy}
+              accuracy={item?.results?.accuracy}
               time={item.time}
               createdAt={item.createdAt}
               sessionType={item.sessionType}

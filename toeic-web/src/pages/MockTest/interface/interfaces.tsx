@@ -59,6 +59,27 @@ export interface Session {
   timeRemaining: number; // milliseconds còn lại
 }
 
-export interface Result {
-  
+export interface UserAnswer {
+  questionId: {
+    _id: string;
+    questionNumber: number;
+    partNumber: number;
+    content: QuestionContent;
+    choices: Choice[];
+    correctAnswer: string;
+    explanation?: string;
+  };
+  questionNumber: number;
+  selectedAnswer: 'A' | 'B' | 'C' | 'D' | null;
+  isCorrect: boolean;
+  timeSpent: number;
+  isSkipped: boolean;
+  isFlagged: boolean;
+}
+
+export interface UnsentAnswer {
+  questionId: string;
+  selectedAnswer: string | null;
+  timeSpent?: number;
+  isFlagged?: boolean;
 }

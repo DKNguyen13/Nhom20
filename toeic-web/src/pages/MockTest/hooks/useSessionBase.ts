@@ -1,0 +1,76 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Question, Session } from "../interface/interfaces";
+import { getSession, getSessionQuestions } from "../../../service/sessionService";
+
+export const useSessionBase = (sessionId: string | null) => {
+  const navigate = useNavigate();
+  const [session, setSession] = useState<Session | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentPart, setCurrentPart] = useState<number>(1);
+  const [currentQuestion, setCurrentQuestion] = useState<number>(0);
+  const [parts, setParts] = useState<number[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!sessionId) return;
+        const sessionData = await getSession(sessionId);
+        setSession(sessionData.session);
+
+        const questionsData = await getSessionQuestions(sessionId);
+        const qs: Question[] = questionsData.questions || [];
+        setQuestions(qs);
+
+        const allParts = Array.from(new Set(qs.map((q) => q.partNumber))).sort(
+          (a, b) => a - b
+        );
+        setParts(allParts);
+        setCurrentPart(allParts[0] || 1);
+      } catch (err) {
+        console.error("Error fetching base session:", err);
+      }
+    };
+
+    fetchData();
+  }, [sessionId]);
+
+  const handleNavigateQuestion = (indexInPart: number) => {
+    const questionsInPart = questions.filter((q) => q.partNumber === currentPart);
+    setCurrentQuestion(indexInPart);
+    const element = document.getElementById(
+      `question-${questionsInPart[indexInPart].globalQuestionNumber}`
+    );
+    if (element) element.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleGoBack = () => navigate(-1);
+
+  const questionsInPart = questions
+    .filter((q) => q.partNumber === currentPart)
+    .map((q) => {
+      const isSimplePart = [1, 2].includes(q.partNumber);
+      return {
+        ...q,
+        displayContent: isSimplePart ? null : q.content?.question,
+        displayImage: q.content?.image,
+        displayChoices: q.choices.map((c) => ({
+          ...c,
+          displayText: isSimplePart ? c.label : `${c.label}. ${c.text}`,
+        })),
+      };
+    });
+
+  return {
+    session,
+    questions,
+    parts,
+    currentPart,
+    currentQuestion,
+    questionsInPart,
+    setCurrentPart,
+    setCurrentQuestion,
+    handleGoBack,
+    handleNavigateQuestion,
+  };
+};

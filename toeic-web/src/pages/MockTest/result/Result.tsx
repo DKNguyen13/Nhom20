@@ -22,6 +22,7 @@ ChartJS.register(
 );
 
 type ResultProps = {
+  id: string;
   testTitle: string;
   totalQuestions: number;
   correctAnswers: number;
@@ -33,6 +34,7 @@ type ResultProps = {
 };
 
 const Result: React.FC<ResultProps> = ({
+  id,
   testTitle,
   totalQuestions,
   correctAnswers,
@@ -44,7 +46,7 @@ const Result: React.FC<ResultProps> = ({
 }) => {
   const navigate = useNavigate();
   const handleGoBack = () => {
-    navigate(-1);
+    navigate(`/session/view/${id}`);
   };
   const correctPercentage = (correctAnswers / totalQuestions) * 100;
   const wrongPercentage = (wrongAnswers / totalQuestions) * 100;

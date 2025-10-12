@@ -453,6 +453,43 @@ export const submitSession = async (req, res) => {
             return error(res, 'Sesion not found');
         }
 
+        // --- Step 1: Lấy tất cả câu hỏi của session ---
+        const questions = await Question.find({
+            testId: session.testId,
+            partNumber: { $in: session.testConfig.selectedParts }
+        })
+        .sort({ partNumber: 1, questionNumber: 1 })
+        .select('content choices questionNumber globalQuestionNumber partNumber');
+
+        // --- Step 2: Lấy hoặc tạo UserAnswer ---
+        let userAnswer = await UserAnswer.findOne({ sessionId, userId });
+        if (!userAnswer) {
+            userAnswer = new UserAnswer({
+                sessionId,
+                userId,
+                testId: session.testId,
+                questions: []
+            });
+        }
+
+        const answeredIds = new Set(userAnswer.questions.map(q => q.questionId.toString()));
+
+        // --- Step 3: Thêm các câu chưa trả lời ---
+        for (const question of questions) {
+            if (!answeredIds.has(question._id.toString())) {
+                userAnswer.questions.push({
+                    questionId: question._id,
+                    selectedAnswer: null,
+                    isSkipped: true,
+                    isCorrect: false,
+                    timeSpent: 0,
+                    isFlagged: false
+                });
+                
+            }
+        }
+        await userAnswer.save();
+
         // Calculate results
         const results = await calculateSessionResults(sessionId, userId);
 
@@ -587,7 +624,7 @@ export const getSessionResults = async (req, res) => {
         }).populate('testId', 'title slug testCode');
 
         if (!session) {
-            return error(res, 'Completed session not found');
+            return error(res, 'Session not found');
         }
 
         // Get user answers with populated question details
@@ -610,8 +647,7 @@ export const getSessionResults = async (req, res) => {
                     sessionType: session.sessionType,
                     completedAt: session.completedAt,
                     timeSpent: session.timeSpent,
-                    results: session.results,
-                    progress: session.progress
+                    results: session.results
                 },
                 answers: userAnswer ? userAnswer.questions : []
             }
@@ -621,6 +657,7 @@ export const getSessionResults = async (req, res) => {
         return error(res, 'Error fetching session results');
     }
 };
+
 
 // [GET] /api/session/user -- Get user session history
 export const getUserSessions = async (req, res) => {
@@ -696,7 +733,13 @@ const calculateSessionResults = async function (sessionId, userId) {
     let incorrectCount = 0;
     let skippedCount = 0;
     for (const a of answers) {
+        if (a.isSkipped || a.selectedAnswer == null) {
+            skippedCount++;
+            continue;
+        }
+
         answeredCount++;
+
         if (a.isCorrect) {
             correctCount++;
         } else {
@@ -704,8 +747,6 @@ const calculateSessionResults = async function (sessionId, userId) {
         }
     }
 
-    // calc with part not select ans
-    skippedCount = totalQuestions - answeredCount;
 
     const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
 

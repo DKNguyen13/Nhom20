@@ -4,9 +4,7 @@ import { success, error } from '../utils/response.js';
 // Middleware to require authentication
 export const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization || '';
-  console.log('🔹 [AUTH] Header:', authHeader);
   const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-  console.log('🔹 [AUTH] token:', token);
   if (!token) {
     return error(res, 'Chưa cung cấp token', 401);
   }
@@ -19,7 +17,6 @@ export const authenticate = (req, res, next) => {
     }
 
     req.user = decoded;
-    console.log('✅ [AUTH] passed, user:', decoded);
     next();
   } catch (err) {
     return error(res, 'Token không hợp lệ hoặc đã hết hạn', 401);

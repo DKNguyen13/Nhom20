@@ -114,7 +114,7 @@ const routes = [
     ),
   },
   {
-    path: "/mock-test/view/:id",
+    path: "/session/view/:id",
     element: (
       <MainLayout>
         <Test isView={true} />
