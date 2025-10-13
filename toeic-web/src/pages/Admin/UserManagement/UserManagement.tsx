@@ -158,7 +158,7 @@ const UserManagementPage: React.FC = () => {
         {/* User Table */}
         <div className="overflow-x-auto bg-white rounded-lg shadow-md mb-4">
           <table className="w-full table-auto">
-            <thead className="bg-blue-600 text-white">
+            <thead className="bg-gray-200 text-black">
               <tr>
                 <th className="px-6 py-3 text-left">ID</th>
                 <th className="px-6 py-3 text-left">Tên</th>

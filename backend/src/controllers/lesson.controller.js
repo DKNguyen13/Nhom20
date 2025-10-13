@@ -1,5 +1,7 @@
 import fs from "fs";
 import path from "path";
+import mammoth from "mammoth";
+import { fileURLToPath } from "url";
 import Lesson from "../models/lesson.model.js";
 import Wishlist from '../models/wishlist.model.js';
 import { success, error } from '../utils/response.js';
@@ -10,7 +12,7 @@ const getLessonContent = (lesson) => {
     if (fs.existsSync(filePath)) {
       return fs.readFileSync(filePath, "utf-8");
     } else {
-      return "<h1>Nội dung không tìm thấy</h1>";
+      return "<h1>Nội dung đang được cập nhật! Vui lòng truy cập vào Thử lại thời gian khác</h1>";
     }
   }
   if (lesson.content) return lesson.content;
@@ -132,5 +134,49 @@ export const incrementViews = async (req, res) => {
     return success(res, "Tăng views thành công", { views: lesson.views });
   } catch (err) {
     return error(res, err.message, 400);
+  }
+};
+
+// Upload lesson from Word file
+export const uploadLesson = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") return error(res, "Không có quyền truy cập", 403);
+
+    const { title, type, accessLevel } = req.body;
+    const uploadedFile = req.file;
+    if (!uploadedFile) return error(res, "Vui lòng tải lên file Word (.docx)", 400);
+
+    // Chuyển file Word sang HTML
+    const result = await mammoth.convertToHtml({ path: uploadedFile.path });
+    const html = result.value || "<p>Không có nội dung</p>";
+
+    // Tạo file HTML trong /resources/lessons
+    const safeTitle = title.replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-");
+    const fileName = `${Date.now()}-${safeTitle}.html`;
+
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const outputDir = path.resolve(__dirname, "../resources/lessons");
+
+    const outputPath = path.join(outputDir, fileName);
+
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+    fs.writeFileSync(outputPath, html, "utf-8");
+
+    // Tạo record trong MongoDB
+    const lesson = await Lesson.create({
+      title,
+      type,
+      accessLevel,
+      path: `/src/resources/lessons/${fileName}`,
+      createdBy: req.user._id,
+    });
+
+    fs.unlinkSync(uploadedFile.path);
+
+    return success(res, "Upload lesson thành công", lesson);
+  } catch (err) {
+    console.error("❌ Lỗi upload lesson:", err);
+    return error(res, "Upload lesson thất bại", 500);
   }
 };
