@@ -88,12 +88,37 @@ const LessonManagementPage: React.FC = () => {
 
   // File selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedFile(e.target.files?.[0] || null);
+    const file = e.target.files?.[0];
+    if (file) {
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      if (ext !== "docx") {
+        toast.error("Chỉ được chọn file Word (.docx)!");
+        e.target.value = ""; // reset input
+        setSelectedFile(null);
+        return;
+      }
+      setSelectedFile(file);
+    } else {
+      setSelectedFile(null);
+    }
   };
 
   const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEditFile(e.target.files?.[0] || null);
+    const file = e.target.files?.[0];
+    if (file) {
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      if (ext !== "docx") {
+        toast.error("Chỉ được chọn file Word (.docx)!");
+        e.target.value = "";
+        setEditFile(null);
+        return;
+      }
+      setEditFile(file);
+    } else {
+      setEditFile(null);
+    }
   };
+
   // Submit edit form
   const handleUpdateLesson = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
