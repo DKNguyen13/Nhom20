@@ -27,6 +27,10 @@ const LessonManagementPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [editFile, setEditFile] = useState<File | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Fetch lessons
   const fetchLessons = useCallback(async () => {
@@ -85,6 +89,68 @@ const LessonManagementPage: React.FC = () => {
   // File selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedFile(e.target.files?.[0] || null);
+  };
+
+  const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditFile(e.target.files?.[0] || null);
+  };
+  // Submit edit form
+  const handleUpdateLesson = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingLesson) return;
+
+    const form = e.currentTarget;
+    const title = (form.elements.namedItem("title") as HTMLInputElement)?.value.trim();
+    const type = form.type.value;
+    const accessLevel = form.accessLevel.value;
+
+    if (!title || !type || !accessLevel) {
+      toast.error("Vui lòng điền đầy đủ thông tin!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("type", type);
+    formData.append("accessLevel", accessLevel);
+    if (editFile) formData.append("file", editFile);
+
+    setIsUpdating(true);
+
+    try {
+      let res;
+      if (editFile) {
+        // Nếu có file mới, gọi API upload
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("type", type);
+        formData.append("accessLevel", accessLevel);
+        formData.append("file", editFile);
+
+        res = await api.put(`/lessons/${editingLesson._id}/upload`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        res = await api.put(`/lessons/${editingLesson._id}`, {
+          title,
+          type,
+          accessLevel,
+        });
+      }
+
+      toast.success("Cập nhật thành công!");
+      setLessons((prev) =>
+        prev.map((l) => (l._id === editingLesson._id ? res.data.data : l))
+      );
+      setIsEditModalOpen(false);
+      setEditFile(null);
+      setEditingLesson(null);
+    } catch (err) {
+      console.error(err);
+      toast.error("Cập nhật thất bại!");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   // Submit form
@@ -214,9 +280,17 @@ const LessonManagementPage: React.FC = () => {
               }}
               className="bg-white border rounded shadow-lg">
               <button className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                onClick={() => toast.info("Tính năng sửa đang cập nhật")}>
+                onClick={() => {
+                  const lesson = lessons.find((l) => l._id === menuState.lessonId);
+                  if (lesson) {
+                    setEditingLesson(lesson);
+                    setIsEditModalOpen(true);
+                  }
+                  closeMenu();
+                }}>
                 Sửa
               </button>
+
               <button className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
                 onClick={() => setDeleteConfirmId(menuState.lessonId)}>
                 Xóa
@@ -303,6 +377,96 @@ const LessonManagementPage: React.FC = () => {
                     {isSubmitting ? "Đang tải lên..." : "Tạo bài học"}
                   </button>
                 </form>
+              </div>
+            </div>,
+            document.body
+          )}
+
+        {/* Modal Sửa bài học */}
+        {isEditModalOpen &&
+          createPortal(
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+              <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg relative">
+                <button
+                  className="absolute top-4 right-4 text-gray-500 hover:text-red-500"
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setEditFile(null);
+                    setEditingLesson(null);
+                  }}>
+                  <FaTimes size={20} />
+                </button>
+
+                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+                  Cập nhật bài học
+                </h2>
+
+                {editingLesson && (
+                  <form onSubmit={handleUpdateLesson} className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Tiêu đề</label>
+                      <input id="title"
+                        name="title"
+                        type="text"
+                        defaultValue={editingLesson.title}
+                        required
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Loại bài</label>
+                      <select id="type" name="type"
+                        defaultValue={editingLesson.type}
+                        required
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="reading">Reading</option>
+                        <option value="vocabulary">Vocabulary</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Cấp độ truy cập</label>
+                      <select id="accessLevel"
+                        name="accessLevel"
+                        defaultValue={editingLesson.accessLevel}
+                        required
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="free">Free</option>
+                        <option value="basic">Basic</option>
+                        <option value="advanced">Advanced</option>
+                        <option value="premium">Premium</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">File Word mới (tuỳ chọn)</label>
+                      <label htmlFor="editFile"
+                        className={`flex items-center justify-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition ${
+                          editFile ? "bg-green-50" : "bg-gray-50 hover:bg-gray-100"
+                        }`}>
+                        <FaUpload className="text-gray-600" />
+                        <span className={editFile ? "text-gray-700" : "text-gray-500"}>
+                          {editFile ? editFile.name : "Chưa chọn file mới"}
+                        </span>
+                      </label>
+                      <input
+                        id="editFile"
+                        name="file"
+                        type="file"
+                        accept=".docx"
+                        className="hidden"
+                        onChange={handleEditFileChange}
+                      />
+                    </div>
+
+                    <button type="submit"
+                      disabled={isUpdating}
+                      className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:bg-blue-400">
+                      {isUpdating ? "Đang cập nhật..." : "Lưu thay đổi"}
+                    </button>
+                  </form>
+                )}
               </div>
             </div>,
             document.body
