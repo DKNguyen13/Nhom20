@@ -324,8 +324,6 @@ export const submitBulkAnswers = async (req, res) => {
         const { answers } = req.body; // Array of { questionId, selectedAnswer, timeSpent, isFlagged }
         const userId = req.user.id;
 
-        console.log("📥 Received answers:", answers);
-
         if (!Array.isArray(answers) || answers.length === 0) {
 
             return error(res, 'Answers array is required and must not be empty');
@@ -422,8 +420,6 @@ export const submitBulkAnswers = async (req, res) => {
             'progress.completionPercentage': Math.round((answeredCount / session.progress.totalQuestions) * 100),
             status: 'in-progress'
         });
-
-        console.log("📝 Processed answers:", processedAnswers);
 
         return success(
             res,

@@ -27,7 +27,7 @@ import ResourceDetail from "../pages/Resource/ResourceDetail";
 import DashboardPage from "../pages/Admin/Dashboard/Dashboard";
 import UserManagementPage from "../pages/Admin/UserManagement/UserManagement";
 import TestManagementPage from "../pages/Admin/TestManagement/TestManagement";
-
+import LessonManagementPage from "../pages/Admin/LessonManagement/LessonManagement";
 import DetailTestPage from "../pages/Detail/DetailTestPage";
 import { Wishlist } from "../pages/Wishlist/Wishlist";
 import VipManagement from "../pages/Admin/VipManagement/VipManagement";

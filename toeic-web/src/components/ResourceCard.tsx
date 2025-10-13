@@ -49,7 +49,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ id, imageSrc, title, views,
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-5 flex flex-col max-w-sm mx-auto transform hover:-translate-y-1">
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-5 flex flex-col transform hover:-translate-y-1">
       <div className="relative overflow-hidden rounded-lg mb-4">
         <img
           src={imageSrc}
@@ -58,7 +58,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ id, imageSrc, title, views,
         />
       </div>
 
-      <h3 className="text-gray-900 font-bold text-xl mb-3 line-clamp-2">{title}</h3>
+      <h3 className="text-gray-500 font-bold text-xl mb-3 line-clamp-2 h-14 overflow-hidden"> {title} </h3>
 
       {type && (
         <div className={`inline-flex items-center text-sm font-medium px-3 py-1.5 rounded-full mb-4 ${typeConfig[type].classes}`}>
@@ -78,10 +78,8 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ id, imageSrc, title, views,
         </div>
       </div>
 
-      <button
-        onClick={handleViewDetail}
-        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2.5 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 font-medium text-sm shadow-sm"
-      >
+      <button onClick={handleViewDetail}
+        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2.5 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 font-medium text-sm shadow-sm">
         Xem chi tiết
       </button>
     </div>

@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 
 const lessonSchema = new mongoose.Schema({
     title: { type: String, required: true, trim: true },
-    content: { type: String, required: true },
+    content: { type: String, default: "" },
+    path: { type: String, default: "" }, // path HTML
     type: { type: String, enum: ["reading", "vocabulary"], required: true },
     views: { type: Number, default: 0 },
     accessLevel: {
