@@ -180,3 +180,51 @@ export const uploadLesson = async (req, res) => {
     return error(res, "Upload lesson thất bại", 500);
   }
 };
+
+// Reupload (update) lesson content from new Word file
+export const reuploadLesson = async (req, res) => {
+  try {
+    if (req.user.role !== "admin")
+      return error(res, "Không có quyền truy cập", 403);
+
+    const lesson = await Lesson.findById(req.params.id);
+    if (!lesson) return error(res, "Lesson không tồn tại", 404);
+
+    const uploadedFile = req.file;
+    if (!uploadedFile) return error(res, "Vui lòng tải lên file Word (.docx)", 400);
+
+    // Xóa file HTML cũ nếu có
+    if (lesson.path) {
+      const oldPath = path.join(process.cwd(), lesson.path);
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+
+    // Chuyển file Word sang HTML mới
+    const result = await mammoth.convertToHtml({ path: uploadedFile.path });
+    const html = result.value || "<p>Không có nội dung</p>";
+
+    // Tạo file HTML mới
+    const safeTitle = lesson.title.replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-");
+    const fileName = `${Date.now()}-${safeTitle}.html`;
+
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const outputDir = path.resolve(__dirname, "../resources/lessons");
+    const outputPath = path.join(outputDir, fileName);
+
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+    fs.writeFileSync(outputPath, html, "utf-8");
+
+    // Cập nhật lại path trong MongoDB
+    lesson.path = `/src/resources/lessons/${fileName}`;
+    await lesson.save();
+
+    // Xóa file Word tạm sau khi convert
+    fs.unlinkSync(uploadedFile.path);
+
+    return success(res, "Cập nhật nội dung bài học thành công", lesson);
+  } catch (err) {
+    console.error("❌ Lỗi reupload lesson:", err);
+    return error(res, "Upload lại nội dung thất bại", 500);
+  }
+};

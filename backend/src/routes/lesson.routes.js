@@ -13,6 +13,7 @@ router.get('/', optionalAuth, LessonController.getLessons);
 router.get('/:id', optionalAuth, LessonController.getLessonById);
 
 router.put('/:id', authenticate, LessonController.updateLesson);
+router.put("/:id/upload", authenticate, upload.single("file"), LessonController.reuploadLesson);
 
 router.patch('/:id/delete', authenticate, LessonController.deleteLesson);
 router.patch('/:id/views', LessonController.incrementViews);
