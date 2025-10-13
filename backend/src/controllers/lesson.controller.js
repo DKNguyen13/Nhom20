@@ -98,7 +98,13 @@ export const updateLesson = async (req, res) => {
       { new: true }
     );
     if (!lesson) return error(res, "Lesson không tìm thấy", 404);
-    return success(res, 'Cập nhật lesson thành công', lesson);
+    const favoriteCount = await Wishlist.countDocuments({ lesson: lesson._id });
+    let isFavorite = false;
+    if (req.user) {
+      const exists = await Wishlist.exists({ user: req.user._id, lesson: lesson._id });
+      isFavorite = !!exists;
+    }
+    return success(res, 'Cập nhật lesson thành công', { ...lesson.toObject(), favoriteCount, isFavorite });
   } catch (err) {
     return error(res, err.message, 400);
   }
@@ -222,7 +228,14 @@ export const reuploadLesson = async (req, res) => {
     // Xóa file Word tạm sau khi convert
     fs.unlinkSync(uploadedFile.path);
 
-    return success(res, "Cập nhật nội dung bài học thành công", lesson);
+    const favoriteCount = await Wishlist.countDocuments({ lesson: lesson._id });
+    let isFavorite = false;
+    if (req.user) {
+      const exists = await Wishlist.exists({ user: req.user._id, lesson: lesson._id });
+      isFavorite = !!exists;
+    }
+
+    return success(res, "Cập nhật nội dung bài học thành công", { ...lesson.toObject(), favoriteCount, isFavorite });
   } catch (err) {
     console.error("❌ Lỗi reupload lesson:", err);
     return error(res, "Upload lại nội dung thất bại", 500);
