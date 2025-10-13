@@ -136,7 +136,7 @@ export const getSessionQuestions = async (req, res) => {
             testId: session.testId,
             partNumber: { $in: session.testConfig.selectedParts }
         })
-            .sort({ partNumber: 1, questionNumber: 1 })
+            .sort({ globalQuestionNumber: 1 })
             .select('content choices questionNumber globalQuestionNumber partNumber');
 
         // Get exists answers from UserAnswer
@@ -324,6 +324,8 @@ export const submitBulkAnswers = async (req, res) => {
         const { answers } = req.body; // Array of { questionId, selectedAnswer, timeSpent, isFlagged }
         const userId = req.user.id;
 
+        console.log("📥 Received answers:", answers);
+
         if (!Array.isArray(answers) || answers.length === 0) {
 
             return error(res, 'Answers array is required and must not be empty');
@@ -382,7 +384,9 @@ export const submitBulkAnswers = async (req, res) => {
 
             const answerData = {
                 questionId: answer.questionId,
-                questionNumber: question.questionNumber,
+                questionNumber: question.globalQuestionNumber,            // per-part index
+                globalQuestionNumber: question.globalQuestionNumber, // global index (important)
+                partNumber: question.partNumber,
                 selectedAnswer: answer.selectedAnswer || null,
                 isCorrect,
                 timeSpent: answer.timeSpent || 0,
@@ -418,6 +422,8 @@ export const submitBulkAnswers = async (req, res) => {
             'progress.completionPercentage': Math.round((answeredCount / session.progress.totalQuestions) * 100),
             status: 'in-progress'
         });
+
+        console.log("📝 Processed answers:", processedAnswers);
 
         return success(
             res,
@@ -458,8 +464,8 @@ export const submitSession = async (req, res) => {
             testId: session.testId,
             partNumber: { $in: session.testConfig.selectedParts }
         })
-        .sort({ partNumber: 1, questionNumber: 1 })
-        .select('content choices questionNumber globalQuestionNumber partNumber');
+            .sort({ partNumber: 1, questionNumber: 1 })
+            .select('content choices questionNumber globalQuestionNumber partNumber');
 
         // --- Step 2: Lấy hoặc tạo UserAnswer ---
         let userAnswer = await UserAnswer.findOne({ sessionId, userId });
@@ -479,13 +485,16 @@ export const submitSession = async (req, res) => {
             if (!answeredIds.has(question._id.toString())) {
                 userAnswer.questions.push({
                     questionId: question._id,
+                    questionNumber: question.globalQuestionNumber,
+                    globalQuestionNumber: question.globalQuestionNumber,
+                    partNumber: question.partNumber,
                     selectedAnswer: null,
                     isSkipped: true,
                     isCorrect: false,
                     timeSpent: 0,
                     isFlagged: false
                 });
-                
+
             }
         }
         await userAnswer.save();
@@ -633,7 +642,13 @@ export const getSessionResults = async (req, res) => {
             userId
         }).populate({
             path: 'questions.questionId',
-            select: 'content choices correctAnswer explanation partNumber questionNumber'
+            select: 'content choices correctAnswer explanation partNumber questionNumber globalQuestionNumber'
+        });
+
+        const answersSorted = userAnswer?.questions.sort((a, b) => {
+            const qa = a.questionId?.globalQuestionNumber || 0;
+            const qb = b.questionId?.globalQuestionNumber || 0;
+            return qa - qb;
         });
 
         return success(
@@ -649,7 +664,7 @@ export const getSessionResults = async (req, res) => {
                     timeSpent: session.timeSpent,
                     results: session.results
                 },
-                answers: userAnswer ? userAnswer.questions : []
+                answers: answersSorted || []
             }
         );
 

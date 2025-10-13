@@ -4,7 +4,7 @@ import QuestionItem from "./QuestionItem";
 interface QuestionListProps {
   isView: boolean;
   questionsInPart: any[];
-  answers: (number | null)[];
+  answers: (string | null)[];
   handleAnswer?: (questionIndex: number, optionIndex: number) => void;
 }
 
@@ -14,6 +14,9 @@ const QuestionList: React.FC<QuestionListProps> = ({
   handleAnswer,
   isView
 }) => {
+
+  console.log(questionsInPart);
+
   return (
     <div className="w-full max-w-4xl">
       {questionsInPart.map((question, index) => (

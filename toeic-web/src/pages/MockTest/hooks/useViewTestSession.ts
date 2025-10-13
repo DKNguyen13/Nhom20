@@ -30,7 +30,8 @@ export const useViewSession = () => {
 
         // ✅ Gọi API duy nhất
         const data = await getSessionResults(id);
-        console.log("Data review",data);
+                console.log("Data review",data);
+
 
         // 1️⃣ Lưu session info
         setSession(data.session);
@@ -88,13 +89,10 @@ export const useViewSession = () => {
 
   // 🔹 Điều hướng câu hỏi trong part
   const handleNavigateQuestion = (indexInPart: number) => {
-    const questionsInPart = questions.filter(
-      (q) => q.partNumber === currentPart
-    );
+    const questionsInPart = questions.filter((q) => q.partNumber === currentPart);
     setCurrentQuestion(indexInPart);
-
     const element = document.getElementById(
-      `question-${questionsInPart[indexInPart].questionNumber}`
+      `question-${questionsInPart[indexInPart].globalQuestionNumber}`
     );
     if (element) element.scrollIntoView({ behavior: "smooth" });
   };
@@ -106,10 +104,10 @@ export const useViewSession = () => {
     .filter((q) => q.partNumber === currentPart)
     .map((q) => ({
       ...q,
-      displayChoices: q.choices.map((c) => ({
+      choices: q.choices.map((c) => ({
         ...c,
         isUserChoice: c.label === userAnswers[q._id],
-        isCorrectChoice: c.label === correctAnswers[q._id],
+        isCorrect: c.label === correctAnswers[q._id],
       })),
     }));
 

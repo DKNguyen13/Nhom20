@@ -19,7 +19,7 @@ export const useTestSession = () => {
     setCurrentQuestion,
   } = base;
 
-  const [answers, setAnswers] = useState<(number | null)[]>([]);
+  const [answers, setAnswers] = useState<(string | null)[]>([]);
   const [unsentAnswers, setUnsentAnswers] = useState<
     { questionId: string; selectedAnswer: string | null }[]
   >([]);
@@ -31,17 +31,31 @@ export const useTestSession = () => {
       (q) => q.partNumber === currentPart
     );
     const question = questionsInPart[indexInPart];
+    
+    if (!question) {
+      console.error("Question not found at index:", indexInPart);
+      return;
+    }
+
+    const selectedLetter = indexToLetter[answerIndex];
+    
+    // ✅ Lưu answer letter thay vì index
     const updatedAnswers = [...answers];
-    updatedAnswers[question.globalQuestionNumber - 1] = answerIndex;
+    updatedAnswers[question.globalQuestionNumber - 1] = selectedLetter;
     setAnswers(updatedAnswers);
 
-    setUnsentAnswers((prev) => [
-      ...prev.filter((ans) => ans.questionId !== question._id),
-      {
-        questionId: question._id,
-        selectedAnswer: indexToLetter[answerIndex],
-      },
-    ]);
+    // ✅ Cập nhật unsent answers
+    setUnsentAnswers((prev) => {
+      const filtered = prev.filter((ans) => ans.questionId !== question._id);
+      return [
+        ...filtered,
+        {
+          questionId: question._id,
+          selectedAnswer: selectedLetter,
+          timeSpent: 0,  // TODO: Tính thời gian thực tế
+        },
+      ];
+    });
   };
 
   const handleNextPart = async () => {

@@ -3,7 +3,8 @@ export interface Choice {
   _id: string;
   label: string;      // Ví dụ: "A", "B", "C", "D"
   text: string;       // Nội dung đáp án
-  isCorrect: boolean; // Đúng hay sai
+  isCorrect?: boolean; // Đúng hay sai
+  isUserChoice?: boolean;
 }
 
 export interface QuestionContent {
@@ -22,7 +23,7 @@ export interface Question {
   content: QuestionContent;
   choices: Choice[];
   userAnswer?: {                // nên dùng object để tương thích với API
-    selectedAnswer?: number;    // index của choice đã chọn
+    selectedAnswer?: 'A' | 'B' | 'C' | 'D' | null;    // index của choice đã chọn
     timeSpent?: number;
     isSkipped?: boolean;
     isFlagged?: boolean;
