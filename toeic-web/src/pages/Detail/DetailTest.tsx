@@ -271,11 +271,11 @@ const DetailToeicTest: React.FC<ToeicTestProps> = ({
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
                   <div className="w-full sm:w-64">
                     <Select
-                      value={selectedTime}
-                      onValueChange={(val) => setSelectedTime(val)}
+                      value={String(selectedTime)} // convert để match Select yêu cầu string
+                      onValueChange={(val) => setSelectedTime(Number(val))} // convert lại thành number
                       placeholder="Chọn thời gian"
                       options={generateTimeOptions().map((opt) => ({
-                        value: opt.value,
+                        value: String(opt.value),
                         label:
                           opt.label === "Unlimited"
                             ? "Không giới hạn"

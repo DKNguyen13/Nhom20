@@ -84,13 +84,15 @@ export const useTestSession = () => {
     }
   };
 
-  const handleSubmitSession = async () => {
+  const handleSubmitSession = async (noRedirect = false) => {
     if (unsentAnswers.length) {
       await submitBulkAnswers(sessionId!, unsentAnswers);
       setUnsentAnswers([]);
     }
     await submitSession(sessionId!);
-    navigate(`/session/${sessionId}/results`);
+    if (!noRedirect) {
+      navigate(`/session/${sessionId}/results`);
+    }
   };
 
   return {
@@ -113,9 +115,7 @@ export const useResult = () => {
     const fetchResult = async () => {
       try {
         const res = await getSessionResults(id);
-
-        console.log(res);
-
+        
         const result = res.session;
         const answers = res.ansers;
 
@@ -148,34 +148,52 @@ export const useResult = () => {
   };
 };
 
+interface Pagination {
+  current: number;
+  pages: number;
+  total: number;
+}
 
-
-export const useSessionsUser = () => {
+export const useSessionsUser = (initialPage = 1, limit = 10) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sessions, setSessions] = useState<any[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({
+    current: initialPage,
+    pages: 1,
+    total: 0,
+  });
+  
+  const [page, setPage] = useState(initialPage);
 
   useEffect(() => {
     const fetchSessions = async () => {
       try {
-        const res = await getSessionsUser();
+        setLoading(true);
+        setError(null);
 
-        console.log("✅ API response:", res);
-
-        const results = res.sessions;
-        if(results) {
-          setSessions(results);
+        const res = await getSessionsUser(page, limit); // gọi API có phân trang
+        if (res?.sessions) {
+          setSessions(res.sessions);
+        }
+        if (res?.pagination) {
+          setPagination(res.pagination);
         }
       } catch (err: any) {
-        setError(err || 'Fetch history test fail');
-      }
-      finally {
+        setError(err.message || "Fetch user sessions failed");
+      } finally {
         setLoading(false);
       }
     };
 
     fetchSessions();
-  }, []);
+  }, [page, limit]);
 
-  return { loading, error, sessions };
+  return {
+    loading,
+    error,
+    sessions,
+    pagination,
+    setPage, // Dùng để đổi trang
+  };
 };

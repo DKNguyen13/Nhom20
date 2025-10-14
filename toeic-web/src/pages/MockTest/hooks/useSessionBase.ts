@@ -5,6 +5,7 @@ import { getSession, getSessionQuestions } from "../../../service/sessionService
 
 export const useSessionBase = (sessionId: string | null) => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentPart, setCurrentPart] = useState<number>(1);
@@ -12,8 +13,11 @@ export const useSessionBase = (sessionId: string | null) => {
   const [parts, setParts] = useState<number[]>([]);
 
   useEffect(() => {
+
     const fetchData = async () => {
+    
       try {
+        setLoading(true);
         if (!sessionId) return;
         const sessionData = await getSession(sessionId);
         setSession(sessionData.session);
@@ -29,6 +33,9 @@ export const useSessionBase = (sessionId: string | null) => {
         setCurrentPart(allParts[0] || 1);
       } catch (err) {
         console.error("Error fetching base session:", err);
+      }
+      finally{
+        setLoading(false);
       }
     };
 
@@ -72,5 +79,6 @@ export const useSessionBase = (sessionId: string | null) => {
     setCurrentQuestion,
     handleGoBack,
     handleNavigateQuestion,
+    loading
   };
 };

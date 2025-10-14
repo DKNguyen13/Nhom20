@@ -15,8 +15,6 @@ const QuestionList: React.FC<QuestionListProps> = ({
   isView
 }) => {
 
-  console.log(questionsInPart);
-
   return (
     <div className="w-full max-w-4xl">
       {questionsInPart.map((question, index) => (

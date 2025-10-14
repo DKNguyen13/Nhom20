@@ -16,7 +16,6 @@ export const useViewSession = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   const {id} = useParams();
-  console.log(id);
 
   useEffect(() => {
 
@@ -28,15 +27,12 @@ export const useViewSession = () => {
       try {
         setLoading(true);
 
-        // ✅ Gọi API duy nhất
         const data = await getSessionResults(id);
-                console.log("Data review",data);
 
-
-        // 1️⃣ Lưu session info
+        // lưu session info
         setSession(data.session);
 
-        // 2️⃣ Chuẩn bị dữ liệu câu hỏi từ UserAnswer[]
+        // Chuẩn bị dữ liệu câu hỏi từ UserAnswer[]
         const qs: Question[] = data.answers.map((ans: UserAnswer) => {
           const q = ans.questionId;
           return {
@@ -57,14 +53,14 @@ export const useViewSession = () => {
 
         setQuestions(qs);
 
-        // 3️⃣ Lấy các part có trong câu hỏi
+        // Lấy các part có trong câu hỏi
         const allParts = Array.from(new Set(qs.map((q) => q.partNumber))).sort(
           (a, b) => a - b
         );
         setParts(allParts);
         setCurrentPart(allParts[0] || 1);
 
-        // 4️⃣ Tạo map đáp án người dùng & đáp án đúng
+        // Tạo map đáp án người dùng & đáp án đúng
         const userAns: Record<string, string | null> = {};
         const correctAns: Record<string, string> = {};
 
@@ -87,7 +83,7 @@ export const useViewSession = () => {
     fetchData();
   }, [id]);
 
-  // 🔹 Điều hướng câu hỏi trong part
+  // Điều hướng câu hỏi trong part
   const handleNavigateQuestion = (indexInPart: number) => {
     const questionsInPart = questions.filter((q) => q.partNumber === currentPart);
     setCurrentQuestion(indexInPart);
@@ -97,9 +93,17 @@ export const useViewSession = () => {
     if (element) element.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleNextPart = async () => {
+      const nextPartIndex = parts.indexOf(currentPart) + 1;
+      if (nextPartIndex < parts.length) {
+        setCurrentPart(parts[nextPartIndex]);
+        setCurrentQuestion(0);
+      }
+    };
+
   const handleGoBack = () => navigate(-1);
 
-  // 🔹 Tạo danh sách câu hỏi cho part hiện tại
+  //Tạo danh sách câu hỏi cho part hiện tại
   const questionsInPart = questions
     .filter((q) => q.partNumber === currentPart)
     .map((q) => ({
@@ -122,5 +126,6 @@ export const useViewSession = () => {
     handleGoBack,
     setCurrentPart,
     setCurrentQuestion,
+    handleNextPart
   };
 };

@@ -27,51 +27,6 @@ ChartJS.register(
   Legend
 );
 
-// Tạo dữ liệu cố định 6 item
-const historyTests = [
-  {
-    id: 1,
-    imageSrc: "src/assets/images/toeic-online-full-test.png",
-    title: "TOEIC Full Test 01",
-    score: "25 / 100",
-    time: "2h20'",
-  },
-  {
-    id: 2,
-    imageSrc: "src/assets/images/toeic-online-full-test.png",
-    title: "TOEIC Full Test 02",
-    score: "30 / 100",
-    time: "1h45'",
-  },
-  {
-    id: 3,
-    imageSrc: "src/assets/images/toeic-online-full-test.png",
-    title: "TOEIC Full Test 03",
-    score: "40 / 100",
-    time: "2h10'",
-  },
-  {
-    id: 4,
-    imageSrc: "src/assets/images/toeic-online-full-test.png",
-    title: "TOEIC Full Test 04",
-    score: "50 / 100",
-    time: "2h00'",
-  },
-  {
-    id: 5,
-    imageSrc: "src/assets/images/toeic-online-full-test.png",
-    title: "TOEIC Full Test 05",
-    score: "60 / 100",
-    time: "2h25'",
-  },
-  {
-    id: 6,
-    imageSrc: "src/assets/images/toeic-online-full-test.png",
-    title: "TOEIC Full Test 06",
-    score: "70 / 100",
-    time: "2h15'",
-  },
-];
 const HistoryPage: React.FC = () => {
   const chartData = {
     labels: ["Test 01", "Test 02", "Test 03", "Test 04", "Test 05", "Test 06"],
@@ -124,7 +79,7 @@ const HistoryPage: React.FC = () => {
     },
   };
 
-  const { sessions, error, loading } = useSessionsUser();
+  const { sessions, error, loading, pagination, setPage } = useSessionsUser();
 
   if (loading) return <p className="text-center mt-10">Loading...</p>;
   if (error) return <p className="text-center text-red-500">{error}</p>;
@@ -185,6 +140,59 @@ const HistoryPage: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Pagination */}
+      {pagination.pages > 1 && (
+        <div className="flex justify-center mt-8">
+          <div className="flex items-center bg-white shadow-sm rounded-full px-4 py-2 space-x-2">
+            {/* Prev */}
+            <button
+              disabled={pagination.current === 1}
+              onClick={() => setPage(pagination.current - 1)}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 ${
+                pagination.current === 1
+                  ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                  : "text-blue-600 hover:bg-blue-50 active:bg-blue-100"
+              }`}
+            >
+              ← Prev
+            </button>
+
+            {/* Page numbers */}
+            <div className="flex space-x-1">
+              {Array.from({ length: pagination.pages }, (_, i) => {
+                const pageNumber = i + 1;
+                return (
+                  <button
+                    key={pageNumber}
+                    onClick={() => setPage(pageNumber)}
+                    className={`w-8 h-8 rounded-full text-sm font-medium transition-colors duration-200 ${
+                      pagination.current === pageNumber
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-700 hover:bg-blue-50"
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Next */}
+            <button
+              disabled={pagination.current === pagination.pages}
+              onClick={() => setPage(pagination.current + 1)}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 ${
+                pagination.current === pagination.pages
+                  ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                  : "text-blue-600 hover:bg-blue-50 active:bg-blue-100"
+              }`}
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

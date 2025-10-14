@@ -7,13 +7,11 @@ export const startSession = async (payload) => {
 
 export const getSession = async (sessionId) => {
     const res = await api.get(`/session/${sessionId}`);
-    console.log("Get Session: ", res.data.data);
     return res.data.data;
 };
 
 export const getSessionQuestions = async (sessionId) => {
     const res = await api.get(`/session/${sessionId}/questions`);
-    console.log("Get Session questions: ", res.data.data);
     return res.data.data;
 };
 
@@ -32,7 +30,7 @@ export const getSessionResults = async (sessionId) => {
     return res.data.data;
 };
 
-export const getSessionsUser = async () => {
-    const res = await api.get('/session/user');
+export const getSessionsUser = async (page, limit) => {
+    const res = await api.get(`/session/user?page=${page}&limit=${limit}`);
     return res.data.data;
 };

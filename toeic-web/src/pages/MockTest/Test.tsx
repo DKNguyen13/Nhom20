@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Navigation from "./component/Navigation";
 import { useTestSession } from "./hooks/useTestSession";
 import TestHeader from "./component/TestHeader";
@@ -12,28 +12,8 @@ interface TestProps {
 }
 
 export const Test: React.FC<TestProps> = ({ isView }) => {
-  // const {
-  //   session,
-  //   questions,
-  //   answers,
-  //   currentPart,
-  //   currentQuestion,
-  //   parts,
-  //   questionsInPart,
-  //   handleAnswer,
-  //   handleNextPart,
-  //   handleNavigateQuestion,
-  //   handleGoBack,
-  //   setCurrentPart,
-  //   setCurrentQuestion,
-  //   handleSubmitSession,
-  // } = useTestSession();
-
-
-  // 🔹 Chọn hook phù hợp theo chế độ hiển thị
-  const hookData = isView
-    ? useViewSession()
-    : useTestSession();
+  //Chọn hook theo mode
+  const hookData = isView ? useViewSession() : useTestSession();
 
   const {
     session,
@@ -46,13 +26,45 @@ export const Test: React.FC<TestProps> = ({ isView }) => {
     handleNavigateQuestion,
     handleGoBack,
     loading,
-    // Các hàm chỉ có trong useTestSession
+    // Các ham trong useTestSession
     handleAnswer,
     handleNextPart,
     handleSubmitSession,
     answers,
   } = hookData as ReturnType<typeof useTestSession> &
     ReturnType<typeof useViewSession>;
+
+  useEffect(() => {
+  if (!isView) {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = ""; 
+      // Dòng này bắt buộc để trình duyệt hiển thị popup:
+      // “Changes you made may not be saved. [Leave] [Cancel]”
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }
+}, [isView]);
+
+  // ⚠️ 2. Cảnh báo khi bấm nút quay lại
+  const handleBackClick = async () => {
+    if (!isView) {
+      const confirmExit = window.confirm(
+        "Bạn có chắc muốn thoát không? Bài làm sẽ được nộp."
+      );
+      if (confirmExit) {
+        await handleSubmitSession(true); // nộp bài nhung khong redirect den trang ket qua
+        handleGoBack(); // quay lại trang trước
+      }
+    } else {
+      handleGoBack();
+    }
+  };
 
   if (loading) {
     return (
@@ -62,6 +74,8 @@ export const Test: React.FC<TestProps> = ({ isView }) => {
     );
   }
 
+  const isLastPart = parts.indexOf(currentPart) === parts.length - 1;
+
   return (
     <div className="flex flex-col h-screen">
       <div className="flex flex-row justify-between flex-1 overflow-hidden">
@@ -69,7 +83,7 @@ export const Test: React.FC<TestProps> = ({ isView }) => {
         <div className="flex-1 flex flex-col justify-start items-center p-4 overflow-auto">
           <TestHeader
             session={session}
-            onGoBack={handleGoBack}
+            onGoBack={handleBackClick}
             isView={isView}
           />
 
@@ -87,7 +101,7 @@ export const Test: React.FC<TestProps> = ({ isView }) => {
             isView={isView}
           />
 
-          {
+          {!isLastPart && (
             <div className="flex justify-end mt-6">
               <button
                 onClick={handleNextPart}
@@ -96,13 +110,14 @@ export const Test: React.FC<TestProps> = ({ isView }) => {
                 Tiếp theo
               </button>
             </div>
-          }
+          )}
         </div>
 
         {/* Right: Navigation */}
         <div className="p-4 bg-white h-full w-fit overflow-y-scroll">
           <Navigation
             isView={isView}
+            time={session?.testConfig?.timeLimit ?? 0}
             questions={questionsInPart}
             currentPart={currentPart}
             currentQuestion={currentQuestion}

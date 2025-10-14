@@ -20,7 +20,8 @@ const TestHeader: React.FC<TestHeaderProps> = ({ session, onGoBack, isView }) =>
       </div>
 
       {/* Audio player */}
-      {session?.sessionType === "full-test" && session.testId?.audio && (
+      {/* session?.sessionType === "full-test" &&  */}
+      {session.testId?.audio && (
         <div className="flex-1 flex justify-center">
           <audio
             controls

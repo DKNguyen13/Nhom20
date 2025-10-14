@@ -24,6 +24,7 @@ const ResultPage: React.FC = () => {
       totalScore={resultData.results.totalScore}
       listeningScore={resultData.results.listeningScore}
       readingScore={resultData.results.readingScore}
+      isFullTest= {resultData.sessionType?.toLowerCase() === 'full-test'}
     />
   );
 };
