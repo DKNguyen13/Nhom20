@@ -3,6 +3,7 @@ import CommentDetail from './CommentDetail';
 import { Comment } from '../Comment/types'
 import { isLoggedIn } from "../../config/axios";
 import LoginModal from "../../layouts/common/LoginModal";
+import { toast, ToastContainer } from "react-toastify";
 import { createComment, deleteComment, editComment, getCommentByTestId, reactComment } from '../../service/commentService';
 
 interface CommentSectionProps {
@@ -85,14 +86,19 @@ const CommentSection: React.FC<CommentSectionProps> = ({ testId }) => {
       setTotalComments(totalComments + 1);
       setComment('');
       console.log('Comment posted successfully:', response);
+      //toast.success("Comment posted successfully!");
     }
-    catch (error){
+    catch (error: any){
       console.error('Error posting comment:', error);
-
+      setComment('');
+      if (error.response && error.response.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+      }
     }
   }
   
-
   return (
     <>
     <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
@@ -166,6 +172,17 @@ const CommentSection: React.FC<CommentSectionProps> = ({ testId }) => {
       isOpen={showLoginModal}
       onClose={() => setShowLoginModal(false)}
       onSuccess={() => window.location.reload()}/>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
   </>
   );
 };

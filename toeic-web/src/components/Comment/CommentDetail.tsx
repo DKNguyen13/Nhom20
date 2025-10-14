@@ -8,6 +8,7 @@ import { Comment } from '../Comment/types'
 import { FcLike } from "react-icons/fc";
 import { FaRegHeart } from "react-icons/fa";
 import { createReplyComment, deleteComment, editComment, getChildrenComment } from '../../service/commentService';
+import { toast } from 'react-toastify';
 
 interface CommentDetailProps {
   comment: Comment;
@@ -42,21 +43,39 @@ const CommentDetail: React.FC<CommentDetailProps> = ({
   const [commentChildren, setCommentChildren] = React.useState<Comment[]>([]);
 
   const handleReply = async () => {
-    if (replyContent.trim()) {
+    try {
       const response = await createReplyComment(comment._id, replyContent);
       setCommentChildren([response, ...commentChildren]);
       comment.noOfChildren += 1;
       setReplyContent('');
       setIsReplying(false);
+      toast.success("Trả lời đã được đăng!");
+    } catch (error: any) {
+      console.error("Error posting reply:", error);
+      setReplyContent('');
+      if (error.response && error.response.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+      }
     }
   };
 
-  const handleEdit = () => {
-    if (editContent.trim() && onEdit) {
-      onEdit(comment._id, editContent);
+  const handleEdit = async () => {
+    if (!editContent.trim() || !onEdit) return;
+
+    try {
+      const response = await onEdit(comment._id, editContent);
       setIsEditing(false);
+      toast.success("Cập nhật bình luận thành công!");
+    } catch (error: any) {
+      console.error("Error editing comment:", error);
+      toast.error(
+        error.response?.data?.message || "Có lỗi xảy ra! Không thể cập nhật bình luận."
+      );
     }
   };
+
 
   const onDeleteChild = async (commentId: string) => {
     await deleteComment(commentId)
@@ -239,6 +258,7 @@ const CommentDetail: React.FC<CommentDetailProps> = ({
             />
           )}
         </div>
+        
       )}
     </div>
   );
