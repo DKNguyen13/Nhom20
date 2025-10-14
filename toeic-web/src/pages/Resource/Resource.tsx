@@ -17,7 +17,8 @@ const ResourcePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedType, setSelectedType] = useState("all");
-
+  const [searchTerm, setSearchTerm] = useState("");
+  
   useEffect(() => {
     const fetchResources = async () => {
       try {
@@ -55,16 +56,31 @@ const ResourcePage: React.FC = () => {
         <h2 className="text-2xl font-bold mb-6 text-gray-800">Tài nguyên</h2>
         <div className="flex gap-8">
           {/* Sidebar */}
-          <aside className="w-64 bg-white rounded-lg shadow p-4 border border-gray-300">
-            <div className="mb-5">
+          <aside className="w-64 bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-5 border border-gray-200 transition-all duration-300">
+            {/* Search Box */}
+            <div className="mb-6 relative">
               <input
                 type="text"
-                placeholder="Tìm kiếm"
-                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Tìm kiếm..."
+                className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent placeholder-gray-400 transition-all"
               />
+              <svg xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 absolute left-3 top-2.5 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+                />
+              </svg>
             </div>
+
+            {/* Navigation */}
             <nav>
-              <ul className="space-y-3 text-gray-700">
+              <ul className="space-y-1.5 text-gray-700">
                 {types.map((t) => (
                   <li key={t.key}>
                     <button
@@ -72,11 +88,12 @@ const ResourcePage: React.FC = () => {
                         setSelectedType(t.key);
                         setCurrentPage(1);
                       }}
-                      className={`w-full text-left p-2 rounded hover:bg-blue-50 ${
-                        selectedType === t.key ? "bg-blue-100 font-semibold" : ""
-                      }`}
-                    >
-                      {t.label}
+                      className={`w-full flex items-center gap-2 text-left px-3 py-2.5 rounded-lg transition-all ${
+                        selectedType === t.key
+                          ? "bg-blue-100 text-blue-700 font-medium shadow-sm"
+                          : "hover:bg-gray-50 text-gray-600"
+                      }`}>
+                      <span className="text-sm">{t.label}</span>
                     </button>
                   </li>
                 ))}

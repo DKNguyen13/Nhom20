@@ -1,8 +1,12 @@
 import Comment from "../models/comment.model.js";
+import { checkToxic } from "../utils/predictToxic.js";
 
+// Convert list of comments
 function convertComments(comments, id) {
     return comments.map(comment => (convertComment(comment, id)));
 }
+
+// Convert comment
 function convertComment(comment, id) {
     return {
         ...comment.toObject(),
@@ -10,6 +14,8 @@ function convertComment(comment, id) {
         isLike: id !== null && comment.likes.some((author) => author.toString() === id),
     }
 }
+
+// Get comments by exam ID
 export const getCommentsByExamId = async (req, res, next) => {
     try {
         const user = req.user;
@@ -42,8 +48,15 @@ export const getCommentsByExamId = async (req, res, next) => {
     }
 }
 
+// Add new comment
 export const addComment = async (req, res, next) => {
     try {
+        const commentText = req.body.content || req.body.comment;
+        const isToxic = checkToxic(commentText);
+        if (isToxic) {
+            console.log("Toxic comment detected:", commentText);
+            return res.status(400).json({ message: "Comment chứa từ bậy bạ" });
+        }
         const comment = req.body;
         comment.author = req.user.id
         let savedComment = await Comment.create(comment);
@@ -56,6 +69,13 @@ export const addComment = async (req, res, next) => {
 
 export const updateComment = async (req, res, next) => {
     try {
+        const newContent = req.body.content || req.body.comment;
+
+        const isToxic = checkToxic(newContent);
+        if (isToxic) {
+            return res.status(400).json({ message: "Nội dung chứa từ bậy bạ, không thể cập nhật" });
+        }
+
         const cmt = req.body;
         cmt.isEdited = true;
         cmt.editedAt = Date.now();
@@ -79,10 +99,10 @@ export const deleteComment = async (req, res, next) => {
         const comment = await Comment.findById(req.params.id);
 
         if (!comment) {
-            return res.status(404).json({ error: "Comment not found" });
+            return res.status(404).json({ error: "Không tìm thấy nội dung này" });
         }
         await Comment.deleteOne(comment);
-        res.json({ message: "Comment deleted successfully" });
+        res.json({ message: "Xóa bình luận thành công" });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -94,6 +114,14 @@ export const replyComment = async (req, res, next) => {
         const parentCommentId = req.params.id;
         const reply = req.body;
         console.log("Replying to comment ID:", parentCommentId);
+
+        const replyText = req.body.content || req.body.comment;
+
+        const isToxic = checkToxic(replyText);
+        if (isToxic) {
+            return res.status(400).json({ message: "Nội dung chứa từ bậy bạ! Vui lòng kiểm tra lại!" });
+        }
+
         const parentComment = await Comment.findById(parentCommentId);
         if (!parentComment) {
             return res.status(404).json({ error: "Parent comment not found" });
@@ -163,7 +191,7 @@ export const reactComment = async (req, res, next) => {
 
         let comment = await Comment.findById(commentId);
         if (!comment) {
-            return res.status(404).json({ error: "Comment not found" });
+            return res.status(404).json({ error: "Không tìm thấy nội dung này" });
         }
 
         const existingReactionIndex = comment.likes.findIndex(like => {

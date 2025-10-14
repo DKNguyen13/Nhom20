@@ -1,4 +1,5 @@
 import express from "express";
+import limitRequest from "../middleware/limitRequest.middleware.js";
 import Comment from "../models/comment.model.js";
 import {
     addComment,
@@ -15,7 +16,7 @@ const router = express.Router();
 router.get("/test/:examId", optionalAuth, getCommentsByExamId);
 
 // Add new comment
-router.post("/", authenticate, addComment);
+router.post("/", limitRequest, authenticate, addComment);
 
 // Update comment
 router.put("/:id", authenticate, updateComment);
@@ -30,4 +31,5 @@ router.post("/:id/reply", authenticate, replyComment);
 router.get("/:id/replies", optionalAuth, getChildrenComment)
 
 router.post("/:id/react", authenticate, reactComment);
+
 export default router;
