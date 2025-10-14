@@ -13,7 +13,6 @@ export const MockTest = () => {
       setLoading(true);
       try {
         const response = await api.get(`/test`);
-        console.log(response.data);
         setTests(response.data.data.tests || []);
         setLoading(false);
       } catch (error) {

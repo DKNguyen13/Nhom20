@@ -29,22 +29,20 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
       ? answers[question.globalQuestionNumber - 1]
       : null;
 
-      // Lấy đáp án đúng (A/B/C/D)
+  // Lấy đáp án đúng (A/B/C/D)
   const correctChoice = question.choices.find((c) => c.isCorrect);
-  console.log('correct choices',correctChoice);
   const correctLetter = correctChoice ? correctChoice.label : null;
 
   // Xác định tình huống người dùng đúng/sai
   const userChoice = question.choices.find((c) => c.isUserChoice);
-  const isUserWrong = isView && userChoice && userChoice.label !== correctLetter;
+  const isUserWrong =
+    isView && userChoice && userChoice.label !== correctLetter;
   const isUserSkipped = isView && !userChoice; // user không chọn gì
   const showCorrectAns = isUserWrong || isUserSkipped;
 
   // Style hiển thị tùy chế độ
   const getButtonStyle = (option: Choice, optionIndex: number): string => {
     const optionLetter = indexToLetter[optionIndex];
-
-    console.log('optionLetter',optionLetter)
 
     if (!isView) {
       return selected === optionLetter

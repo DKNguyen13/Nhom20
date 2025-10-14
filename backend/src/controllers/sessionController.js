@@ -450,8 +450,6 @@ export const submitSession = async (req, res) => {
             userId,
             status: { $in: ['started', 'in-progress', 'paused'] }
         });
-        
-        console.log(sessionId)
 
         if (!session) {
             return error(res, 'Sesion not found');

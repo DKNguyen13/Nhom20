@@ -35,21 +35,21 @@ export const Test: React.FC<TestProps> = ({ isView }) => {
     ReturnType<typeof useViewSession>;
 
   useEffect(() => {
-  if (!isView) {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = ""; 
-      // Dòng này bắt buộc để trình duyệt hiển thị popup:
-      // “Changes you made may not be saved. [Leave] [Cancel]”
-    };
+    if (!isView) {
+      const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+        event.preventDefault();
+        event.returnValue = "";
+        // Dòng này bắt buộc để trình duyệt hiển thị popup:
+        // “Changes you made may not be saved. [Leave] [Cancel]”
+      };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
+      window.addEventListener("beforeunload", handleBeforeUnload);
 
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }
-}, [isView]);
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    }
+  }, [isView]);
 
   // ⚠️ 2. Cảnh báo khi bấm nút quay lại
   const handleBackClick = async () => {
