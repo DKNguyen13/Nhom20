@@ -75,7 +75,6 @@ const UpdateProfile: React.FC = () => {
   // Cập nhật quyền riêng tư
   const handlePrivacySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: gọi API lưu privacySettings nếu backend có hỗ trợ
   };
 
   // Đổi mật khẩu
@@ -132,7 +131,7 @@ const UpdateProfile: React.FC = () => {
       <LeftSidebarUser customHeight="h-auto w-64" />
 
       <div className="flex-1 p-6">
-        <h1 className="text-2xl font-semibold text-blue-600 mb-6 text-center">
+        <h1 className="text-3xl font-semibold text-black-600 mb-6 text-center">
           Cập nhật thông tin cá nhân
         </h1>
 

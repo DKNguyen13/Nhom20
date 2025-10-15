@@ -20,6 +20,7 @@ router.post('/logout', authController.logout);
 router.patch('/change-password', authenticate, authController.changePassword);
 router.patch('/update-profile', authenticate, upload.single('avatar'), authController.updateProfileController);
 
+router.get('/profile', authenticate, authController.getProfile);
 router.get('/check-role', authController.checkRole);
 router.get('/purchase-history', authenticate, getUserPurchaseHistory);
 

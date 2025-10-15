@@ -198,6 +198,20 @@ export const changePassword = async (req, res) => {
     }
 };
 
+// Get profile
+export const getProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await userModel.findById(userId).select("fullname email phone dob vip avatarUrl role");
+
+    if (!user) return error(res, "Người dùng không tồn tại", 404);
+    return success(res, "Lấy thông tin người dùng thành công", user);
+  } catch (err) {
+    console.error("Get profile error:", err.message);
+    return error(res, "Lấy thông tin thất bại", 500);
+  }
+};
+
 // Check role
 export const checkRole = [authenticate, (req, res) => {
     try {
