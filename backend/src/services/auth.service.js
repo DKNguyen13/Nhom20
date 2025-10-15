@@ -116,8 +116,13 @@ export const registerService = async ({ fullname, email, password, phone, dob, a
 export const sendRegisterOTPService = async (email) => {
     if (!email) throw new Error('Vui lòng nhập email!');
 
-    const user = await User.findOne({ email });
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        throw new Error('Email không hợp lệ!');
+    }
 
+    const user = await User.findOne({ email });
+    if (user) throw new Error('Email đã đăng ký!');
     const existingOtp = await redisClient.get(`otp:${email}`);
     if (existingOtp) {
         const ttl = await redisClient.ttl(`otp:${email}`); // Lấy thời gian còn lại
@@ -134,6 +139,11 @@ export const sendRegisterOTPService = async (email) => {
 //Send OTP to email
 export const sendOTPService = async (email) => {
     if (!email) throw new Error('Vui lòng nhập email!');
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        throw new Error('Email không hợp lệ!');
+    }
 
     const user = await User.findOne({ email });
     if (!user) throw new Error('Email không tồn tại!');
