@@ -173,7 +173,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId, type: propType }) 
           <div className="flex flex-col items-center gap-4">
             <div className="w-full max-w-md p-6 border rounded-lg shadow-md text-center">
               <h2 className="text-lg mb-4 font-semibold">
-                {quizDirection === "en2vi" ? correctCard?.meaning : correctCard?.word}
+                {quizDirection === "en2vi" ? correctCard?.word : correctCard?.meaning}
               </h2>
               <div className="grid grid-cols-2 gap-3">
                 {quizOptions.map(opt => (
@@ -200,7 +200,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId, type: propType }) 
             </div>
           </div>
         ) : (
-          <p className="text-center text-red-500">⚠️ Chưa có đủ flashcards để chơi trắc nghiệm!</p>
+          <p className="text-center text-red-500">Chưa có đủ flashcards để chơi trắc nghiệm!</p>
         )
       ) : mode === "Ngẫu nhiên" && flashcards.length > 0 ? (
         <div className="flex flex-col items-center gap-4">
