@@ -163,10 +163,19 @@ export const updateProfileService = async ({ userId, fullname, fileBuffer }) => 
     if (!user) throw new Error('Người dùng không tồn tại');
 
     if (fullname && fullname.trim() !== '') {
+        if (fullname.length > 50) {
+            throw new Error('Họ tên quá dài, tối đa 50 ký tự');
+        }
+        if (!/^[\p{L}\s'-]+$/u.test(fullname)) {
+            throw new Error('Họ tên chỉ chứa chữ cái và khoảng trắng');
+        }
         user.fullname = fullname;
     }
 
     if (fileBuffer) {
+        if (fileBuffer.length > 1024 * 1024) { // file >1MB
+            throw new Error('File avatar quá lớn');
+        }
         const avatarUrl = await uploadAvatar(fileBuffer);
         user.avatarUrl = avatarUrl;
     }
