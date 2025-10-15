@@ -157,11 +157,15 @@ export const sendOTPService = async (email) => {
         throw new Error(`Mật khẩu mới đã được gửi. Vui lòng thử lại sau ${ttl} giây.`);
     }
 
-    const otp = crypto.randomInt(100000, 999999).toString();
-    await redisClient.setEx(`otp:${email}`, 60, otp);// TTL 60 giây
-    await sendResetPasswordEmail(email, otp);
+    const newPassword = crypto.randomBytes(4).toString('hex');
+    user.password = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
+    await user.save();
 
-    return { message: "Gửi về mail thành công. Vui lòng kiểm tra email!", cooldown: 60 };
+    await sendResetPasswordEmail(email, `Mật khẩu mới của bạn là: ${newPassword}`);
+
+    await redisClient.setEx(`reset:${email}`, 60, 'sent');
+
+    return { message: 'Mật khẩu mới đã được gửi tới email của bạn!', cooldown: 60 };
 };
 
 //Reset password
