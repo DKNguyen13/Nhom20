@@ -195,11 +195,10 @@ export const updateProfileController = async (req, res) => {
             fileBuffer,
         });
 
-
-        return success(res, 'Cập nhật profile thành công', updatedUser);
+        return success(res, 'Cập nhật thông tin thành công', updatedUser);
     } catch (err) {
         console.log("Update profile fail:", err.message);
-        return error(res, "Update profile fail");
+        return error(res, "Cập nhật thông tin thất bại: ", 400);
     }
 };
 
@@ -216,7 +215,6 @@ export const changePassword = async (req, res) => {
 };
 
 // Check role
-
 export const checkRole = [authenticate, (req, res) => {
     try {
         console.log('User role:', req.user.role);
