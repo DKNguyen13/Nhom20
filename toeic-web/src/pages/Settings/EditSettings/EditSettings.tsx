@@ -2,6 +2,10 @@ import api from "../../../config/axios";
 import React, { useState, useEffect, useRef } from "react";
 import LeftSidebarUser from "../../../components/LeftSidebarUser";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const UpdateProfile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"basic" | "privacy" | "password">("basic");
@@ -14,6 +18,7 @@ const UpdateProfile: React.FC = () => {
   const [privacySettings, setPrivacySettings] = useState({ showEmail: true });
   const [passwords, setPasswords] = useState({ oldPassword: "", newPassword: "", confirmPassword: "" });
   const [errors, setErrors] = useState({ oldPassword: "", newPassword: "", confirmPassword: "", success: "" });
+  const [dob, setDob] = useState<Date | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -22,6 +27,18 @@ const UpdateProfile: React.FC = () => {
     setFullname(localStorage.getItem("fullname") || "");
     setEmail(localStorage.getItem("email") || "");
     setAvatarPreview(localStorage.getItem("avatarUrl") || "");
+
+    const storedDob = localStorage.getItem("dob");
+    if (storedDob) {
+      const date = new Date(storedDob);
+      if (!isNaN(date.getTime())) {
+        setDob(date);
+      } else {
+        setDob(null);
+      }
+    } else {
+      setDob(null);
+    }
   }, []);
 
   // Giải phóng object URL khi component unmount
@@ -40,6 +57,14 @@ const UpdateProfile: React.FC = () => {
     }
   };
 
+  const parseDate = (dateStr: string | null) => {
+    if (!dateStr) return null;
+    const parts = dateStr.split("-");
+    if (parts.length !== 3) return null;
+    const [year, month, day] = parts.map(Number);
+    return new Date(year, month - 1, day);
+  };
+
   // Cập nhật thông tin cơ bản
   const handleSubmitBasic = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +72,8 @@ const UpdateProfile: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append("fullname", fullname);
+      formData.append("dob", dob ? dob.toISOString().split("T")[0] : "");
+
       if (avatar) formData.append("avatar", avatar);
 
       const res = await api.patch("/auth/update-profile", formData, {
@@ -57,15 +84,22 @@ const UpdateProfile: React.FC = () => {
         const user = res.data.data;
 
         localStorage.setItem("fullname", user.fullname);
+        localStorage.setItem("dob", user.dob || "");
         if (user.avatarUrl) localStorage.setItem("avatarUrl", user.avatarUrl);
 
         window.dispatchEvent(new Event("userUpdated"));
 
         setAvatar(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
+        if (user.avatarUrl) setAvatarPreview(user.avatarUrl);
         setAvatarPreview(user.avatarUrl || "");
+        toast.success("Cập nhật thông tin thành công!");
+      }
+      else {
+        toast.error("Cập nhật thông tin thất bại!");
       }
     } catch (err: any) {
+      toast.error(err.response?.data?.message || "Lỗi khi cập nhật thông tin");
       console.error(err);
     } finally {
       setLoading(false);
@@ -131,7 +165,7 @@ const UpdateProfile: React.FC = () => {
       <LeftSidebarUser customHeight="h-auto w-64" />
 
       <div className="flex-1 p-6">
-        <h1 className="text-3xl font-semibold text-black-600 mb-6 text-center">
+        <h1 className="text-3xl font-semibold text-black mb-6 text-center">
           Cập nhật thông tin cá nhân
         </h1>
 
@@ -157,16 +191,34 @@ const UpdateProfile: React.FC = () => {
               <label className="block mb-1 font-semibold">Email</label>
               <p className="text-sm text-gray-500">{email}</p>
             </div>
-            <div>
-              <label className="block mb-1 font-semibold">Họ và tên</label>
-              <input
-                type="text"
-                value={fullname}
-                onChange={(e) => setFullname(e.target.value)}
-                className="w-full p-2 border rounded"
-                disabled={loading}
-              />
+
+            <div className="flex space-x-4">
+              {/* Họ và tên */}
+              <div className="flex-1 flex flex-col">
+                <label className="mb-1 font-semibold">Họ và tên</label>
+                <input
+                  type="text"
+                  value={fullname}
+                  onChange={(e) => setFullname(e.target.value)}
+                  className="w-full p-2 border rounded h-10"
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Ngày sinh */}
+              <div className="flex-1 flex flex-col">
+                <label className="mb-1 font-semibold">Ngày sinh</label>
+                <DatePicker
+                  selected={dob}
+                  onChange={(date) => setDob(date)}
+                  placeholderText="Chọn ngày sinh"
+                  className="w-full p-2 border rounded h-10"
+                  dateFormat="dd/MM/yyyy"
+                />
+
+              </div>
             </div>
+
             <div>
               <label className="block mb-1 font-semibold">Ảnh đại diện</label>
               <input
@@ -180,12 +232,11 @@ const UpdateProfile: React.FC = () => {
                 <img src={avatarPreview} alt="preview" className="mt-2 w-32 h-32 object-cover rounded-full border" />
               )}
             </div>
+
             <div className="text-right pt-4">
               <button
                 type="submit"
-                className={`bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                 disabled={loading}
               >
                 {loading ? "Đang cập nhật..." : "Lưu"}
@@ -282,6 +333,7 @@ const UpdateProfile: React.FC = () => {
             </div>
           </form>
         )}
+        <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
       </div>
     </div>
   );

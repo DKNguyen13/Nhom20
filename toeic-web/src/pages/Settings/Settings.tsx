@@ -13,7 +13,7 @@ interface UserInfo {
   fullname: string;
   email: string;
   phone: string;
-  dob: string | null;
+  dob: Date | null;
   vip: VipInfo;
 }
 
@@ -27,18 +27,21 @@ const Settings: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-    const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("vi-VN");
+  const formatDate = (date: Date | null) => {
+    if (!date) return "";
+    return date.toLocaleDateString("vi-VN");
   };
+
 
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
         setLoading(true);
         const res = await api.get("/auth/profile");
-        setUser(res.data.data);
+        const data = res.data.data;
+        const dobDate = data.dob ? new Date(data.dob) : null;
+        setUser({ ...data, dob: dobDate});
+        localStorage.setItem("dob", res.data.data.dob || "");
       } catch (err: any) {
         console.error(err);
         setError("Không thể tải thông tin người dùng.");
@@ -46,7 +49,6 @@ const Settings: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchUserInfo();
   }, []);
 
@@ -103,9 +105,8 @@ const Settings: React.FC = () => {
               {/* Ngày sinh */}
               <div>
                 <label className="block text-gray-600 font-medium mb-2">Ngày sinh</label>
-                <input
-                  type="text"
-                  value={formatDate(user.dob)}
+                <input type="text"
+                  value={formatDate(user.dob as Date | null)}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-100 cursor-not-allowed"
                   readOnly
                 />
@@ -127,7 +128,7 @@ const Settings: React.FC = () => {
                     {user.vip.type === "basic" ? "★" : user.vip.type === "advanced" ? "★★" : "★★★"}
                   </span>
                   <span>
-                    {user.vip.type?.toUpperCase()} - đến {formatDate(user.vip.endDate)}
+                    {user.vip.type?.toUpperCase()} - đến {formatDate(user.dob as Date | null)}
                   </span>
                 </div>
               ) : (
@@ -139,10 +140,8 @@ const Settings: React.FC = () => {
 
             {/* Nút chỉnh sửa */}
             <div className="flex justify-end pt-4">
-              <Link
-                to="/settings/edit-info"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300 font-semibold shadow-sm"
-              >
+              <Link to="/settings/edit-info"
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300 font-semibold shadow-sm">
                 Chỉnh sửa
               </Link>
             </div>

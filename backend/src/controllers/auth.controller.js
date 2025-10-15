@@ -172,13 +172,8 @@ export const updateProfileController = async (req, res) => {
         const userId = req.user.id;
         const fullname = req.body.fullname || '';
         const fileBuffer = req.file?.buffer || null;
-
-        const updatedUser = await AuthService.updateProfileService({
-            userId,
-            fullname: fullname,
-            fileBuffer,
-        });
-
+        const dob = req.body.dob || null;
+        const updatedUser = await AuthService.updateProfileService({ userId, fullname: fullname, dob, fileBuffer });
         return success(res, 'Cập nhật thông tin thành công', updatedUser);
     } catch (err) {
         console.log("Update profile fail:", err.message);

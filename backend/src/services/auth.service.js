@@ -181,7 +181,7 @@ export const editInforService = async ({ email }) => {
 };
 
 //Update profile
-export const updateProfileService = async ({ userId, fullname, fileBuffer }) => {
+export const updateProfileService = async ({ userId, fullname, dob, fileBuffer }) => {
     const user = await User.findById(userId);
     if (!user) throw new Error('Người dùng không tồn tại');
 
@@ -195,6 +195,14 @@ export const updateProfileService = async ({ userId, fullname, fileBuffer }) => 
         user.fullname = fullname;
     }
 
+    if (dob) {
+        const dateObj = new Date(dob);
+        if (isNaN(dateObj.getTime())) {
+            throw new Error('Ngày sinh không hợp lệ');
+        }
+        user.dob = dateObj;
+    }
+
     if (fileBuffer) {
         if (fileBuffer.length > 1024 * 1024) { // file >1MB
             throw new Error('File avatar quá lớn');
@@ -202,17 +210,8 @@ export const updateProfileService = async ({ userId, fullname, fileBuffer }) => 
         const avatarUrl = await uploadAvatar(fileBuffer);
         user.avatarUrl = avatarUrl;
     }
-
     await user.save();
-
-    return {
-        id: user._id.toString(),
-        fullname: user.fullname,
-        email: user.email,
-        phone: user.phone,
-        avatar: user.avatarUrl,
-        role: user.role,
-    };
+    return { fullname: user.fullname, email: user.email, phone: user.phone, dob: user.dob, avatar: user.avatarUrl};
 };
 
 //Change password
