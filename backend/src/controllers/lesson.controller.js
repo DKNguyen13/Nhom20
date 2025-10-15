@@ -182,7 +182,7 @@ export const uploadLesson = async (req, res) => {
 
     return success(res, "Upload lesson thành công", lesson);
   } catch (err) {
-    console.error("❌ Lỗi upload lesson:", err);
+    console.error("Lỗi upload lesson:", err);
     return error(res, "Upload lesson thất bại", 500);
   }
 };
@@ -202,7 +202,15 @@ export const reuploadLesson = async (req, res) => {
     // Xóa file HTML cũ nếu có
     if (lesson.path) {
       const oldPath = path.join(process.cwd(), lesson.path);
-      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      if (fs.existsSync(oldPath)){
+        fs.unlinkSync(oldPath);
+      }
+      else{
+        console.warn("File cũ không tồn tại:", oldPath);
+      }
+    }
+    else{
+      console.warn("Lesson không có path cũ:", lesson._id);
     }
 
     // Chuyển file Word sang HTML mới
@@ -234,10 +242,14 @@ export const reuploadLesson = async (req, res) => {
       const exists = await Wishlist.exists({ user: req.user._id, lesson: lesson._id });
       isFavorite = !!exists;
     }
+    else {
+      console.warn("Người dùng chưa đăng nhập, không thể kiểm tra yêu thích.");
+      isFavorite = false;
+    }
 
     return success(res, "Cập nhật nội dung bài học thành công", { ...lesson.toObject(), favoriteCount, isFavorite });
   } catch (err) {
-    console.error("❌ Lỗi reupload lesson:", err);
+    console.error("Lỗi reupload lesson:", err);
     return error(res, "Upload lại nội dung thất bại", 500);
   }
 };
