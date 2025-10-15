@@ -32,7 +32,6 @@ const Settings: React.FC = () => {
     return date.toLocaleDateString("vi-VN");
   };
 
-
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {

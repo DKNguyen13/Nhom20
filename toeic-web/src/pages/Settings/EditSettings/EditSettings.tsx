@@ -57,18 +57,26 @@ const UpdateProfile: React.FC = () => {
     }
   };
 
-  const parseDate = (dateStr: string | null) => {
-    if (!dateStr) return null;
-    const parts = dateStr.split("-");
-    if (parts.length !== 3) return null;
-    const [year, month, day] = parts.map(Number);
-    return new Date(year, month - 1, day);
-  };
-
   // Cập nhật thông tin cơ bản
   const handleSubmitBasic = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    if (dob) {
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      const dayDiff = today.getDate() - dob.getDate();
+      let realAge = age;
+      if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+        realAge -= 1;
+      }
+      if (realAge < 16) {
+        toast.error("Người dùng phải từ 16 tuổi trở lên để cập nhật thông tin.");
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       const formData = new FormData();
       formData.append("fullname", fullname);
@@ -333,7 +341,7 @@ const UpdateProfile: React.FC = () => {
             </div>
           </form>
         )}
-        <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+        <ToastContainer position="top-right" autoClose={1500} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
       </div>
     </div>
   );
