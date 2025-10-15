@@ -141,7 +141,7 @@ const Header: React.FC = () => {
             )}
           </div>
         ) : (
-          <Link to="/login" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90 text-white px-4 py-2 rounded-full font-medium transition">
+          <Link to="/login" className="bg-blue-600 hover:opacity-90 text-white px-4 py-2 rounded-full font-medium transition">
             Đăng nhập
           </Link>
         )}
