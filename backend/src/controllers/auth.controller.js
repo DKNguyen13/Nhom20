@@ -79,8 +79,20 @@ export const register = async (req, res) => {
     }
 };
 
-// Send register OTP to email
+// Send reset password OTP to email
 export const sendOTP = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const result = await AuthService.sendOTPService(email);
+        return success(res, result.message, { cooldown: result.cooldown });
+    } catch (err) {
+        console.log("Send register OTP fail:", err.message);
+        return error(res, err.message, 400, { cooldown: err.ttl || 0 });
+    }
+};
+
+// Send register OTP to email
+export const sendRegiOTP = async (req, res) => {
     try {
         const { email } = req.body;
         const result = await AuthService.sendRegisterOTPService(email);

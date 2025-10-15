@@ -117,6 +117,29 @@ export const sendRegisterOTPService = async (email) => {
     if (!email) throw new Error('Vui lòng nhập email!');
 
     const user = await User.findOne({ email });
+
+    const existingOtp = await redisClient.get(`otp:${email}`);
+    if (existingOtp) {
+        const ttl = await redisClient.ttl(`otp:${email}`); // Lấy thời gian còn lại
+        throw new Error(`OTP đã được gửi. Vui lòng thử lại sau ${ttl} giây.`);
+    }
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+    await redisClient.setEx(`otp:${email}`, 60, otp);// TTL 60 giây
+    await sendOTPEmail(email, otp);
+
+    return { message: "Gửi OTP thành công. Vui lòng kiểm tra email!", cooldown: 60 };
+};
+
+//Send OTP to email
+export const sendOTPService = async (email) => {
+    if (!email) throw new Error('Vui lòng nhập email!');
+
+    const user = await User.findOne({ email });
+    if (!user) throw new Error('Email không tồn tại!');
+    if (user.authType !== 'normal') throw new Error(`Tài khoản này đăng ký bằng ${user.authType}. Vui lòng đăng nhập bằng Google.`);
+    if (!user.isActive) throw new Error('Tài khoản bị vô hiệu hóa!');
+    if (user.role === 'admin') throw new Error('Hệ thống quá tải vui lòng thử lại sau!');
     
     const existingOtp = await redisClient.get(`otp:${email}`);
     if (existingOtp) {
