@@ -4,6 +4,7 @@ import IcArrow from "../../assets/icons/IcArrow";
 import { Link } from "react-router-dom";
 import { toeicTest } from "../../data/toeicMockData";
 import { NotepadText, CircleUserRound, NotebookPen } from 'lucide-react';
+import BannerSlider from "./component/BannerSlider";
 
 export interface Exam {
   id: number;
@@ -19,7 +20,7 @@ const Home = ({ setIsOpen }) => {
   return (
     <div className="w-full">
       {/* Hero Section */}
-      <div className="flex bg-blue-500 gap-8 min-h-[35vh] pt-5">
+      <div className="flex bg-blue-500 gap-8 min-h-[35vh] pt-5 hidden">
         
         <div className="flex-[65%] pt-6 hidden md:block">
           {/* Left Section */}
@@ -49,6 +50,8 @@ const Home = ({ setIsOpen }) => {
         /> 
         </div>
       </div>
+
+      <BannerSlider />
 
       {/* Luyện tập cá nhân hóa Section */}
       {/* Features Section - Card-based layout like Login */}
