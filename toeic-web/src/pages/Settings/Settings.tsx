@@ -127,7 +127,7 @@ const Settings: React.FC = () => {
                     {user.vip.type === "basic" ? "★" : user.vip.type === "advanced" ? "★★" : "★★★"}
                   </span>
                   <span>
-                    {user.vip.type?.toUpperCase()} - đến {formatDate(user.dob as Date | null)}
+                    {user.vip.type?.toUpperCase()} - đến {formatDate(user.vip.endDate ? new Date(user.vip.endDate) : null)}
                   </span>
                 </div>
               ) : (
