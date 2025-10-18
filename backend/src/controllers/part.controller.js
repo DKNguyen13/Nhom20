@@ -7,6 +7,7 @@ import { success, error } from '../utils/response.js';
 export const getAllParts = async (req, res) => {
     try {
         const { slug } = req.params;
+        console.log(slug)
         const test = await Test.findOne({ slug });
 
         if (!test) {
@@ -22,7 +23,7 @@ export const getAllParts = async (req, res) => {
                 const questionCount = await Question.countDocuments({ partId: part._id });
                 return {
                     ...part.toObject(),
-                    questionCount
+                    questionCount,
                 }
             })
         )
@@ -112,7 +113,7 @@ export const createPart = async (req, res) => {
 
         return success(res, 'Create part success', { part });
     } catch (err) {
-        return error(res, 'error Create Test');
+        return error(res, 'error Create Part', 500,  err.message);
     }
 };
 

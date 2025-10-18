@@ -4,28 +4,33 @@ import { useNavigate } from "react-router-dom";
 import { startSession } from "../service/sessionService";
 
 export const useTestData = (slug) => {
-    const [testData, setTestData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+  const [testData, setTestData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchTestData = async () => {
-            try {
-                const data = await getTestDetail(slug); //slug
-                setTestData(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (slug) {
-            fetchTestData();
+  useEffect(() => {
+    const fetchTestData = async () => {
+      try {
+        setLoading(true);
+        const data = await getTestDetail(slug); //slug
+        if (!data) {
+          setError('Không tìm thấy bài thi');
+          return;
         }
-    }, [slug]);
+        setTestData(data);
+      } catch (err) {
+        setError('Không tìm thấy bài thi');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return { testData, loading, error };
+    if (slug) {
+      fetchTestData();
+    }
+  }, [slug]);
+
+  return { testData, loading, error };
 }
 
 

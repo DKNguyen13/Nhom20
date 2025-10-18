@@ -6,6 +6,7 @@ import { getSession, getSessionQuestions } from "../../../service/sessionService
 export const useSessionBase = (sessionId: string | null) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentPart, setCurrentPart] = useState<number>(1);
@@ -18,12 +19,25 @@ export const useSessionBase = (sessionId: string | null) => {
     
       try {
         setLoading(true);
-        if (!sessionId) return;
+        if (!sessionId) {
+          setError("Không tìm thấy bài thi.");
+          return;
+        }
         const sessionData = await getSession(sessionId);
+        if (!sessionData || !sessionData.session) {
+          setError("Bài thi không tồn tại hoặc đã bị xóa.");
+          return;
+        }
         setSession(sessionData.session);
 
         const questionsData = await getSessionQuestions(sessionId);
         const qs: Question[] = questionsData.questions || [];
+
+        if (qs.length === 0) {
+          setError("Không có câu hỏi nào trong bài thi này.");
+          return;
+        }
+
         setQuestions(qs);
 
         const allParts = Array.from(new Set(qs.map((q) => q.partNumber))).sort(
@@ -32,7 +46,7 @@ export const useSessionBase = (sessionId: string | null) => {
         setParts(allParts);
         setCurrentPart(allParts[0] || 1);
       } catch (err) {
-        console.error("Error fetching base session:", err);
+        setError("Lỗi khi tải dữ liệu bài thi. Vui lòng thử lại sau.");
       }
       finally{
         setLoading(false);
@@ -79,6 +93,7 @@ export const useSessionBase = (sessionId: string | null) => {
     setCurrentQuestion,
     handleGoBack,
     handleNavigateQuestion,
-    loading
+    loading,
+    error
   };
 };

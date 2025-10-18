@@ -6,13 +6,16 @@ import TestCard from "./component/TestCard";
 export const MockTest = () => {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string>();
 
   useEffect(() => {
     const fetchTests = async () => {
       setLoading(true);
       try {
         const response = await api.get(`/test`);
+        if(!response){
+          setError('Không có đề thi nào');
+        }
         setTests(response.data.data.tests || []);
         setLoading(false);
       } catch (error) {

@@ -8,8 +8,8 @@ const { Schema } = mongoose;
 
 const partSchema = new mongoose.Schema({
   testId: { type: Schema.Types.ObjectId, ref: "Test", required: true },
-  title: { type: String, require: true, trim: true },
-  partNumber: { type: Number, min: 1, max: 7, require: true },
+  title: { type: String, required: true, trim: true },
+  partNumber: { type: Number, min: 1, max: 7, required: true },
   category: {
     type: String,
     enum: ['Listening', 'Reading'],
@@ -19,7 +19,7 @@ const partSchema = new mongoose.Schema({
   description: { type: String },
   instructions: { type: String },
   audioFile: { type: String }, // url audio
-  totalQuestions: { type: Number, require: true },
+  totalQuestions: { type: Number, required: true },
   config: {
     hasAudio: { type: Boolean, default: false },
     allowReplay: { type: Boolean, default: true },

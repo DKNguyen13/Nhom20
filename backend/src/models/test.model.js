@@ -53,6 +53,7 @@ const testSchema = new mongoose.Schema({
       type: String,
       required: true,
       enum: ["ETS", "Custom", "Imported", "Community"],
+      default: "Custom"
     },
     version: { type: String },
     difficulty: { type: Number, min: 1, max: 10 },

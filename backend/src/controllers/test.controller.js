@@ -64,7 +64,7 @@ export const createTest = async (req, res) => {
         // validate input
         const testData = {
             ...req.body,
-            createdBy: req.user._id,
+            createdBy: "68eb4512e2e81f8ebfe609b2",
             publishedAt: req.body.isActive ? new Date() : null,
         };
 
@@ -72,8 +72,8 @@ export const createTest = async (req, res) => {
         await test.save();
 
         return success(res, 'Create test success', { test });
-    } catch (error) {
-        return error(res, 'error Create Test');
+    } catch (err) {
+        return error(res, 'error Create Test', 500, err.message);
     }
 };
 

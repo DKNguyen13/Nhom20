@@ -173,6 +173,10 @@ export const useSessionsUser = (initialPage = 1, limit = 10) => {
         setError(null);
 
         const res = await getSessionsUser(page, limit); // gọi API có phân trang
+        if(!res) {
+          setError('Chưa có dữ liệu làm bài thi');
+          return;
+        }
         if (res?.sessions) {
           setSessions(res.sessions);
         }
@@ -180,7 +184,7 @@ export const useSessionsUser = (initialPage = 1, limit = 10) => {
           setPagination(res.pagination);
         }
       } catch (err: any) {
-        setError(err.message || "Fetch user sessions failed");
+        setError(err.message);
       } finally {
         setLoading(false);
       }

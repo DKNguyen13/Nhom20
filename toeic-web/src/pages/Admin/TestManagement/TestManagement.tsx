@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
 import { FaEllipsisH, FaTimes, FaUpload } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const TestManagementPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -88,6 +89,8 @@ const TestManagementPage: React.FC = () => {
     },
   ];
 
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen flex bg-gray-100">
       <LeftSidebarAdmin customHeight="h-auto w-64" />
@@ -96,9 +99,21 @@ const TestManagementPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-800">Quản lý Đề thi</h1>
           <button
             className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition"
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => navigate('/admin/create-test')}
           >
             Thêm đề thi mới
+          </button>
+          <button
+            className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition"
+            onClick={() => navigate('/admin/create-part')}
+          >
+            Thêm Part mới
+          </button>
+          <button
+            className="bg-orange-600 text-white px-3 py-3 rounded-md hover:bg-orange-700 transition"
+            onClick={() => navigate('/admin/create-questions')}
+          >
+            Thêm dannh sách câu hỏi mới
           </button>
         </div>
 

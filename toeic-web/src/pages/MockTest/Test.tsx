@@ -26,6 +26,7 @@ export const Test: React.FC<TestProps> = ({ isView }) => {
     handleNavigateQuestion,
     handleGoBack,
     loading,
+    error,
     // Các ham trong useTestSession
     handleAnswer,
     handleNextPart,
@@ -70,6 +71,14 @@ export const Test: React.FC<TestProps> = ({ isView }) => {
     return (
       <div className="flex items-center justify-center h-screen text-gray-500">
         Đang tải dữ liệu...
+      </div>
+    );
+  }
+
+   if (error) {
+    return (
+      <div className="flex justify-center items-center mt-12">
+        <div className="text-red-500">Error: {error}</div>
       </div>
     );
   }

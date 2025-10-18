@@ -49,7 +49,7 @@ function MockDetailTests() {
   if (error) {
     return (
       <div className="flex justify-center items-center mt-12">
-        <div className="text-red-500">Error: {error}</div>
+        <div className="text-red-500">{error}</div>
       </div>
     );
   }

@@ -14,12 +14,15 @@ export const useViewSession = () => {
   const [userAnswers, setUserAnswers] = useState<Record<string, string | null>>({});
   const [correctAnswers, setCorrectAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   const {id} = useParams();
 
   useEffect(() => {
 
     if (!id) {
+      setError("Không tìm thấy bài thi");
+      setLoading(false);
       return;
     }
 
@@ -28,6 +31,12 @@ export const useViewSession = () => {
         setLoading(true);
 
         const data = await getSessionResults(id);
+
+        // ✅ Kiểm tra dữ liệu hợp lệ
+        if (!data || !data.session || !Array.isArray(data.answers) || data.answers.length === 0) {
+          setError("Không tìm thấy dữ liệu cho bài thi này");
+          return;
+        }
 
         // lưu session info
         setSession(data.session);
@@ -74,7 +83,7 @@ export const useViewSession = () => {
         setCorrectAnswers(correctAns);
 
       } catch (err) {
-        console.error("Error loading session result:", err);
+        setError("Không thể tải dữ liệu bài thi");
       } finally {
         setLoading(false);
       }
@@ -117,6 +126,7 @@ export const useViewSession = () => {
 
   return {
     loading,
+    error,
     session,
     parts,
     currentPart,
