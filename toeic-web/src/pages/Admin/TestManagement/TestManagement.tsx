@@ -99,22 +99,11 @@ const TestManagementPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-800">Quản lý Đề thi</h1>
           <button
             className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition"
-            onClick={() => navigate('/admin/create-test')}
+            onClick={() => setIsModalOpen(true)}
           >
             Thêm đề thi mới
           </button>
-          <button
-            className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition"
-            onClick={() => navigate('/admin/create-part')}
-          >
-            Thêm Part mới
-          </button>
-          <button
-            className="bg-orange-600 text-white px-3 py-3 rounded-md hover:bg-orange-700 transition"
-            onClick={() => navigate('/admin/create-questions')}
-          >
-            Thêm dannh sách câu hỏi mới
-          </button>
+          
         </div>
 
         {/* Bảng danh sách đề thi */}

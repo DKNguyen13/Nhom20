@@ -35,9 +35,6 @@ import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 import ResultPage from "../pages/MockTest/result/ResultPage";
 import FlashcardPage from "../pages/FlashCard/FlashcardPage";
 import FlashcardListPage from "../pages/FlashCard/FlashcardListPage";
-import CreateTestPage from "../pages/Admin/TestManagement/CreateTestPage/CreateTestPage";
-import CreatePartPage from "../pages/Admin/TestManagement/CreatePartPage/CreatePartPage";
-import CreateQuestionPage from "../pages/Admin/TestManagement/CreateQuestionPage/CreateQuestionPage";
 import TestList from "../pages/MockTest/TestList";
 
 const RefreshTokenLoader = () => {
@@ -268,7 +265,7 @@ const routes = [
       </ProtectedRoute>
     ),
   },
-    {
+  {
     path: "/admin/lessonmanagement",
     element: (
       <ProtectedRoute allowedRoles={["admin"]}>
@@ -296,30 +293,6 @@ const routes = [
           <VipManagement />
         </MainLayout>
       </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/admin/create-test",
-    element: (
-        <MainLayout>
-          <CreateTestPage />
-        </MainLayout>
-    ),
-  },
-  {
-    path: "/admin/create-part",
-    element: (
-        <MainLayout>
-          <CreatePartPage />
-        </MainLayout>
-    ),
-  },
-  {
-    path: "/admin/create-questions",
-    element: (
-        <MainLayout>
-          <CreateQuestionPage />
-        </MainLayout>
     ),
   },
   {
