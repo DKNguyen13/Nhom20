@@ -97,19 +97,10 @@ const LoadingSkeleton: React.FC = () => {
           {[...Array(3)].map((_, i) => (
             <motion.div
               key={i}
-              className="w-4 h-4 rounded-full"
-              style={{
-                background: `linear-gradient(to bottom, ${
-                  ["#91b6f3ff", "#8ab3f4ff", "#3964d9ff"][i]
-                }, ${["#2563EB", "#1c5feeff", "#1f64d4ff"][i]})`,
-              }}
-              animate={{
-                y: [0, -12, 0],
-                opacity: [0.5, 1, 0.5],
-                scale: [1, 1.1, 1],
-              }}
+              className="w-3 h-3 rounded-full bg-blue-500"
+              animate={{ y: [0, -8, 0] }}
               transition={{
-                duration: 1.6,
+                duration: 1.2,
                 repeat: Infinity,
                 delay: i * 0.2,
               }}
