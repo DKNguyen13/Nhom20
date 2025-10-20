@@ -1,6 +1,7 @@
 import api from "../../config/axios";
 import React, { useState, useEffect } from "react";
 import ResourceCard from "../../components/ResourceCard";
+import LoadingSkeleton from "../../components/common/LoadingSpinner/LoadingSkeleton";
 
 const itemsPerPage = 9;
 
@@ -50,14 +51,7 @@ const ResourcePage: React.FC = () => {
   const handlePageChange = (page: number) => setCurrentPage(page);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg font-medium text-gray-600">Đang tải dữ liệu...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   return (
@@ -80,7 +74,7 @@ const ResourcePage: React.FC = () => {
         <div className="container mx-auto py-8">
           <div className="flex flex-col lg:flex-row gap-10">
             {/* Sidebar */}
-            <aside className="lg:w-80 bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-gray-200/50 transition-all duration-300 hover:shadow-2xl">
+            <aside className="lg:w-80 -ml-10 bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-gray-200/50 transition-all duration-300 hover:shadow-2xl">
               {/* Search Box */}
               <div className="mb-6 relative">
                 <input type="text"
