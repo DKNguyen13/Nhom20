@@ -22,7 +22,7 @@ const LeftSidebarAdmin: React.FC<LeftSidebarAdminProps> = ({ customHeight }) => 
       setAccessToken(null);
       setFullname("Guest User");
       setAvatarUrl("/img/avatar/default_avatar.jpg");
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
     }
   };
 

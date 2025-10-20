@@ -112,12 +112,17 @@ export const registerService = async ({ fullname, email, password, phone, dob, a
     return { user };
 };
 
-//Send OTP to email
+//Send OTP register to email
 export const sendRegisterOTPService = async (email) => {
     if (!email) throw new Error('Vui lòng nhập email!');
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        throw new Error('Email không hợp lệ!');
+    }
+
     const user = await User.findOne({ email });
-    
+    if (user) throw new Error('Email đã đăng ký!');
     const existingOtp = await redisClient.get(`otp:${email}`);
     if (existingOtp) {
         const ttl = await redisClient.ttl(`otp:${email}`); // Lấy thời gian còn lại
@@ -129,6 +134,38 @@ export const sendRegisterOTPService = async (email) => {
     await sendOTPEmail(email, otp);
 
     return { message: "Gửi OTP thành công. Vui lòng kiểm tra email!", cooldown: 60 };
+};
+
+//Send new password to email
+export const sendOTPService = async (email) => {
+    if (!email) throw new Error('Vui lòng nhập email!');
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        throw new Error('Email không hợp lệ!');
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) throw new Error('Email không tồn tại!');
+    if (user.authType !== 'normal') throw new Error(`Tài khoản này đăng ký bằng ${user.authType}. Vui lòng đăng nhập bằng Google.`);
+    if (!user.isActive) throw new Error('Tài khoản bị vô hiệu hóa!');
+    if (user.role === 'admin') throw new Error('Hệ thống quá tải vui lòng thử lại sau!');
+    
+    const existingOtp = await redisClient.get(`otp:${email}`);
+    if (existingOtp) {
+        const ttl = await redisClient.ttl(`otp:${email}`); // Lấy thời gian còn lại
+        throw new Error(`Mật khẩu mới đã được gửi. Vui lòng thử lại sau ${ttl} giây.`);
+    }
+
+    const newPassword = crypto.randomBytes(4).toString('hex');
+    user.password = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
+    await user.save();
+
+    await sendResetPasswordEmail(email, `Mật khẩu mới của bạn là: ${newPassword}`);
+
+    await redisClient.setEx(`reset:${email}`, 60, 'sent');
+
+    return { message: 'Mật khẩu mới đã được gửi tới email của bạn!', cooldown: 60 };
 };
 
 //Reset password
@@ -158,29 +195,37 @@ export const editInforService = async ({ email }) => {
 };
 
 //Update profile
-export const updateProfileService = async ({ userId, fullname, fileBuffer }) => {
+export const updateProfileService = async ({ userId, fullname, dob, fileBuffer }) => {
     const user = await User.findById(userId);
     if (!user) throw new Error('Người dùng không tồn tại');
 
     if (fullname && fullname.trim() !== '') {
+        if (fullname.length > 50) {
+            throw new Error('Họ tên quá dài, tối đa 50 ký tự');
+        }
+        if (!/^[\p{L}\s'-]+$/u.test(fullname)) {
+            throw new Error('Họ tên chỉ chứa chữ cái và khoảng trắng');
+        }
         user.fullname = fullname;
     }
 
+    if (dob) {
+        const dateObj = new Date(dob);
+        if (isNaN(dateObj.getTime())) {
+            throw new Error('Ngày sinh không hợp lệ');
+        }
+        user.dob = dateObj;
+    }
+
     if (fileBuffer) {
+        if (fileBuffer.length > 1024 * 1024) { // file >1MB
+            throw new Error('File avatar quá lớn');
+        }
         const avatarUrl = await uploadAvatar(fileBuffer);
         user.avatarUrl = avatarUrl;
     }
-
     await user.save();
-
-    return {
-        id: user._id.toString(),
-        fullname: user.fullname,
-        email: user.email,
-        phone: user.phone,
-        avatar: user.avatarUrl,
-        role: user.role,
-    };
+    return { fullname: user.fullname, email: user.email, phone: user.phone, dob: user.dob, avatar: user.avatarUrl};
 };
 
 //Change password

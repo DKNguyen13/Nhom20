@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../config/axios.js";
 import DatePicker from "react-datepicker";
@@ -16,10 +16,12 @@ const Register: React.FC = () => {
   const [fullname, setFullname] = useState("");
   const [nameError, setNameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [serverError, setServerError] = useState("");
   const [dobError, setDobError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [otp, setOtp] = useState("");
+  const [countdown, setCountdown] = useState(0);
   const [otpMessage, setOtpMessage] = useState<{
     type: "error" | "success";
     text: string;
@@ -35,6 +37,30 @@ const Register: React.FC = () => {
       age--;
     }
     return age >= 16;
+  };
+
+  // Countdown logic
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
+
+  const handleSendOTP = async () => {
+    if (!email) {
+      setOtpMessage({ type: "error", text: "Vui lòng nhập email trước khi gửi OTP" });
+      return;
+    }
+    try {
+      const res = await api.post("/auth/send-register-otp", { email });
+      setOtpMessage({ type: "success", text: res.data.message || "OTP đã gửi" });
+      setCountdown(res.data.cooldown || 60); // set countdown dựa theo backend
+    } catch (err: any) {
+      setOtpMessage({ type: "error", text: err.response?.data?.message || "Lỗi hệ thống!" });
+      const cooldown = err.response?.data?.errors?.cooldown || 0;
+      if (cooldown > 0) setCountdown(cooldown);
+    }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -97,13 +123,14 @@ const Register: React.FC = () => {
         setPasswordError(res.data.message || "Có lỗi xảy ra");
       }
     } catch (error: any) {
-      setPasswordError(error.response?.data?.message || "Server error");
+      setServerError(error.response?.data?.message || "Lỗi hệ thống! Vui lòng thử lại sau.");
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-tr from-blue-50 via-white to-pink-50 p-4">
       <div className="flex flex-col md:flex-row max-w-5xl bg-white shadow-2xl rounded-xl overflow-hidden w-full">
+
         {/* Left Side */}
         <div className="hidden md:flex flex-1 bg-gradient-to-tr from-blue-400 to-purple-500 items-center justify-center p-8">
           <div className="text-white text-center">
@@ -124,6 +151,7 @@ const Register: React.FC = () => {
           <h2 className="text-3xl text-center font-bold mb-6 text-gray-800">
             Đăng ký
           </h2>
+          {serverError && (<p className="text-red-500 text-sm text-center mt-1">{serverError}</p>)}
           <form onSubmit={handleRegister} className="space-y-5">
             {/* Name */}
             <div>
@@ -281,50 +309,29 @@ const Register: React.FC = () => {
                   maxLength={6}
                   required
                 />
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      if (!email) {
-                        setOtpMessage({
-                          type: "error",
-                          text: "Vui lòng nhập email trước khi gửi OTP",
-                        });
-                        return;
-                      }
-                      await api.post("/auth/send-otp", { email });
-                      setOtpMessage({
-                        type: "success",
-                        text: "OTP đã được gửi đến email của bạn!",
-                      });
-                    } catch (error: any) {
-                      setOtpMessage({
-                        type: "error",
-                        text: error.response?.data?.message || "Lỗi server khi gửi OTP",
-                      });
-                    }
-                  }}
-                  className="bg-gradient-to-r from-blue-500 shadow-lg to-purple-500 rounded-lg hover:opacity-90 text-white px-4 py-2 font-medium transition"
-                >
-                  Gửi OTP
+                <button type="button"
+                  onClick={handleSendOTP}
+                  disabled={countdown > 0}
+                  className={`px-4 rounded-lg text-white font-medium transition ${
+                    countdown > 0
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90"
+                  }`}>
+                  {countdown > 0 ? `Gửi lại (${countdown}s)` : "Gửi OTP"}
                 </button>
+
               </div>
               {otpMessage && (
-                <p
-                  className={`text-sm mt-1 ${
-                    otpMessage.type === "error" ? "text-red-500" : "text-green-600"
-                  }`}
-                >
+                <p className={`text-sm mt-1 ${ otpMessage.type === "error" ? "text-red-500" : "text-green-600"
+                  }`}>
                   {otpMessage.text}
                 </p>
               )}
             </div>
 
             {/* Submit */}
-            <button
-              type="submit"
-              className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-lg shadow-lg hover:opacity-90 transition"
-            >
+            <button type="submit"
+              className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-lg shadow-lg hover:opacity-90 transition">
               Đăng ký
             </button>
           </form>

@@ -268,6 +268,16 @@ const routes = [
       </ProtectedRoute>
     ),
   },
+    {
+    path: "/admin/lessonmanagement",
+    element: (
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <MainLayout>
+          <LessonManagementPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
   {
     path: "/admin/testmanagement",
     element: (

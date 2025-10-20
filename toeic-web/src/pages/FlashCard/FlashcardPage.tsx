@@ -15,7 +15,7 @@ const FlashcardPage: React.FC = () => {
         }}>
         <div className="flex items-center mb-6">
           <i className="far fa-clone text-4xl mr-4 text-white"></i>
-          <span className="text-3xl font-extrabold text-black">
+          <span className="text-3xl font-bold text-black">
             📚 Flashcards
           </span>
         </div>
