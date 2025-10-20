@@ -8,7 +8,7 @@ const { Schema } = mongoose;
 
 const partSchema = new mongoose.Schema({
   testId: { type: Schema.Types.ObjectId, ref: "Test", required: true },
-  title: { type: String, required: true, trim: true },
+  title: { type: String, trim: true },
   partNumber: { type: Number, min: 1, max: 7, required: true },
   category: {
     type: String,
@@ -29,7 +29,14 @@ const partSchema = new mongoose.Schema({
 
 }, {
   timestamps: true
-})
+});
+
+partSchema.pre('save', function (next) {
+  if (!this.title || this.isModified('partNumber')) {
+    this.title = `Part ${this.partNumber}`;
+  }
+  next();
+});
 
 // Indexes
 partSchema.index({ testId: 1, partNumber: 1 });

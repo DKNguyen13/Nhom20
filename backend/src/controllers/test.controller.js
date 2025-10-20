@@ -6,11 +6,28 @@ import { success, error } from '../utils/response.js';
 // [GET] /api/test
 export const getAllTest = async (req, res) => {
     try {
-        const tests = await Test.find();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const tests = await Test.find()
+                .sort({createdAt: -1})
+                .skip(skip)
+                .limit(limit);
+        const total = await Test.countDocuments();
         if (!tests) {
             return fail(res, 'Error fetching tests');
         }
-        return success(res, 'Get all test success', { tests });
+        return success(res, 'Get all test success', {
+            tests,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(total / limit),
+                totalTests: total,
+                hasNext: page < Math.ceil(total / limit),
+                hasPrev: page > 1
+            }
+        });
 
     } catch (err) {
         return error(res, 'Get all test error', 500, err.message);
