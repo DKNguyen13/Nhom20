@@ -54,7 +54,6 @@ export const getLessons = async (req, res) => {
         };
       })
     );
-
     return success(res, 'Lấy danh sách lesson thành công', lessonsWithFavorite);
   } catch (err) {
     console.log(err.message);

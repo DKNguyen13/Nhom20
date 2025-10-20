@@ -118,9 +118,9 @@ const PaymentPage: React.FC = () => {
                       {pkg.discountedPrice.toLocaleString()}đ/tháng
                     </p>
                     {discountPercent && (
-                      <p className="text-green-600 font-medium mt-1">
-                        Giảm {discountPercent}%
-                      </p>
+                      <span className="bg-green-100 text-green-700 text-sm font-semibold px-2 py-1 rounded-md">
+                        -{discountPercent}%
+                      </span>
                     )}
                     {pkg.description && (
                       <p className="text-sm text-gray-600 mt-2 italic">
@@ -186,16 +186,6 @@ const PaymentPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Sign-up Button */}
-        <div className="text-center pt-10 pb-10">
-          <Link
-            to="/payment/paymentform"
-            className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 hover:scale-105 transition-transform duration-300"
-          >
-            Đăng ký
-          </Link>
-        </div>
       </div>
 
       {/* Popup Message */}
@@ -203,10 +193,8 @@ const PaymentPage: React.FC = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm mx-auto shadow-lg text-center">
             <p className="text-gray-800 mb-4">{popupMessage}</p>
-            <button
-              onClick={() => setPopupMessage(null)}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 hover:scale-105 transition-transform duration-300"
-            >
+            <button onClick={() => setPopupMessage(null)}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 hover:scale-105 transition-transform duration-300">
               Đóng
             </button>
           </div>

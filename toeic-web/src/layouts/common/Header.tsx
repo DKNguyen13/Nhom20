@@ -53,16 +53,15 @@ const Header: React.FC = () => {
       window.dispatchEvent(new Event("userUpdated"));
       setAvatarUrl("/img/avatar/default_avatar.jpg");
       setOpenMenu(false);
-      navigate("/login");
+      navigate("/");
     }
   };
 
-
   const navLinks = [
     { to: "/", label: "Trang chủ", icon: <FaHome className="text-xl" /> },
-    { to: "/practice", label: "Flashcards", icon: <FaClipboardList className="text-xl" /> },
     { to: "/tests", label: "Thi thử", icon: <FaFileAlt className="text-xl" /> },
     { to: "/resource", label: "Tài nguyên", icon: <FaSearch className="text-xl" /> },
+    { to: "/practice", label: "Flashcards", icon: <FaClipboardList className="text-xl" /> },
     { to: "/payment", label: "Premium", icon: <FaCrown className="text-xl text-yellow-500" />, premium: true },
   ];
 
