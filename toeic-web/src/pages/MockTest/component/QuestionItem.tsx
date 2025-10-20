@@ -6,6 +6,7 @@ interface QuestionItemProps {
   question: {
     _id: string;
     globalQuestionNumber: number;
+    partNumber?: number;
     content: { question?: string; image?: string };
     choices: Choice[];
   };
@@ -22,6 +23,7 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
   handleAnswer,
 }) => {
   const indexToLetter = ["A", "B", "C", "D"];
+  const partNumber = question.partNumber ?? 0;
 
   // Xác định đáp án người dùng đã chọn (khi đang làm bài)
   const selected =
@@ -39,6 +41,9 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
     isView && userChoice && userChoice.label !== correctLetter;
   const isUserSkipped = isView && !userChoice; // user không chọn gì
   const showCorrectAns = isUserWrong || isUserSkipped;
+
+  // hide nội dung câu hỏi + đáp án Part 1, 2
+  const shouldHideContent = !isView && (partNumber === 1 || partNumber === 2);
 
   // Style hiển thị tùy chế độ
   const getButtonStyle = (option: Choice, optionIndex: number): string => {
@@ -80,7 +85,7 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
         <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white font-bold text-sm mt-1">
           {question.globalQuestionNumber}
         </div>
-        {question.content.question && (
+        {!shouldHideContent && question.content.question && (
           <div className="flex-1 pt-1">
             <p className="text-gray-800">{question.content.question}</p>
           </div>
@@ -100,7 +105,10 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
             optionIndex
           )}`}
         >
-          {option.label}. {option.text}
+          {/* Nếu Part 1 & 2 và đang làm bài thì chỉ hiện chữ A/B/C/D */}
+          {shouldHideContent
+            ? `${option.label}`
+            : `${option.label}. ${option.text}`}
         </button>
       ))}
       {showCorrectAns && correctLetter && (

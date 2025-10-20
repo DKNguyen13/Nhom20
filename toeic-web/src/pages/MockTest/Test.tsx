@@ -6,6 +6,7 @@ import PartSelector from "./component/PartSelector";
 import QuestionList from "./component/QuestionList";
 import { useParams } from "react-router-dom";
 import { useViewSession } from "./hooks/useViewTestSession";
+import LoadingSkeleton from "../../components/common/LoadingSpinner/LoadingSkeleton";
 
 interface TestProps {
   isView: boolean; // true: review detail result
@@ -68,11 +69,7 @@ export const Test: React.FC<TestProps> = ({ isView }) => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen text-gray-500">
-        Đang tải dữ liệu...
-      </div>
-    );
+    return <LoadingSkeleton/>
   }
 
    if (error) {

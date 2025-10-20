@@ -1,6 +1,7 @@
 import DetailToeicTest from "./DetailTest.js";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useTestData, useStartTest } from "../../hooks/useTestData.js";
+import LoadingSkeleton from "../../components/common/LoadingSpinner/LoadingSkeleton.js";
 
 const sampleComments = [
   {
@@ -26,6 +27,8 @@ const sampleComments = [
 
 function MockDetailTests() {
   const { slug } = useParams();
+  const location = useLocation();
+  const totalAttempts = location.state?.attempts ?? 0;
 
   const { testData, loading, error } = useTestData(slug);
   const {
@@ -36,14 +39,12 @@ function MockDetailTests() {
     handleStartPractice,
     sessionLoading,
     sessionError,
+    showLoginModal,
+    setShowLoginModal
   } = useStartTest(testData);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center mt-12">
-        <div>Loading Test...</div>
-      </div>
-    );
+    return <LoadingSkeleton/>
   }
 
   if (error) {
@@ -57,12 +58,11 @@ function MockDetailTests() {
   return (
     <div className="min-h-screen bg-background">
       <DetailToeicTest
-      
         testName={testData.data.test.title}
         durationMinutes={120}
         totalParts={7}
         totalQuestions={200}
-        practicedCount={2500000}
+        practicedCount={totalAttempts}
         commentsCount={3000}
         parts={testData.data.parts}
         defaultActiveTab="practice"
@@ -75,6 +75,8 @@ function MockDetailTests() {
         sessionError={sessionError}
         comments={sampleComments}
         testId={testData.data.test._id}
+        showLoginModal = {showLoginModal}
+        setShowLoginModal = {setShowLoginModal}
       />
     </div>
   );

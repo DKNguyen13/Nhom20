@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getTestDetail } from "../service/testService";
 import { useNavigate } from "react-router-dom";
 import { startSession } from "../service/sessionService";
+import { isLoggedIn } from "../config/axios";
 
 export const useTestData = (slug) => {
   const [testData, setTestData] = useState(null);
@@ -41,9 +42,16 @@ export const useStartTest = (testData) => {
   const [selectedTime, setSelectedTime] = useState(0);
   const [sessionLoading, setSessionLoading] = useState(false);
   const [sessionError, setSessionError] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleStartPractice = async (mode = "practice") => {
     if (!testData) return;
+
+    // check login
+    if (!isLoggedIn()) {
+      setShowLoginModal(true);
+      return;
+    }
 
     const payload = {
       testId: testData.data.test._id,
@@ -74,5 +82,9 @@ export const useStartTest = (testData) => {
     handleStartPractice,
     sessionLoading,
     sessionError,
+    showLoginModal,
+    setShowLoginModal,
   };
 }
+
+

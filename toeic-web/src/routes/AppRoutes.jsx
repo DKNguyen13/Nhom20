@@ -10,7 +10,6 @@ import NotFound from "../pages/NotFound/NotFound";
 // Layout
 import MainLayout from "../layouts/MainLayout";
 import Register from "../pages/Register/Register";
-import { MockTest } from "../pages/MockTest/MockTest";
 import { Test } from "../pages/MockTest/Test";
 import ForgotPassword from "../pages/ForgotPassword/ForgotPassword";
 import ResetPassword from "../pages/ForgotPassword/ResetPassword";
@@ -39,6 +38,7 @@ import FlashcardListPage from "../pages/FlashCard/FlashcardListPage";
 import CreateTestPage from "../pages/Admin/TestManagement/CreateTestPage/CreateTestPage";
 import CreatePartPage from "../pages/Admin/TestManagement/CreatePartPage/CreatePartPage";
 import CreateQuestionPage from "../pages/Admin/TestManagement/CreateQuestionPage/CreateQuestionPage";
+import TestList from "../pages/MockTest/TestList";
 
 const RefreshTokenLoader = () => {
   useRefreshTokenOnLoad();
@@ -104,7 +104,7 @@ const routes = [
     path: "/tests",
     element: (
       <MainLayout>
-        <MockTest />
+        <TestList limit={9} showPagination={true} />
       </MainLayout>
     ),
   },
