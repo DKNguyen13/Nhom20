@@ -73,7 +73,7 @@ const PaymentPage: React.FC = () => {
   return (
     <>
     <div className="min-h-screen flex flex-col items-center pt-5">
-      <div className="max-w-4xl w-full mt-10 bg-white shadow-lg rounded-lg p-6">
+      <div className="max-w-5xl w-full mt-10 bg-white shadow-lg rounded-lg p-6">
         {/* Header */}
         <div className="text-center pb-10">
           <span className="text-[#1c1c1c] text-[40px] font-bold font-josefin-sans">
@@ -95,17 +95,14 @@ const PaymentPage: React.FC = () => {
                 pkg.discountedPrice
               );
               return (
-                <div
-                  key={pkg._id}
+                <div key={pkg._id}
                   className={`
                     p-6 flex flex-col justify-between rounded-lg transition-all duration-300 transform
-                    ${
-                      pkg.durationMonths === 2
+                    ${ pkg.durationMonths === 2
                         ? "bg-blue-50 border border-blue-500 shadow-md hover:shadow-xl hover:-translate-y-2 hover:bg-blue-100"
                         : "bg-gray-100 border border-gray-400 hover:shadow-lg hover:-translate-y-1 hover:bg-gray-200"
                     }
-                  `}
-                >
+                  `}>
                   {/* Package Info */}
                   <div className="mb-4 text-center">
                     <h3 className="text-xl font-semibold text-red-600">
@@ -130,11 +127,9 @@ const PaymentPage: React.FC = () => {
                   </div>
 
                   {/* Button */}
-                  <button
-                    onClick={() => handleBuy(pkg._id)}
+                  <button onClick={() => handleBuy(pkg._id)}
                     className="bg-blue-600 text-white px-6 py-2 rounded-md w-full text-center mt-auto
-                               hover:bg-blue-700 hover:scale-105 transition-transform duration-300"
-                  >
+                               hover:bg-blue-700 hover:scale-105 transition-transform duration-300">
                     Đăng ký ngay
                   </button>
                 </div>
