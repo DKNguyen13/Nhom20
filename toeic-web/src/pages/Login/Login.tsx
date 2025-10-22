@@ -84,8 +84,7 @@ const Login: React.FC = () => {
                 <label htmlFor="email" className="text-gray-700 text-sm font-medium block mb-2">
                   Email
                 </label>
-                <input
-                  type="email"
+                <input type="email"
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
