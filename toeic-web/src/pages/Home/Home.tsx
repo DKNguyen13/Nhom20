@@ -142,7 +142,7 @@ const Home = ({ setIsOpen }) => {
             thật, giúp bạn làm quen với cấu trúc đề và đánh giá chính xác trình
             độ của mình.
           </p>
-          <Link to={"/mock-test"}>
+          <Link to={"/tests"}>
             <button className="mt-6 px-8 py-2 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 focus:outline-none">
               Thi Thử Ngay
             </button>

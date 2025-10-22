@@ -49,7 +49,7 @@ export const useViewSession = () => {
             questionNumber: q.questionNumber,
             globalQuestionNumber: ans.questionNumber,
             partNumber: q.partNumber,
-            content: q.content,
+            group: q.group,
             choices: q.choices,
             userAnswer: {
               selectedAnswer: ans.selectedAnswer,

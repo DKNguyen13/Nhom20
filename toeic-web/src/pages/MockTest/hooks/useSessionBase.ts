@@ -32,6 +32,7 @@ export const useSessionBase = (sessionId: string | null) => {
 
         const questionsData = await getSessionQuestions(sessionId);
         const qs: Question[] = questionsData.questions || [];
+        console.log(questionsData);
 
         if (qs.length === 0) {
           setError("Không có câu hỏi nào trong bài thi này.");
