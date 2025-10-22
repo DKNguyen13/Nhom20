@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 interface TestData {
   title: string;
-  audio: string;
+  audio?: string;
   testCode: string;
 }
 
@@ -13,23 +13,30 @@ const CreateTestPage: React.FC = () => {
 
   const [formData, setFormData] = useState<TestData>({
     title: "",
-    audio: "",
     testCode: "",
+    audio: "",
   });
 
+  const [audioFile, setAudioFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // 🔹 Xử lý thay đổi text input
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (name === "source") {
-      setFormData((prev) => ({ ...prev, metadata: { source: value } }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // 🔹 Xử lý chọn file audio
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setAudioFile(e.target.files[0]);
+      setFormData((prev) => ({ ...prev, audio: "" })); // reset URL nếu có file
     }
   };
 
+  // 🔹 Submit form
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -37,17 +44,27 @@ const CreateTestPage: React.FC = () => {
     setSubmitting(true);
 
     try {
-      const res = await api.post("/test", formData);
-      console.log("Create Test", res);
-      setSuccess("✅ Tạo đề thi thành công!");
-      setFormData({
-        title: "",
-        audio: "",
-        testCode: "",
+      const form = new FormData();
+
+      // Gửi testData dạng JSON string
+      form.append("testData", JSON.stringify(formData));
+
+      // Nếu có file audio → append
+      if (audioFile) {
+        form.append("file", audioFile);
+      }
+
+      const res = await api.post("/test", form, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
+
+      console.log("Create Test:", res.data);
+      setSuccess("✅ Tạo đề thi thành công!");
+      setFormData({ title: "", testCode: "", audio: "" });
+      setAudioFile(null);
     } catch (err: any) {
       console.error("Lỗi khi tạo đề thi:", err);
-      setError("❌ Không thể tạo đề thi. Vui lòng thử lại!");
+      setError(err.response?.data?.message || "❌ Không thể tạo đề thi!");
     } finally {
       setSubmitting(false);
     }
@@ -61,7 +78,7 @@ const CreateTestPage: React.FC = () => {
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Title */}
+          {/* Tên đề thi */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Tên đề thi
@@ -77,22 +94,7 @@ const CreateTestPage: React.FC = () => {
             />
           </div>
 
-          {/* Audio URL */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Đường dẫn Audio
-            </label>
-            <input
-              type="url"
-              name="audio"
-              value={formData.audio}
-              onChange={handleChange}
-              placeholder="https://cdn.yourdomain.com/audio/test1.mp3"
-              className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200"
-            />
-          </div>
-
-          {/* Test Code */}
+          {/* Mã đề thi */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Mã đề thi
@@ -106,6 +108,40 @@ const CreateTestPage: React.FC = () => {
               className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200"
               required
             />
+          </div>
+
+          {/* Audio input (file hoặc URL) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              File Audio hoặc URL Audio
+            </label>
+
+            {/* File upload */}
+            <input
+              type="file"
+              accept="audio/*"
+              onChange={handleFileChange}
+              className="block w-full border rounded-lg px-3 py-2 mb-2"
+            />
+
+            {/* Nếu không upload file thì cho nhập URL */}
+            {!audioFile && (
+              <input
+                type="url"
+                name="audio"
+                value={formData.audio}
+                onChange={handleChange}
+                placeholder="https://cdn.yourdomain.com/audio/test1.mp3"
+                className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200"
+              />
+            )}
+
+            {/* Hiển thị tên file nếu có */}
+            {audioFile && (
+              <p className="text-sm text-gray-600 mt-1">
+                🎵 File đã chọn: {audioFile.name}
+              </p>
+            )}
           </div>
 
           {/* Buttons */}
@@ -128,7 +164,7 @@ const CreateTestPage: React.FC = () => {
           </div>
         </form>
 
-        {/* Hiển thị thông báo */}
+        {/* Thông báo */}
         {error && <p className="text-red-600 mt-4">{error}</p>}
         {success && <p className="text-green-600 mt-4">{success}</p>}
       </div>

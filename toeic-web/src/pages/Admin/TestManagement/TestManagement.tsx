@@ -2,9 +2,25 @@ import React, { useState } from "react";
 import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
 import { FaEllipsisH, FaTimes, FaUpload } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import api from "../../../config/axios";
+import { useEffect } from "react";
+
+
+interface Test {
+  title: string;
+  testCode: string;
+  category: string;
+  createdAt: Date;
+  isActive: boolean;
+  statistics: {
+    totalAttempts: number;
+    averageScore: number;
+  }
+}
 
 const TestManagementPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [tests, setTests] = useState<Test[]>([]);
 
   const testsdata = [
     {
@@ -89,6 +105,20 @@ const TestManagementPage: React.FC = () => {
     },
   ];
 
+  useEffect(() => {
+    const fetchTests = async () => {
+      const response = await api.get("/test");
+      const tests = response.data.data.tests;
+      const formattedTests = tests.map((test: Test) => ({
+        ...test,
+        formattedDate: new Date(test.createdAt).toLocaleDateString("vi-VN"),
+      }));
+
+      setTests(formattedTests || []);
+    };
+    fetchTests();
+  },[]);
+
   const navigate = useNavigate();
 
   return (
@@ -99,19 +129,19 @@ const TestManagementPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-800">Quản lý Đề thi</h1>
           <button
             className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition"
-            onClick={() => navigate('/admin/create-test')}
+            onClick={() => navigate("/admin/create-test")}
           >
             Thêm đề thi mới
           </button>
           <button
             className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition"
-            onClick={() => navigate('/admin/create-part')}
+            onClick={() => navigate("/admin/create-part")}
           >
             Thêm Part mới
           </button>
           <button
             className="bg-orange-600 text-white px-3 py-3 rounded-md hover:bg-orange-700 transition"
-            onClick={() => navigate('/admin/create-questions')}
+            onClick={() => navigate("/admin/create-questions")}
           >
             Thêm dannh sách câu hỏi mới
           </button>
@@ -123,40 +153,26 @@ const TestManagementPage: React.FC = () => {
             <thead>
               <tr className="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
                 <th className="py-3 px-4 text-left">ID</th>
-                <th className="py-3 px-4 text-left">Tên bài thi</th>
-                <th className="py-3 px-4 text-left">Loại bài thi</th>
-                <th className="py-3 px-4 text-center">Số câu hỏi</th>
-                <th className="py-3 px-4 text-center">Thời gian</th>
+                <th className="py-3 px-4 text-left">Tên đề thi</th>
+                <th className="py-3 px-4 text-center">Lượt làm</th>
+                <th className="py-3 px-4 text-center">Điểm trung bình</th>
                 <th className="py-3 px-4 text-center">Ngày tạo</th>
                 <th className="py-3 px-4 text-center">Hành động</th>
               </tr>
             </thead>
             <tbody className="text-gray-600 text-sm">
-              {testsdata.map((exam, index) => (
+              {tests.map((test, index) => (
                 <tr
-                  key={exam.id}
+                  key={test.testCode}
                   className={`border-b hover:bg-gray-100 transition ${
                     index % 2 === 0 ? "bg-gray-50" : ""
                   }`}
                 >
-                  <td className="py-4 px-4">{exam.id}</td>
-                  <td className="py-4 px-4">{exam.name}</td>
-                  <td className="py-4 px-4">
-                    <span
-                      className={`px-2 py-1 text-xs rounded-full font-semibold ${
-                        exam.type === "FULL TEST"
-                          ? "bg-blue-200 text-blue-800"
-                          : exam.type === "LISTENING"
-                          ? "bg-orange-200 text-orange-800"
-                          : "bg-yellow-200 text-yellow-800"
-                      }`}
-                    >
-                      {exam.type}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 text-center">{exam.questions}</td>
-                  <td className="py-4 px-4 text-center">{exam.time}</td>
-                  <td className="py-4 px-4 text-center">{exam.date}</td>
+                  <td className="py-4 px-4">{test.testCode}</td>
+                  <td className="py-4 px-4">{test.title}</td>
+                  <td className="py-4 px-4 text-center">{test.statistics.totalAttempts}</td>
+                  <td className="py-4 px-4 text-center">{test.statistics.averageScore}</td>
+                  <td className="py-4 px-4 text-center">{new Date(test.createdAt).toLocaleDateString("vi-VN")}</td>
                   <td className="py-4 px-4 text-center">
                     <button className="text-gray-500 hover:text-gray-700 transition">
                       <FaEllipsisH size={18} />

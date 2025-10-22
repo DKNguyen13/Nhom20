@@ -20,3 +20,16 @@ export const uploadAvatar = async (fileBuffer) => {
     streamifier.createReadStream(fileBuffer).pipe(stream);
   });
 };
+
+export const uploadToCloudinary = async (fileBuffer, folder = "uploads") => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.v2.uploader.upload_stream(
+      { folder },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result.secure_url);
+      }
+    );
+    streamifier.createReadStream(fileBuffer).pipe(stream);
+  });
+};

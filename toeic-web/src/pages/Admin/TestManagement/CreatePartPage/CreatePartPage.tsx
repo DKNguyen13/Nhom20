@@ -2,32 +2,30 @@ import React, { useEffect, useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../../config/axios";
 
-// =================== Interfaces ===================
 interface Test {
   slug: string;
   title: string;
 }
 
-interface PartConfig {
-  hasAudio: boolean;
-  allowReplay: boolean;
-  showQuestionNumber: boolean;
-  allowBack: boolean;
-}
-
 interface PartData {
-  title: string;
   partNumber: number;
-  category: string;
-  description: string;
-  instructions: string;
-  audioFile: string | null;
+  description?: string;
+  instructions?: string;
+  audioFile?: string;
   totalQuestions: number;
-  config: PartConfig;
   tags: string[];
 }
 
-// =================== Component ===================
+const questionLimits: Record<number, number> = {
+  1: 6,
+  2: 25,
+  3: 39,
+  4: 30,
+  5: 30,
+  6: 16,
+  7: 54,
+};
+
 const CreatePartPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -39,36 +37,23 @@ const CreatePartPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<PartData>({
-    title: "",
     partNumber: 1,
-    category: "",
+    totalQuestions: questionLimits[1],
     description: "",
     instructions: "",
     audioFile: "",
-    totalQuestions: 0,
-    config: {
-      hasAudio: false,
-      allowReplay: true,
-      showQuestionNumber: true,
-      allowBack: true,
-    },
     tags: [],
   });
 
-  // =================== Fetch Tests ===================
+  // Fetch danh sách đề thi
   useEffect(() => {
     const fetchTests = async () => {
       setLoadingTests(true);
       try {
-        const res = await api.get("/test"); // 👈 endpoint lấy danh sách đề thi
+        const res = await api.get("/test");
         const data = res.data.data.tests;
-        console.log("tests: ", data);
-        if (Array.isArray(data)) {
-          setTests(data);
-        } else {
-          throw new Error("Dữ liệu trả về không hợp lệ");
-        }
-      } catch (err: any) {
+        if (Array.isArray(data)) setTests(data);
+      } catch (err) {
         setError("Không thể tải danh sách đề thi");
       } finally {
         setLoadingTests(false);
@@ -77,37 +62,32 @@ const CreatePartPage: React.FC = () => {
     fetchTests();
   }, []);
 
-  // =================== Handle Input ===================
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target;
+  // Handle input change
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
 
-    // Checkbox trong config
-    if (["hasAudio", "allowReplay", "showQuestionNumber", "allowBack"].includes(name)) {
+    if (name === "partNumber") {
+      const number = Number(value);
       setFormData((prev) => ({
         ...prev,
-        config: { ...prev.config, [name]: type === "checkbox" ? checked : value },
+        partNumber: number,
+        totalQuestions: questionLimits[number],
       }));
       return;
     }
 
-    // Mảng tags
     if (name === "tags") {
       const tagsArray = value.split(",").map((t) => t.trim());
       setFormData((prev) => ({ ...prev, tags: tagsArray }));
       return;
     }
 
-    // Số nguyên
-    if (name === "partNumber" || name === "totalQuestions") {
-      setFormData((prev) => ({ ...prev, [name]: Number(value) }));
-      return;
-    }
-
-    // Các field còn lại
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // =================== Submit ===================
+  // Handle submit
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedTestSlug) {
@@ -115,43 +95,39 @@ const CreatePartPage: React.FC = () => {
       return;
     }
 
+    setSubmitting(true);
+    setError(null);
+    setSuccess(null);
+
     try {
-      setSubmitting(true);
-      setError(null);
-      setSuccess(null);
+      // Gắn slug vào partData
+      const partDataWithSlug = {
+        ...formData,
+        slug: selectedTestSlug,
+      };
 
-      const response = await api.post(`/test/${selectedTestSlug}/parts`, formData);
-
-      if (!response) throw new Error("Không thể tạo Part mới");
-
+      await api.post(`/part`, {
+        partData: partDataWithSlug,
+      });
       setSuccess("✅ Tạo Part thành công!");
       setFormData({
-        title: "",
         partNumber: 1,
-        category: "",
+        totalQuestions: questionLimits[1],
         description: "",
         instructions: "",
         audioFile: "",
-        totalQuestions: 0,
-        config: {
-          hasAudio: false,
-          allowReplay: true,
-          showQuestionNumber: true,
-          allowBack: true,
-        },
         tags: [],
       });
     } catch (err: any) {
-      setError(err.message || "Đã xảy ra lỗi khi tạo Part");
+      setError(err.response?.data?.message || "Đã xảy ra lỗi khi tạo Part");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // =================== UI ===================
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10 px-4">
-      <div className="w-full max-w-3xl bg-white shadow-lg rounded-2xl p-8">
+      <div className="w-full max-w-2xl bg-white shadow-lg rounded-2xl p-8">
         <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
           🧩 Tạo mới Part TOEIC
         </h1>
@@ -181,80 +157,57 @@ const CreatePartPage: React.FC = () => {
 
         {/* Form tạo Part */}
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Chọn số Part */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tiêu đề Part
+              Số Part
             </label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
+            <select
+              name="partNumber"
+              value={formData.partNumber}
               onChange={handleChange}
               className="w-full border rounded-lg px-3 py-2"
-              placeholder="VD: Part 7 - Reading Comprehension"
-              required
+            >
+              {Array.from({ length: 7 }, (_, i) => i + 1).map((num) => (
+                <option key={num} value={num}>
+                  Part {num}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Số lượng câu hỏi (tự động gán) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Số lượng câu hỏi
+            </label>
+            <input
+              type="number"
+              name="totalQuestions"
+              value={formData.totalQuestions}
+              readOnly
+              className="w-full border rounded-lg px-3 py-2 bg-gray-100"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Số Part
-              </label>
-              <input
-                type="number"
-                name="partNumber"
-                value={formData.partNumber}
-                onChange={handleChange}
-                className="w-full border rounded-lg px-3 py-2"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Số lượng câu hỏi
-              </label>
-              <input
-                type="number"
-                name="totalQuestions"
-                value={formData.totalQuestions}
-                onChange={handleChange}
-                className="w-full border rounded-lg px-3 py-2"
-              />
-            </div>
-          </div>
-
+          {/* Mô tả */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Danh mục
-            </label>
-            <input
-              type="text"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              className="w-full border rounded-lg px-3 py-2"
-              placeholder="Listening / Reading"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mô tả
+              Mô tả (tùy chọn)
             </label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               className="w-full border rounded-lg px-3 py-2 h-20"
-              placeholder="Nhập mô tả cho phần thi..."
+              placeholder="Nhập mô tả cho Part..."
             />
           </div>
 
+          {/* Hướng dẫn */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Hướng dẫn
+              Hướng dẫn (tùy chọn)
             </label>
             <textarea
               name="instructions"
@@ -265,6 +218,7 @@ const CreatePartPage: React.FC = () => {
             />
           </div>
 
+          {/* Audio URL
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Audio file (tùy chọn)
@@ -275,27 +229,9 @@ const CreatePartPage: React.FC = () => {
               value={formData.audioFile || ""}
               onChange={handleChange}
               className="w-full border rounded-lg px-3 py-2"
-              placeholder="URL file audio (nếu có)"
+              placeholder="URL file audio nếu có"
             />
-          </div>
-
-          {/* Config Options */}
-          <div className="border p-4 rounded-lg">
-            <h3 className="font-semibold mb-2">⚙️ Cấu hình Part</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {Object.keys(formData.config).map((key) => (
-                <label key={key} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    name={key}
-                    checked={(formData.config as any)[key]}
-                    onChange={handleChange}
-                  />
-                  <span className="text-sm">{key}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+          </div> */}
 
           {/* Tags */}
           <div>
@@ -332,7 +268,6 @@ const CreatePartPage: React.FC = () => {
           </div>
         </form>
 
-        {/* Hiển thị thông báo */}
         {error && <p className="text-red-600 mt-4">{error}</p>}
         {success && <p className="text-green-600 mt-4">{success}</p>}
       </div>

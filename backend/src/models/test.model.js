@@ -36,6 +36,7 @@ const testSchema = new mongoose.Schema({
   // Thống kê
   statistics: {
     totalAttempts: { type: Number, default: 0 },
+    totalComments: {type: Number, default: 0},
     completedAttempts: { type: Number, default: 0 },
     averageScore: { type: Number, default: 0 },
     averageAccuracy: { type: Number, default: 0 },

@@ -1,7 +1,12 @@
+import mongoose from "mongoose";
+
+
 import Test from "../models/test.model.js";
 import Part from "../models/part.model.js";
 import Question from "../models/question.model.js";
 import { success, error } from '../utils/response.js';
+import { uploadToCloudinary } from "../services/cloudinary.service.js";
+
 
 // [GET] /api/test/:slug/questions
 export const getAllQuestionByTest = async (req, res) => {
@@ -100,63 +105,171 @@ export const getAllQuestionByPart = async (req, res) => {
 
 
 // [POST] /api/test/:slug/parts/:partId/questions
+// export const createQuestions = async (req, res) => {
+//     try {
+//         // validate input
+
+//         const { slug, partId } = req.params;
+//         const questionsData = req.body.questions;
+
+//         // Check test exists
+//         const test = await Test.findOne({ slug });
+//         if (!test) {
+//             return error(res, 'Test not found');
+//         }
+
+//         // Check part exists
+//         const part = await Part.findOne({ _id: partId, testId: test._id });
+//         if (!part) {
+//             return error(res, 'Part not found in this test to create Question');
+//         }
+
+//         // Get last question number in part
+//         const lastQuestion = await Question.findOne({ partId })
+//             .sort({ questionNumber: -1 });
+//         let questionNumber = lastQuestion ? lastQuestion.questionNumber : 0;
+
+//         // Get global question count in test
+//         let globalQuestionNumber = await Question.countDocuments({ testId: test._id });
+
+//         // Question data to insert
+//         const questionsToInsert = questionsData.map(q => {
+//             questionNumber++;
+//             globalQuestionNumber++;
+//             return {
+//                 ...q,
+//                 partId,
+//                 testId: part.testId,
+//                 partNumber: part.partNumber,
+//                 questionNumber,
+//                 globalQuestionNumber,
+//             }
+//         })
+
+//         const insertedQuestions = await Question.insertMany(questionsToInsert);
+
+//         // update total question for part
+//         await Part.findByIdAndUpdate(partId, {
+//             $inc: { totalQuestion: questionsToInsert.length }
+//         });
+
+//         return success(
+//             res,
+//             'create Questions success',
+//             {
+//                 questions: insertedQuestions,
+//             }
+//         );
+//     } catch (error) {
+//         return error(res, 'error Create question');
+//     }
+// };
+
 export const createQuestions = async (req, res) => {
+
+    const session = await mongoose.startSession();
+    session.startTransaction(); // Bắt đầu transaction
     try {
-        // validate input
+        let { slug, partId, questions } = req.body;
 
-        const { slug, partId } = req.params;
-        const questionsData = req.body.questions;
+        console.log("req.files:", req.files);
 
-        // Check test exists
+        // 1 or many question
+        if (typeof questions === "string") {
+            questions = JSON.parse(questions);
+        }
+
+        if (!Array.isArray(questions)) {
+            questions = [questions];
+        }
+
+        if (!slug || !partId) {
+            return error(res, "Missing Test or Part selected");
+        }
+
+        if (!questions.length) {
+            return error(res, "No questions provided");
+        }
+
+        // Check test & part
         const test = await Test.findOne({ slug });
         if (!test) {
             return error(res, 'Test not found');
         }
 
-        // Check part exists
         const part = await Part.findOne({ _id: partId, testId: test._id });
         if (!part) {
-            return error(res, 'Part not found in this test to create Question');
+            return error(res, 'Part not found in this test');
         }
 
-        // Get last question number in part
-        const lastQuestion = await Question.findOne({ partId })
-            .sort({ questionNumber: -1 });
+        // get current question in DB of Part
+        const lastQuestion = await Question.findOne({ partId }).sort({ questionNumber: -1 });
         let questionNumber = lastQuestion ? lastQuestion.questionNumber : 0;
-
-        // Get global question count in test
         let globalQuestionNumber = await Question.countDocuments({ testId: test._id });
 
-        // Question data to insert
-        const questionsToInsert = questionsData.map(q => {
+        const processedQuestions = [];
+        console.log('questions', questions);
+
+        for (let i = 0; i < questions.length; i++) {
+            const q = questions[i];
             questionNumber++;
             globalQuestionNumber++;
-            return {
+
+            if (!q.choices || q.choices.length < 2) {
+                console.log("Error in check Choices");
+                return error(res, `Question ${i + 1} must have at least 2 choices.`);
+            }
+
+            const group = q.group || {};
+            const imageFile = Array.isArray(req.files)
+                ? req.files.find(f => f.fieldname === `image_${i}`)
+                : req.files?.[`image_${i}`]?.[0];
+
+            const audioFile = Array.isArray(req.files)
+                ? req.files.find(f => f.fieldname === `audio_${i}`)
+                : req.files?.[`audio_${i}`]?.[0];
+
+            console.log("ImageFile: ", imageFile)
+
+            if (imageFile) {
+                const imgUrl = await uploadToCloudinary(imageFile.buffer, "toeic/questions/images");
+                console.log("IMG URL: ", imgUrl);
+                group.image = imgUrl;
+            } else if (typeof group.image !== "string") {
+                delete group.image; // loại bỏ object rỗng
+            }
+
+            if (audioFile) {
+                const audioUrl = await uploadToCloudinary(audioFile.buffer, "toeic/questions/audio");
+                group.audio = audioUrl;
+            } else if (typeof group.audio !== "string") {
+                delete group.audio; // loại bỏ object rỗng
+            }
+
+            processedQuestions.push({
                 ...q,
+                testId: test._id,
                 partId,
-                testId: part.testId,
                 partNumber: part.partNumber,
                 questionNumber,
                 globalQuestionNumber,
-            }
-        })
+                group,
+            });
+        }
 
-        const insertedQuestions = await Question.insertMany(questionsToInsert);
-
-        // update total question for part
-        await Part.findByIdAndUpdate(partId, {
-            $inc: { totalQuestion: questionsToInsert.length }
-        });
+        const inserted = await Question.insertMany(processedQuestions);
+        await Part.findByIdAndUpdate(partId, { $inc: { totalQuestion: inserted.length } });
 
         return success(
             res,
-            'create Questions success',
-            {
-                questions: insertedQuestions,
-            }
+            inserted.length === 1
+                ? "1 question created successfully"
+                : `${inserted.length} questions created successfully`,
+            inserted
         );
-    } catch (error) {
-        return error(res, 'error Create question');
+    } catch (err) {
+        await session.abortTransaction();
+        return error(res, err.message);
     }
-};
+}
 

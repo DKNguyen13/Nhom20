@@ -137,7 +137,7 @@ export const getSessionQuestions = async (req, res) => {
             partNumber: { $in: session.testConfig.selectedParts }
         })
             .sort({ globalQuestionNumber: 1 })
-            .select('content choices questionNumber globalQuestionNumber partNumber');
+            .select('question group choices questionNumber globalQuestionNumber partNumber');
 
         // Get exists answers from UserAnswer
         const userAnswer = await UserAnswer.findOne({
@@ -638,7 +638,7 @@ export const getSessionResults = async (req, res) => {
             userId
         }).populate({
             path: 'questions.questionId',
-            select: 'content choices correctAnswer explanation partNumber questionNumber globalQuestionNumber'
+            select: 'question group choices correctAnswer explanation partNumber questionNumber globalQuestionNumber'
         });
 
         const answersSorted = userAnswer?.questions.sort((a, b) => {

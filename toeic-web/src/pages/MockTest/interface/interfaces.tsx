@@ -7,20 +7,19 @@ export interface Choice {
   isUserChoice?: boolean;
 }
 
-export interface QuestionContent {
-  question?: string;
+export interface Group {
   image?: string;
   audio?: string;
-  audioStartTime?: number;
-  audioEndTime?: number;
+  text?: string;
 }
 
 export interface Question {
   _id: string;
+  question: string;
   questionNumber: number;
   globalQuestionNumber: number; // số thứ tự toàn bài
   partNumber: number;           // part nào
-  content: QuestionContent;
+  group: Group;
   choices: Choice[];
   userAnswer?: {                // nên dùng object để tương thích với API
     selectedAnswer?: 'A' | 'B' | 'C' | 'D' | null;    // index của choice đã chọn
@@ -65,7 +64,7 @@ export interface UserAnswer {
     _id: string;
     questionNumber: number;
     partNumber: number;
-    content: QuestionContent;
+    group: Group;
     choices: Choice[];
     correctAnswer: string;
     explanation?: string;

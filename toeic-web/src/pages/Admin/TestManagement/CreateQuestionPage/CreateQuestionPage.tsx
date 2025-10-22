@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import api from "../../../../config/axios";
+import axios from "axios";
+import { getAllParts } from "../../../../service/partService";
 
 interface Test {
   slug: string;
@@ -14,26 +15,28 @@ interface Part {
 }
 
 interface Choice {
-  label: string;
+  label: "A" | "B" | "C" | "D";
   text: string;
   isCorrect: boolean;
 }
 
 interface Question {
   title: string;
+  partNumber: number;
   questionNumber: number;
   globalQuestionNumber: number;
-  content: {
-    transcriptId: string;
-    question: string;
-    image?: string;
+  group: {
+    text?: string;
+    image?: File | null;
+    audio?: File | null;
   };
+  question: string;
   choices: Choice[];
-  correctAnswer: string;
-  explanation: string;
+  correctAnswer: "A" | "B" | "C" | "D";
+  explanation?: string;
 }
 
-const CreateQuestionPage: React.FC = () => {
+export default function CreateQuestionPage() {
   const [tests, setTests] = useState<Test[]>([]);
   const [parts, setParts] = useState<Part[]>([]);
   const [selectedTestSlug, setSelectedTestSlug] = useState("");
@@ -41,21 +44,23 @@ const CreateQuestionPage: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([
     {
       title: "",
+      partNumber: 1,
       questionNumber: 1,
       globalQuestionNumber: 1,
-      content: { transcriptId: "", question: "", image: "" },
+      group: { text: "", image: null, audio: null },
+      question: "",
       choices: [
         { label: "A", text: "", isCorrect: false },
         { label: "B", text: "", isCorrect: false },
         { label: "C", text: "", isCorrect: false },
         { label: "D", text: "", isCorrect: false },
       ],
-      correctAnswer: "",
+      correctAnswer: "A",
       explanation: "",
     },
   ]);
 
-  // 🔹 Load danh sách đề thi
+  //🔹 Load danh sách đề thi
   useEffect(() => {
     const fetchTests = async () => {
       try {
@@ -71,232 +76,291 @@ const CreateQuestionPage: React.FC = () => {
   // 🔹 Khi chọn đề thi => load part
   useEffect(() => {
     if (selectedTestSlug) {
-     const fetchParts = async () => {
+      const fetchParts = async () => {
         try {
-          const res = await api.get(`/test/${selectedTestSlug}/parts`);
-          console.log('list part', res);
-          setParts(res.data.data?.partWithCounts || []);
-        } catch (err) {
-          console.error("Lỗi tải danh sách part:", err);
+          const data = await getAllParts(selectedTestSlug);
+          setParts(data?.partWithCounts || []);
+        } catch (err: any) {
+          console.error("Lỗi tải danh sách part:", err.message);
           setParts([]);
         }
       };
       fetchParts();
-
     }
   }, [selectedTestSlug]);
 
-  // 🔹 Thêm câu hỏi mới
-  const addQuestion = () => {
+  const handleAddQuestion = () => {
     setQuestions([
       ...questions,
       {
         title: "",
+        partNumber: 1,
         questionNumber: questions.length + 1,
         globalQuestionNumber: questions.length + 1,
-        content: { transcriptId: "", question: "", image: "" },
+        group: { text: "", image: null, audio: null },
+        question: "",
         choices: [
           { label: "A", text: "", isCorrect: false },
           { label: "B", text: "", isCorrect: false },
           { label: "C", text: "", isCorrect: false },
           { label: "D", text: "", isCorrect: false },
         ],
-        correctAnswer: "",
+        correctAnswer: "A",
         explanation: "",
       },
     ]);
   };
 
-  // 🔹 Cập nhật thông tin câu hỏi
-  const updateQuestion = (index: number, key: keyof Question, value: any) => {
+  const handleRemoveQuestion = (index: number) => {
+    setQuestions(questions.filter((_, i) => i !== index));
+  };
+
+  const handleInputChange = (
+    index: number,
+    field: keyof Question,
+    value: any
+  ) => {
     const updated = [...questions];
-    (updated[index] as any)[key] = value;
+    (updated[index] as any)[field] = value;
     setQuestions(updated);
   };
 
-  // 🔹 Gửi danh sách câu hỏi
-  const handleSubmit = async () => {
+  const handleChoiceChange = (
+    qIndex: number,
+    cIndex: number,
+    field: keyof Choice,
+    value: any
+  ) => {
+    const updated = [...questions];
+    (updated[qIndex].choices[cIndex] as any)[field] = value;
+    setQuestions(updated);
+  };
+
+  const handleFileChange = (
+    qIndex: number,
+    field: "image" | "audio",
+    file: File | null
+  ) => {
+    const updated = [...questions];
+    updated[qIndex].group[field] = file;
+    setQuestions(updated);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     if (!selectedTestSlug || !selectedPartId) {
       alert("Vui lòng chọn đề thi và part!");
       return;
     }
+    const formData = new FormData();
+    formData.append("questions", JSON.stringify(questions));
+    formData.append("slug", selectedTestSlug);
+    formData.append("partId", selectedPartId);
+
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      console.log("question: ", q);
+    }
+    questions.forEach((q, index) => {
+      if (q.group?.image) formData.append(`image_${index}`, q.group.image);
+      if (q.group?.audio) formData.append(`audio_${index}`, q.group.audio);
+    });
 
     try {
-      await api.post(
-        `/test/${selectedTestSlug}/parts/${selectedPartId}/questions`,
-        { questions }
-      );
-      alert("Tạo danh sách câu hỏi thành công 🎉");
-    } catch (err) {
-      console.error(err);
-      alert("Lỗi khi tạo câu hỏi!");
+      const res = await api.post(`/question`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      alert("✅ Tạo câu hỏi thành công!");
+      console.log(res);
+    } catch (error) {
+      console.error(error);
+      alert("❌ Lỗi khi tạo câu hỏi!");
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">📝 Tạo danh sách câu hỏi TOEIC</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-6">
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+        <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">
+          📝 Tạo danh sách câu hỏi
+        </h1>
 
-      {/* 🔹 Chọn đề thi */}
-      <div className="mb-4">
-        <label className="block font-medium mb-1">Chọn đề thi</label>
-        <select
-          className="w-full border rounded p-2"
-          value={selectedTestSlug}
-          onChange={(e) => setSelectedTestSlug(e.target.value)}
-        >
-          <option value="">-- Chọn đề thi --</option>
-          {tests.map((test) => (
-            <option key={test.slug} value={test.slug}>
-              {test.title}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* 🔹 Chọn part */}
-      {parts.length > 0 && (
-        <div className="mb-4">
-          <label className="block font-medium mb-1">Chọn part</label>
-          <select
-            className="w-full border rounded p-2"
-            value={selectedPartId}
-            onChange={(e) => setSelectedPartId(e.target.value)}
-          >
-            <option value="">-- Chọn part --</option>
-            {parts.map((part) => (
-              <option key={part._id} value={part._id}>
-                {part.title} (Part {part.partNumber})
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* 🔹 Danh sách câu hỏi */}
-      <div className="space-y-6">
-        {questions.map((q, index) => (
-          <div
-            key={index}
-            className="border p-4 rounded-lg shadow-sm bg-white space-y-3"
-          >
-            <h3 className="font-semibold">Câu hỏi {index + 1}</h3>
-
-            <input
-              type="text"
-              className="w-full border rounded p-2"
-              placeholder="Tiêu đề câu hỏi"
-              value={q.title}
-              onChange={(e) => updateQuestion(index, "title", e.target.value)}
-            />
-
-            <input
-              type="text"
-              className="w-full border rounded p-2"
-              placeholder="Transcript ID (dành cho các câu hỏi thuộc part 3, 4, 6, 7)"
-              value={q.content.transcriptId}
-              onChange={(e) =>
-                updateQuestion(index, "content", {
-                  ...q.content,
-                  transcriptId: e.target.value,
-                })
-              }
-            />
-
-            <input
-              type="text"
-              className="w-full border rounded p-2"
-              placeholder="Nội dung câu hỏi (nếu có)"
-              value={q.content.question}
-              onChange={(e) =>
-                updateQuestion(index, "content", {
-                  ...q.content,
-                  question: e.target.value,
-                })
-              }
-            />
-
-            <input
-              type="text"
-              className="w-full border rounded p-2"
-              placeholder="Ảnh minh họa (URL)"
-              value={q.content.image}
-              onChange={(e) =>
-                updateQuestion(index, "content", {
-                  ...q.content,
-                  image: e.target.value,
-                })
-              }
-            />
-
-            {/* Lựa chọn */}
-            <div>
-              <h4 className="font-medium mb-1">Lựa chọn:</h4>
-              {q.choices.map((choice, cIndex) => (
-                <div key={cIndex} className="flex items-center gap-2 mb-1">
-                  <span className="w-6">{choice.label}.</span>
-                  <input
-                    type="text"
-                    className="flex-1 border rounded p-2"
-                    placeholder={`Đáp án ${choice.label}`}
-                    value={choice.text}
-                    onChange={(e) => {
-                      const newChoices = [...q.choices];
-                      newChoices[cIndex].text = e.target.value;
-                      updateQuestion(index, "choices", newChoices);
-                    }}
-                  />
-                  <input
-                    type="checkbox"
-                    checked={choice.isCorrect}
-                    onChange={(e) => {
-                      const newChoices = q.choices.map((ch) => ({
-                        ...ch,
-                        isCorrect: false,
-                      }));
-                      newChoices[cIndex].isCorrect = e.target.checked;
-                      updateQuestion(index, "choices", newChoices);
-                      updateQuestion(
-                        index,
-                        "correctAnswer",
-                        choice.label
-                      );
-                    }}
-                  />
-                  <span>Đúng</span>
-                </div>
+        {/* Dropdown chọn Test & Part */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Chọn đề thi
+            </label>
+            <select
+              className="w-full border rounded-lg p-2"
+              value={selectedTestSlug}
+              onChange={(e) => setSelectedTestSlug(e.target.value)}
+            >
+              <option value="">-- Chọn test --</option>
+              {tests.map((test) => (
+                <option key={test.slug} value={test.slug}>
+                  {test.title}
+                </option>
               ))}
-            </div>
-
-            <textarea
-              className="w-full border rounded p-2"
-              placeholder="Giải thích"
-              value={q.explanation}
-              onChange={(e) =>
-                updateQuestion(index, "explanation", e.target.value)
-              }
-            ></textarea>
+            </select>
           </div>
-        ))}
-      </div>
 
-      {/* 🔹 Thao tác */}
-      <div className="mt-6 flex gap-3">
-        <button
-          className="px-4 py-2 bg-blue-600 text-white rounded"
-          onClick={addQuestion}
-        >
-          + Thêm câu hỏi
-        </button>
-        <button
-          className="px-4 py-2 bg-green-600 text-white rounded"
-          onClick={handleSubmit}
-        >
-          🚀 Tạo danh sách câu hỏi
-        </button>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Part
+            </label>
+            <select
+              className="w-full border rounded-lg p-2"
+              value={selectedPartId}
+              onChange={(e) => setSelectedPartId(e.target.value)}
+            >
+              <option value="">-- Chọn part --</option>
+              {parts.map((part) => (
+                <option key={part._id} value={part._id}>
+                  {part.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-10">
+          {questions.map((q, i) => (
+            <div
+              key={i}
+              className="border border-blue-200 rounded-2xl p-6 shadow-sm bg-blue-50"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-blue-700">
+                  Câu hỏi #{i + 1}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveQuestion(i)}
+                  className="text-red-500 hover:underline"
+                >
+                  Xóa
+                </button>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="Tiêu đề"
+                  className="border rounded-lg p-2"
+                  value={q.title}
+                  onChange={(e) =>
+                    handleInputChange(i, "title", e.target.value)
+                  }
+                />
+
+                <input
+                  type="number"
+                  placeholder="Số câu hỏi"
+                  className="border rounded-lg p-2"
+                  value={q.questionNumber}
+                  onChange={(e) =>
+                    handleInputChange(i, "questionNumber", +e.target.value)
+                  }
+                />
+              </div>
+
+              <textarea
+                placeholder="Nội dung câu hỏi"
+                className="w-full border rounded-lg p-2 mt-4"
+                value={q.question}
+                onChange={(e) =>
+                  handleInputChange(i, "question", e.target.value)
+                }
+              />
+
+              {/* Image & Audio Upload */}
+              <div className="flex flex-wrap gap-4 mt-4">
+                <div>
+                  <label className="text-sm text-gray-600">Ảnh minh họa</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="block mt-1"
+                    onChange={(e) =>
+                      handleFileChange(i, "image", e.target.files?.[0] || null)
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-600">Âm thanh</label>
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    className="block mt-1"
+                    onChange={(e) =>
+                      handleFileChange(i, "audio", e.target.files?.[0] || null)
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Choices */}
+              <div className="mt-6 space-y-2">
+                <label className="font-semibold text-blue-700">
+                  Các lựa chọn:
+                </label>
+                {q.choices.map((c, ci) => (
+                  <div
+                    key={ci}
+                    className="flex items-center gap-2 bg-white rounded-lg p-2"
+                  >
+                    <span className="font-bold">{c.label}.</span>
+                    <input
+                      type="text"
+                      className="flex-1 border rounded-lg p-1"
+                      placeholder={`Nội dung đáp án ${c.label}`}
+                      value={c.text}
+                      onChange={(e) =>
+                        handleChoiceChange(i, ci, "text", e.target.value)
+                      }
+                    />
+                    <input
+                      type="radio"
+                      name={`correct-${i}`}
+                      checked={q.correctAnswer === c.label}
+                      onChange={() =>
+                        handleInputChange(i, "correctAnswer", c.label)
+                      }
+                    />
+                    <span className="text-sm text-gray-500">Đúng</span>
+                  </div>
+                ))}
+              </div>
+
+              <textarea
+                placeholder="Giải thích (tùy chọn)"
+                className="w-full border rounded-lg p-2 mt-4"
+                value={q.explanation}
+                onChange={(e) =>
+                  handleInputChange(i, "explanation", e.target.value)
+                }
+              />
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={handleAddQuestion}
+            className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition"
+          >
+            ➕ Thêm câu hỏi
+          </button>
+
+          <button
+            type="submit"
+            className="block w-full bg-blue-600 text-white py-3 rounded-2xl font-semibold hover:bg-blue-700 mt-6"
+          >
+            🚀 Lưu danh sách câu hỏi
+          </button>
+        </form>
       </div>
     </div>
   );
-};
-
-export default CreateQuestionPage;
+}

@@ -5,9 +5,10 @@ interface QuestionItemProps {
   isView: boolean;
   question: {
     _id: string;
+    question: string;
     globalQuestionNumber: number;
     partNumber?: number;
-    content: { question?: string; image?: string };
+    group: { audio?: string; image?: string, text?: string };
     choices: Choice[];
   };
   questionIndex: number;
@@ -73,9 +74,9 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
       id={`question-${question.globalQuestionNumber}`}
       className="mb-4 border-b border-gray-200 pb-4"
     >
-      {question.content.image && (
+      {question.group.image && (
         <img
-          src={question.content.image}
+          src={question.group.image}
           alt={`question-${question.globalQuestionNumber}`}
           className="mb-2 max-w-md w-full h-auto mx-auto rounded-lg"
         />
@@ -85,9 +86,9 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
         <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white font-bold text-sm mt-1">
           {question.globalQuestionNumber}
         </div>
-        {!shouldHideContent && question.content.question && (
+        {!shouldHideContent && question.question && (
           <div className="flex-1 pt-1">
-            <p className="text-gray-800">{question.content.question}</p>
+            <p className="text-gray-800">{question.question}</p>
           </div>
         )}
       </div>
