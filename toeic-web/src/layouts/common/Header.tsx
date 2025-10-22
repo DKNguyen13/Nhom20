@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import api, { setAccessToken } from "../../config/axios.js";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FaBell, FaHome, FaClipboardList, FaFileAlt, FaSearch, FaCrown, FaSignOutAlt, FaHistory, FaUser, FaComment, FaCheck, FaTimes } from "react-icons/fa";
+import { FaBell, FaUsers, FaHome, FaClipboardList, FaFileAlt, FaSearch, FaCrown, FaSignOutAlt, FaHistory, FaUser } from "react-icons/fa";
 import { useSocket } from "../../context/SocketContext.jsx";
 
 interface Notification {
@@ -28,7 +28,6 @@ interface PaginationInfo {
   hasNext: boolean;
   hasPrev: boolean;
 }
-
 const Header: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -181,9 +180,20 @@ const Header: React.FC = () => {
     { to: "/", label: "Trang chủ", icon: <FaHome className="text-xl" /> },
     { to: "/tests", label: "Thi thử", icon: <FaFileAlt className="text-xl" /> },
     { to: "/resource", label: "Tài nguyên", icon: <FaSearch className="text-xl" /> },
-    { to: "/practice", label: "Flashcards", icon: <FaClipboardList className="text-xl" /> },
+    { to: "/flashcard", label: "Flashcards", icon: <FaClipboardList className="text-xl" /> },
     { to: "/payment", label: "Premium", icon: <FaCrown className="text-xl text-yellow-500" />, premium: true },
   ];
+
+  const role = localStorage.getItem("role");
+
+  const filteredNavLinks = role === "admin"
+  ? [
+      { to: "/admin/dashboard", label: "Dashboard", icon: <FaCrown className="text-xl text-green-500" /> },
+      { to: "/admin/usermanagement", label: "Người dùng", icon: <FaUsers /> },
+      { to: "/flashcard", label: "Flashcards", icon: <FaClipboardList className="text-xl" /> },
+      { to: "/payment", label: "Premium", icon: <FaCrown className="text-xl text-yellow-500" />, premium: true },
+    ]
+  : navLinks;
 
   return (
     <header className="bg-white shadow-md px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-50">
@@ -194,7 +204,7 @@ const Header: React.FC = () => {
 
       {/* Navigation */}
       <nav className="flex items-center space-x-6">
-        {navLinks.map((link) => (
+        {filteredNavLinks.map((link) => (
           <Link key={link.to} to={link.to}
             className={`hidden sm:block relative transition-colors duration-200 ${
               location.pathname === link.to
@@ -387,7 +397,7 @@ const Header: React.FC = () => {
               )}
             </div>
           ) : (
-            <Link to="/login" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90 text-white px-4 py-2 rounded-full font-medium transition">
+            <Link to="/login" className="bg-blue-600 text-white font-semibold shadow-md hover:bg-blue-700 text-white px-4 py-2 rounded-full font-medium transition">
               Đăng nhập
             </Link>
           )}

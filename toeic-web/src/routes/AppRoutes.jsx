@@ -21,7 +21,6 @@ import PurchaseHistory from "../pages/Payment/PurchaseHistory";
 import PaymentForm from "../pages/Payment/PaymentForm/PaymentForm";
 import Resource from "../pages/Resource/Resource";
 import History from "../pages/History/History";
-//import { Practice } from "../pages/Practice/Practice";
 import ResourceDetail from "../pages/Resource/ResourceDetail";
 import DashboardPage from "../pages/Admin/Dashboard/Dashboard";
 import UserManagementPage from "../pages/Admin/UserManagement/UserManagement";
@@ -232,7 +231,7 @@ const routes = [
     ),
   },
   {
-    path: "/practice",
+    path: "/flashcard",
     element: (
       <MainLayout>
         <FlashcardPage />

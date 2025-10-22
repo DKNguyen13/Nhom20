@@ -128,11 +128,11 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-tr from-blue-50 via-white to-pink-50 p-4">
+    <div className="flex items-center justify-center min-h-screen p-4">
       <div className="flex flex-col md:flex-row max-w-5xl bg-white shadow-2xl rounded-xl overflow-hidden w-full">
 
         {/* Left Side */}
-        <div className="hidden md:flex flex-1 bg-gradient-to-tr from-blue-400 to-purple-500 items-center justify-center p-8">
+        <div className="hidden md:flex flex-1 bg-gradient-to-br from-blue-400 to-blue-700 items-center justify-center p-8">
           <div className="text-white text-center">
             <h2 className="text-3xl font-bold mb-6">Chào mừng bạn!</h2>
             <p className="mb-4">
@@ -193,51 +193,54 @@ const Register: React.FC = () => {
               />
             </div>
 
-            {/* Phone */}
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Số điện thoại</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "");
-                  setPhone(value);
-                  setPhoneError(
-                    value.length < 10 || value.length > 11
-                      ? "Số điện thoại phải từ 10 đến 11 chữ số"
-                      : ""
-                  );
-                }}
-                placeholder="Nhập số điện thoại"
-                maxLength={11}
-                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 shadow-sm ${
-                  phoneError
-                    ? "border-red-500 focus:ring-red-400"
-                    : "border-gray-300 focus:ring-blue-500"
-                }`}
-                required
-              />
-              {phoneError && <p className="text-red-500 text-sm mt-1">{phoneError}</p>}
-            </div>
+           {/* Phone & DOB in one row */}
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Phone */}
+              <div className="flex-1">
+                <label className="block text-gray-700 font-medium mb-1">Số điện thoại</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "");
+                    setPhone(value);
+                    setPhoneError(
+                      value.length < 10 || value.length > 11
+                        ? "Số điện thoại phải từ 10 đến 11 chữ số"
+                        : ""
+                    );
+                  }}
+                  placeholder="Nhập số điện thoại"
+                  maxLength={11}
+                  className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 shadow-sm ${
+                    phoneError
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-blue-500"
+                  }`}
+                  required
+                />
+                {phoneError && <p className="text-red-500 text-sm mt-1">{phoneError}</p>}
+              </div>
 
-            {/* DOB with DatePicker */}
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Ngày sinh</label>
-              <DatePicker
-                selected={dob}
-                onChange={(date) => setDob(date)}
-                maxDate={new Date()}
-                showYearDropdown
-                showMonthDropdown
-                placeholderText="Chọn ngày sinh"
-                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 shadow-sm ${
-                  dobError
-                    ? "border-red-500 focus:ring-red-400"
-                    : "border-gray-300 focus:ring-blue-500"
-                }`}
-                dateFormat="dd/MM/yyyy"
-              />
-              {dobError && <p className="text-red-500 text-sm mt-1">{dobError}</p>}
+              {/* DOB */}
+              <div className="flex-1">
+                <label className="block text-gray-700 font-medium mb-1">Ngày sinh</label>
+                <DatePicker
+                  selected={dob}
+                  onChange={(date) => setDob(date)}
+                  maxDate={new Date()}
+                  showYearDropdown
+                  showMonthDropdown
+                  placeholderText="Chọn ngày sinh"
+                  className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 shadow-sm ${
+                    dobError
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-blue-500"
+                  }`}
+                  dateFormat="dd/MM/yyyy"
+                />
+                {dobError && <p className="text-red-500 text-sm mt-1">{dobError}</p>}
+              </div>
             </div>
 
             {/* Password & Confirm Password */}
@@ -315,7 +318,7 @@ const Register: React.FC = () => {
                   className={`px-4 rounded-lg text-white font-medium transition ${
                     countdown > 0
                       ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90"
+                      : "bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-200 flex items-center justify-center"
                   }`}>
                   {countdown > 0 ? `Gửi lại (${countdown}s)` : "Gửi OTP"}
                 </button>
@@ -331,7 +334,7 @@ const Register: React.FC = () => {
 
             {/* Submit */}
             <button type="submit"
-              className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-lg shadow-lg hover:opacity-90 transition">
+              className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-200 flex items-center justify-center">
               Đăng ký
             </button>
           </form>

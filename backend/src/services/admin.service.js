@@ -39,11 +39,11 @@ export const getRevenueStats = async ({ type = "month", year }) => {
 
     let groupBy = {};
     if (type === "year") {
-        groupBy = { year: { $year: "$createdAt" } };
+        groupBy = { year: { $year: "$startDate" } };
     } else {
         groupBy = { 
-        year: { $year: "$createdAt" },
-        month: { $month: "$createdAt" }
+        year: { $year: "$startDate" },
+        month: { $month: "$startDate" }
         };
     }
 
@@ -65,4 +65,31 @@ export const getRevenueStats = async ({ type = "month", year }) => {
         totalRevenue: s.totalRevenue,
         count: s.count
     }));
+};
+
+export const getUserStats = async () => {
+  try {
+    const totalUsers = await User.countDocuments();
+
+    const yesterdayStart = new Date();
+    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+    yesterdayStart.setHours(0, 0, 0, 0);
+
+    const yesterdayEnd = new Date();
+    yesterdayEnd.setDate(yesterdayEnd.getDate() - 1);
+    yesterdayEnd.setHours(23, 59, 59, 999);
+
+    const usersBeforeYesterday = await User.countDocuments({ createdAt: { $lt: yesterdayStart } });
+    
+    const usersYesterday = await User.countDocuments({
+      createdAt: { $gte: yesterdayStart, $lte: yesterdayEnd }
+    });
+
+    const percentChange = usersBeforeYesterday ? ((usersYesterday / usersBeforeYesterday) * 100).toFixed(1) : 0;
+
+    return { totalUsers, percentChange: parseFloat(percentChange)};
+  } catch (err) {
+    console.error('[Stats] Error getting user stats:', err);
+    return { totalUsers: 0, percentChange: 0 };
+  }
 };

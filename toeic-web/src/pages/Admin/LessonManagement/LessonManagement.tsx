@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useCallback } from "react";
-import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
-import { FaEllipsisH, FaTimes, FaUpload } from "react-icons/fa";
 import { createPortal } from "react-dom";
-import { toast, ToastContainer } from "react-toastify";
 import api from "../../../config/axios";
 import "react-toastify/dist/ReactToastify.css";
+import { toast, ToastContainer } from "react-toastify";
+import React, { useEffect, useState, useCallback } from "react";
+import { FaEllipsisH, FaTimes, FaUpload } from "react-icons/fa";
+import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
 
 interface Lesson {
   _id: string;
@@ -22,7 +22,6 @@ const ITEMS_PER_PAGE = 10;
 const LessonManagementPage: React.FC = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [menuState, setMenuState] = useState<{ lessonId: string; coords: DOMRect } | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -31,6 +30,7 @@ const LessonManagementPage: React.FC = () => {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [editFile, setEditFile] = useState<File | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [menuState, setMenuState] = useState<{ lessonId: string; coords: DOMRect } | null>(null);
 
   // Fetch lessons
   const fetchLessons = useCallback(async () => {
@@ -171,7 +171,6 @@ const LessonManagementPage: React.FC = () => {
       setEditFile(null);
       setEditingLesson(null);
     } catch (err) {
-      console.error(err);
       toast.error("Cập nhật thất bại!");
     } finally {
       setIsUpdating(false);

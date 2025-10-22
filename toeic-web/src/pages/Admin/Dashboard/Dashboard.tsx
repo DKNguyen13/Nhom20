@@ -1,9 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { FaUsers, FaFileAlt, FaChartLine } from "react-icons/fa";
-import { MdOutlineCloudDone } from "react-icons/md";
-import { Line } from "react-chartjs-2";
-import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
 import api from "../../../config/axios";
+import { Line } from "react-chartjs-2";
+import React, { useEffect, useState } from "react";
+import { MdOutlineCloudDone } from "react-icons/md";
+import { FaUsers, FaFileAlt, FaChartLine } from "react-icons/fa";
+import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
+import { Chart as ChartJS, CategoryScale, LinearScale, ArcElement, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const DashboardPage: React.FC = () => {
   const [revenueData, setRevenueData] = useState<any[]>([]);
@@ -45,12 +56,20 @@ const DashboardPage: React.FC = () => {
   }, [selectedYear]);
 
   // Labels là các tháng
+  const labels = Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`);
+
+    const dataByMonth = labels.map((label, index) => {
+    const monthNumber = index + 1;
+    const monthData = revenueData.find((item) => item.month === monthNumber);
+    return monthData ? monthData.totalRevenue : 0;
+  });
+
   const chartData = {
-    labels: revenueData.map((item) => `Tháng ${item.month}`),
+    labels,
     datasets: [
       {
         label: `Doanh thu năm ${selectedYear} (VND)`,
-        data: revenueData.map((item) => item.totalRevenue),
+        data: dataByMonth,
         borderColor: "#4A90E2",
         fill: false,
         tension: 0.1,
@@ -84,15 +103,12 @@ const DashboardPage: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 p-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Dashboard</h1>
-
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           {/* Card 1 */}
           <div className="bg-white p-6 rounded-lg shadow flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-700">
-                Tổng số người dùng
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-700">Tổng số người dùng</h2>
               <p className="text-2xl font-bold text-gray-800">40,689</p>
               <p className="text-green-600">+8.5% so với hôm qua</p>
             </div>
@@ -112,28 +128,19 @@ const DashboardPage: React.FC = () => {
           </div>
 
           {/* Card 3 - Doanh thu */}
-		<div className="bg-white p-6 rounded-lg shadow flex items-center justify-between">
-		<div>
-			<h2 className="text-xl font-semibold text-gray-700">
-			Tổng doanh thu năm {selectedYear}
-			</h2>
-			<p className="text-2xl font-bold text-gray-800">
-			{totalRevenue.toLocaleString("vi-VN")} đ
-			</p>
-			<p className="text-green-600">
-			Doanh thu chi tiết theo tháng bên dưới
-			</p>
-		</div>
-		<FaChartLine className="text-green-600 text-4xl" />
-		</div>
-
+          <div className="bg-white p-6 rounded-lg shadow flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-700">Tổng doanh thu năm {selectedYear}</h2>
+            <p className="text-2xl font-bold text-gray-800">{totalRevenue.toLocaleString("vi-VN")} đ</p>
+            <p className="text-green-600">Doanh thu chi tiết theo tháng bên dưới</p>
+          </div>
+          <FaChartLine className="text-green-600 text-4xl" />
+          </div>
 
           {/* Card 4 */}
           <div className="bg-white p-6 rounded-lg shadow flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-700">
-                Tỷ lệ hoàn thành bài
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-700">Tỷ lệ hoàn thành bài</h2>
               <p className="text-2xl font-bold text-gray-800">80%</p>
               <p className="text-green-600">+1.8% so với hôm qua</p>
             </div>
@@ -144,15 +151,10 @@ const DashboardPage: React.FC = () => {
         {/* Biểu đồ doanh thu */}
         <div className="bg-white p-6 rounded-lg shadow mb-8">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Chi tiết doanh thu theo tháng
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-800">Chi tiết doanh thu theo tháng</h2>
             {/* Dropdown chọn năm */}
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="border rounded px-3 py-2"
-            >
+            <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="border rounded px-3 py-2">
               {years.map((year) => (
                 <option key={year} value={year}>
                   {year}

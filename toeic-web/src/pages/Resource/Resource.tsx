@@ -51,9 +51,7 @@ const ResourcePage: React.FC = () => {
 
   const handlePageChange = (page: number) => setCurrentPage(page);
 
-  if (loading) {
-    return <LoadingSkeleton />;
-  }
+  if (loading) return <LoadingSkeleton/>;
 
   return (
     <div className="min-h-screen flex flex-col">
