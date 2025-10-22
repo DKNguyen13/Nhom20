@@ -1,5 +1,7 @@
 import Comment from "../models/comment.model.js";
 import { checkToxic } from "../utils/predictToxic.js";
+import NotificationService from "../services/notification.service.js";
+import userModel from "../models/user.model.js";
 
 // Convert list of comments
 function convertComments(comments, id) {
@@ -110,7 +112,9 @@ export const deleteComment = async (req, res, next) => {
 
 export const replyComment = async (req, res, next) => {
     try {
-        const user = req.user;
+        const userId = req.user.id;
+        const user = await userModel.findById(userId);
+        console.log('User: ', user);
         const parentCommentId = req.params.id;
         const reply = req.body;
         console.log("Replying to comment ID:", parentCommentId);
@@ -122,11 +126,11 @@ export const replyComment = async (req, res, next) => {
             return res.status(400).json({ message: "Nội dung chứa từ bậy bạ! Vui lòng kiểm tra lại!" });
         }
 
-        const parentComment = await Comment.findById(parentCommentId);
+        const parentComment = await Comment.findById(parentCommentId).populate("exam", "title slug");
         if (!parentComment) {
             return res.status(404).json({ error: "Parent comment not found" });
         }
-        reply.author = user.id;
+        reply.author = user._id;
         reply.exam = parentComment.exam;
         if (parentComment.isParent === false) {
             reply.parent = parentComment.parent;
@@ -137,6 +141,35 @@ export const replyComment = async (req, res, next) => {
         reply.isParent = false;
         let savedReply = await Comment.create(reply);
         savedReply = await savedReply.populate("author", "fullname avatarUrl");
+
+
+        if (parentComment.author._id.toString() !== user.id.toString()) {
+            try {
+                // Lấy notification service instance
+                const notificationService = req.app.get('notificationService');
+
+                if (notificationService) {
+                    await notificationService.sendReplyCommentNotification({
+                        recipientId: parentComment.author._id,
+                        senderId: user.id,
+                        senderName: user.fullname,
+                        replyContent: replyText,
+                        commentContent: parentComment.content || parentComment.comment,
+                        postId: parentComment.exam.slug,
+                        postTitle: parentComment.exam.title || 'Bài kiểm tra',
+                        commentId: parentCommentId,
+                        replyId: savedReply._id.toString(),
+                        avatarUrl: user.avatarUrl
+                    });
+
+                    console.log(`✓ Notification sent to user ${parentComment.author._id}`);
+                }
+            } catch (notifError) {
+                // Log lỗi nhưng không fail request
+                console.error('Error sending notification:', notifError);
+            }
+        }
+
         res.json(convertComment(savedReply, user.id));
     }
     catch (error) {
