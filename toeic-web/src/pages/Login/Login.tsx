@@ -61,7 +61,7 @@ const Login: React.FC = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="flex max-w-4xl w-full bg-white rounded-2xl shadow-xl overflow-hidden">
         {/* Left Side */}
-        <div className="flex-1 p-10 bg-gradient-to-br from-blue-600 to-blue-800 text-white max-sm:hidden">
+        <div className="flex-1 p-10 bg-gradient-to-br from-blue-500 to-blue-800 text-white max-sm:hidden">
           <h2 className="text-3xl font-bold mb-4">TOEIC MASTER</h2>
           <p className="text-lg mb-6">Chinh phục TOEIC với lộ trình học tập chuyên sâu và bài thi chất lượng!</p>
           <img
@@ -143,8 +143,7 @@ const Login: React.FC = () => {
                 disabled={isLoading}
                 className={`w-full py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-200 flex items-center justify-center ${
                   isLoading ? "opacity-70 cursor-not-allowed" : ""
-                }`}
-              >
+                }`}>
                 {isLoading ? (
                   <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
