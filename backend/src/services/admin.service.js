@@ -39,11 +39,11 @@ export const getRevenueStats = async ({ type = "month", year }) => {
 
     let groupBy = {};
     if (type === "year") {
-        groupBy = { year: { $year: "$createdAt" } };
+        groupBy = { year: { $year: "$startDate" } };
     } else {
         groupBy = { 
-        year: { $year: "$createdAt" },
-        month: { $month: "$createdAt" }
+        year: { $year: "$startDate" },
+        month: { $month: "$startDate" }
         };
     }
 

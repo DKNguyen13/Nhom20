@@ -10,9 +10,7 @@ export const searchUsers = async (req, res) => {
         const query = req.query.q || "";
         const index = meiliClient.index("users");
 
-        const result = await index.search(query, {
-        limit: 20,
-        });
+        const result = await index.search(query, { limit: 20});
         const filteredHits = result.hits.filter(u => u.role !== "admin");
         return success(res, "", {hits: result.hits});
     } catch (err) {
@@ -25,10 +23,8 @@ export const searchUsers = async (req, res) => {
 export const getRevenueStatsController = async (req, res) => {
     try {
         if (req.user.role !== "admin") return error(res, "Không có quyền truy cập", 403);
-
         const { type, year } = req.query;
         const data = await AdminService.getRevenueStats({ type, year });
-
         return success(res, "Thống kê doanh thu", data);
     } catch (err) {
         console.log(err.message);
@@ -39,15 +35,11 @@ export const getRevenueStatsController = async (req, res) => {
 //Admin: Get all users (with pagination, exclude admins)
 export const getAllUsersController = async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-        return error(res, 'Không có quyền truy cập', 403);
-    }
-
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-
-    const data = await AdminService.getAllUsers(page, limit);
-    return success(res, 'Danh sách người dùng', data);
+        if (req.user.role !== 'admin') return error(res, 'Không có quyền truy cập', 403);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const data = await AdminService.getAllUsers(page, limit);
+        return success(res, 'Danh sách người dùng', data);
     } catch (err) {
         return error(res, err.message, 500);
     }
@@ -56,9 +48,7 @@ export const getAllUsersController = async (req, res) => {
 //Inactivate user (admin only)
 export const changeActivateUserController = async (req, res) => {
     try {
-        if (req.user.role !== 'admin') {
-            return error(res, 'Không có quyền truy cập', 403);
-        }
+        if (req.user.role !== 'admin') return error(res, 'Không có quyền truy cập', 403);
         const { email } = req.body;
         const message = await AdminService.changeActivateUser(email);
         return success(res, message);

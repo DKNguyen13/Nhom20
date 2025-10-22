@@ -72,6 +72,7 @@ const Header: React.FC = () => {
       { to: "/admin/dashboard", label: "Dashboard", icon: <FaCrown className="text-xl text-green-500" /> },
       { to: "/admin/usermanagement", label: "Người dùng", icon: <FaUsers /> },
       { to: "/flashcard", label: "Flashcards", icon: <FaClipboardList className="text-xl" /> },
+      { to: "/payment", label: "Premium", icon: <FaCrown className="text-xl text-yellow-500" />, premium: true },
     ]
   : navLinks;
 
