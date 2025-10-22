@@ -61,7 +61,7 @@ const Header: React.FC = () => {
     { to: "/", label: "Trang chủ", icon: <FaHome className="text-xl" /> },
     { to: "/tests", label: "Thi thử", icon: <FaFileAlt className="text-xl" /> },
     { to: "/resource", label: "Tài nguyên", icon: <FaSearch className="text-xl" /> },
-    { to: "/practice", label: "Flashcards", icon: <FaClipboardList className="text-xl" /> },
+    { to: "/flashcard", label: "Flashcards", icon: <FaClipboardList className="text-xl" /> },
     { to: "/payment", label: "Premium", icon: <FaCrown className="text-xl text-yellow-500" />, premium: true },
   ];
 
