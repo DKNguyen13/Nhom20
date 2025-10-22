@@ -38,6 +38,7 @@ const Login: React.FC = () => {
         localStorage.setItem("phone", user.phone);
         localStorage.setItem("avatarUrl", user.avatarUrl);
         localStorage.setItem("role", user.role);
+        localStorage.setItem("userId", user.id);
         window.dispatchEvent(new Event("userUpdated"));
 
         if (user.role === "admin") {
