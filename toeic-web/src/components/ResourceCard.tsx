@@ -1,7 +1,7 @@
 import React from "react";
-import { FaEye, FaHeart, FaBookOpen, FaPen, FaCog, FaVideo } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
 import api from "../config/axios";
+import { useNavigate } from "react-router-dom";
+import { FaEye, FaHeart, FaBookOpen, FaPen, FaCog, FaVideo } from "react-icons/fa";
 
 interface ResourceCardProps {
   id: string | number;
@@ -37,7 +37,6 @@ const typeConfig: Record<string, { label: string; icon: JSX.Element; classes: st
 
 const ResourceCard: React.FC<ResourceCardProps> = ({ id, imageSrc, title, views, likes, type }) => {
   const navigate = useNavigate();
-
   const handleViewDetail = async () => {
     try {
       await api.patch(`/lessons/${id}/views`);
@@ -51,9 +50,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ id, imageSrc, title, views,
   return (
     <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-5 flex flex-col transform hover:-translate-y-1">
       <div className="relative overflow-hidden rounded-lg mb-4">
-        <img
-          src={imageSrc}
-          alt={title}
+        <img src={imageSrc} alt={title}
           className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
         />
       </div>
@@ -62,7 +59,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ id, imageSrc, title, views,
 
       {type && (
         <div className={`inline-flex items-center text-sm font-medium px-3 py-1.5 rounded-full mb-4 ${typeConfig[type].classes}`}>
-          {typeConfig[type].icon}
+          {typeConfig[type].icon} 
           {typeConfig[type].label}
         </div>
       )}

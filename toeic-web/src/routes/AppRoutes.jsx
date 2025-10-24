@@ -10,7 +10,6 @@ import NotFound from "../pages/NotFound/NotFound";
 // Layout
 import MainLayout from "../layouts/MainLayout";
 import Register from "../pages/Register/Register";
-import { MockTest } from "../pages/MockTest/MockTest";
 import { Test } from "../pages/MockTest/Test";
 import ForgotPassword from "../pages/ForgotPassword/ForgotPassword";
 import ResetPassword from "../pages/ForgotPassword/ResetPassword";
@@ -22,7 +21,6 @@ import PurchaseHistory from "../pages/Payment/PurchaseHistory";
 import PaymentForm from "../pages/Payment/PaymentForm/PaymentForm";
 import Resource from "../pages/Resource/Resource";
 import History from "../pages/History/History";
-//import { Practice } from "../pages/Practice/Practice";
 import ResourceDetail from "../pages/Resource/ResourceDetail";
 import DashboardPage from "../pages/Admin/Dashboard/Dashboard";
 import UserManagementPage from "../pages/Admin/UserManagement/UserManagement";
@@ -36,6 +34,10 @@ import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 import ResultPage from "../pages/MockTest/result/ResultPage";
 import FlashcardPage from "../pages/FlashCard/FlashcardPage";
 import FlashcardListPage from "../pages/FlashCard/FlashcardListPage";
+import TestList from "../pages/MockTest/TestList";
+import CreateTestPage from "../pages/Admin/TestManagement/CreateTestPage/CreateTestPage";
+import CreatePartPage from "../pages/Admin/TestManagement/CreatePartPage/CreatePartPage";
+import CreateQuestionPage from "../pages/Admin/TestManagement/CreateQuestionPage/CreateQuestionPage";
 
 const RefreshTokenLoader = () => {
   useRefreshTokenOnLoad();
@@ -101,7 +103,7 @@ const routes = [
     path: "/tests",
     element: (
       <MainLayout>
-        <MockTest />
+        <TestList limit={9} showPagination={true} />
       </MainLayout>
     ),
   },
@@ -232,7 +234,7 @@ const routes = [
     ),
   },
   {
-    path: "/practice",
+    path: "/flashcard",
     element: (
       <MainLayout>
         <FlashcardPage />
@@ -266,6 +268,16 @@ const routes = [
     ),
   },
   {
+    path: "/admin/lessonmanagement",
+    element: (
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <MainLayout>
+          <LessonManagementPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: "/admin/testmanagement",
     element: (
       <ProtectedRoute allowedRoles={["admin"]}>
@@ -283,6 +295,30 @@ const routes = [
           <VipManagement />
         </MainLayout>
       </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/create-test",
+    element: (
+      <MainLayout>
+        <CreateTestPage />
+      </MainLayout>
+    ),
+  },
+  {
+    path: "/admin/create-part",
+    element: (
+      <MainLayout>
+        <CreatePartPage />
+      </MainLayout>
+    ),
+  },
+  {
+    path: "/admin/create-questions",
+    element: (
+      <MainLayout>
+        <CreateQuestionPage />
+      </MainLayout>
     ),
   },
   {

@@ -2,30 +2,36 @@ import { useEffect, useState } from "react";
 import { getTestDetail } from "../service/testService";
 import { useNavigate } from "react-router-dom";
 import { startSession } from "../service/sessionService";
+import { isLoggedIn } from "../config/axios";
 
 export const useTestData = (slug) => {
-    const [testData, setTestData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+  const [testData, setTestData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchTestData = async () => {
-            try {
-                const data = await getTestDetail(slug); //slug
-                setTestData(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (slug) {
-            fetchTestData();
+  useEffect(() => {
+    const fetchTestData = async () => {
+      try {
+        setLoading(true);
+        const data = await getTestDetail(slug); //slug
+        if (!data) {
+          setError('Không tìm thấy bài thi');
+          return;
         }
-    }, [slug]);
+        setTestData(data);
+      } catch (err) {
+        setError('Không tìm thấy bài thi');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return { testData, loading, error };
+    if (slug) {
+      fetchTestData();
+    }
+  }, [slug]);
+
+  return { testData, loading, error };
 }
 
 
@@ -36,9 +42,16 @@ export const useStartTest = (testData) => {
   const [selectedTime, setSelectedTime] = useState(0);
   const [sessionLoading, setSessionLoading] = useState(false);
   const [sessionError, setSessionError] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleStartPractice = async (mode = "practice") => {
     if (!testData) return;
+
+    // check login
+    if (!isLoggedIn()) {
+      setShowLoginModal(true);
+      return;
+    }
 
     const payload = {
       testId: testData.data.test._id,
@@ -69,5 +82,9 @@ export const useStartTest = (testData) => {
     handleStartPractice,
     sessionLoading,
     sessionError,
+    showLoginModal,
+    setShowLoginModal,
   };
 }
+
+

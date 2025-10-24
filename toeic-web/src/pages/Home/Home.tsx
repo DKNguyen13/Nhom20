@@ -6,6 +6,7 @@ import { toeicTest } from "../../data/toeicMockData";
 import { NotepadText, CircleUserRound, NotebookPen } from 'lucide-react';
 import BannerSlider from "./component/BannerSlider";
 
+import TestList from "../MockTest/TestList";
 export interface Exam {
   id: number;
   title: string;
@@ -16,7 +17,6 @@ export interface Exam {
 }
 
 const Home = ({ setIsOpen }) => {
-  const examData = [toeicTest];
   return (
     <div className="w-full">
       {/* Hero Section */}
@@ -120,22 +120,11 @@ const Home = ({ setIsOpen }) => {
           <h1 className="w-full text-2xl font-bold text-gray-900 justify-start text-start items-start mb-3">
             Luyện tập
           </h1>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 gap-y-12 mb-12 max-w-[1000px] justify-center items-center">
-            {examData.map((item, index) => (
-              <ExamCard
-                id={item.id}
-                title={item.title}
-                image={item.image}
-                questions={item.questions}
-                students={item.students}
-                level={item.level}
-              />
-            ))}
-          </div>
+          {/* Test list */}
+          <TestList limit={4} showPagination={false} compact={true} />
         </div>
 
-        <Link to={"/mock-test"}>
+        <Link to={"/tests"}>
           <button className="mt-6 px-8 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-700 hover:text-white border border-blue-600 focus:outline-none w-full max-w-[300px] flex mb-12">
             <div className=" justify-center w-full flex flex-row items-center">
               Xem thêm
@@ -156,7 +145,7 @@ const Home = ({ setIsOpen }) => {
             thật, giúp bạn làm quen với cấu trúc đề và đánh giá chính xác trình
             độ của mình.
           </p>
-          <Link to={"/mock-test"}>
+          <Link to={"/tests"}>
             <button className="mt-6 px-8 py-2 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 focus:outline-none">
               Thi Thử Ngay
             </button>

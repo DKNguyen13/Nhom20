@@ -6,7 +6,8 @@ import { success, error } from '../utils/response.js';
 // [GET] /api/test/:slug/parts
 export const getAllParts = async (req, res) => {
     try {
-        const { slug } = req.params;
+        const { slug } = req.query;
+        console.log(slug);
         const test = await Test.findOne({ slug });
 
         if (!test) {
@@ -22,7 +23,7 @@ export const getAllParts = async (req, res) => {
                 const questionCount = await Question.countDocuments({ partId: part._id });
                 return {
                     ...part.toObject(),
-                    questionCount
+                    questionCount,
                 }
             })
         )
@@ -34,8 +35,8 @@ export const getAllParts = async (req, res) => {
                 partWithCounts
             });
 
-    } catch (error) {
-        return error(res, 'Get all test error');
+    } catch (err) {
+        return error(res, 'Get all test error', 500, err.message);
     }
 };
 
@@ -79,42 +80,89 @@ export const getPartById = async (req, res) => {
     }
 };
 
-// [POST] /api/test/:slug/parts
+// [POST] /api/parts
 export const createPart = async (req, res) => {
     try {
-        // validate input
+        // --- 1️⃣ Lấy dữ liệu từ body ---
+        const { partData } = req.body;
 
-        const { slug } = req.params;
+        if (!partData) {
+            return error(res, "Thiếu dữ liệu partData trong body", 400);
+        }
 
-        // Check test exists
+        // Nếu client gửi dạng FormData thì parse JSON
+        const parsedData = typeof partData === "string" ? JSON.parse(partData) : partData;
+
+        const { slug, partNumber, questions, ...optionalData } = parsedData;
+
+        // --- 2️⃣ Validate cơ bản ---
+        if (!slug) {
+            return error(res, "Chưa chọn đề thi", 400);
+        }
+
+        const number = Number(partNumber);
+        if (!number || number < 1 || number > 7) {
+            return error(res, "Part number phải nằm trong khoảng 1 - 7", 400);
+        }
+
+        // --- 3️⃣ Kiểm tra đề thi tồn tại ---
         const test = await Test.findOne({ slug });
         if (!test) {
-            return error(res, 'Test not found');
+            return error(res, "Không tìm thấy đề thi", 404);
         }
 
-        // Check partNumber already exists for this test
+        // --- 4️⃣ Kiểm tra part đã tồn tại ---
         const existingPart = await Part.findOne({
             testId: test._id,
-            partNumber: req.body.partNumber
+            partNumber: number,
         });
-
         if (existingPart) {
-            return error(res, 'Part number already exists for this test');
+            return error(res, `Part ${number} đã tồn tại trong đề thi này`, 400);
         }
 
-        // create Part
+        // --- 5️⃣ Kiểm tra số lượng câu hỏi theo Part ---
+        const questionLimits = {
+            1: 6,
+            2: 25,
+            3: 39,
+            4: 30,
+            5: 30,
+            6: 16,
+            7: 54,
+        };
+        const expectedCount = questionLimits[number];
+
+        if (questions && Array.isArray(questions)) {
+            if (questions.length !== expectedCount) {
+                return error(
+                    res,
+                    `❌ Part ${number} yêu cầu ${expectedCount} câu hỏi, hiện tại bạn gửi ${questions.length}`,
+                    400
+                );
+            }
+        }
+
+        // --- 6️⃣ Xác định category dựa theo partNumber ---
+        const category = number <= 4 ? "Listening" : "Reading";
+
+        // --- 7️⃣ Tạo đối tượng Part ---
         const part = new Part({
-            ...req.body,
-            testId: test._id
+            testId: test._id,
+            title: `Part ${number}`,
+            partNumber: number,
+            category,
+            totalQuestions: expectedCount,
+            ...optionalData,
         });
 
         await part.save();
 
-        return success(res, 'Create part success', { part });
+        return success(res, "✅ Tạo Part thành công", { part });
     } catch (err) {
-        return error(res, 'error Create Test');
+        return error(res, "Lỗi khi tạo Part", 500, err.message);
     }
 };
+
 
 // [PUT] /api/test/:slug/parts/:partId
 export const updatePart = async (req, res) => {

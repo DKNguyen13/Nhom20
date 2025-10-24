@@ -18,7 +18,7 @@ export const startSession = async (req, res) => {
         const test = await Test.findById(testId);
 
         if (!test || !test.isActive) {
-            return error(res, 'Test not found or not active');
+            return error(res, 'Test not found or not active', 500);
         }
 
         // Check for active sessions
@@ -29,7 +29,7 @@ export const startSession = async (req, res) => {
         });
 
         if (activeSession) {
-            return error(res, 'You already have an active session for this test');
+            return error(res, 'You already have an active session for this test', 500);
         }
 
         // Detemine parts to include
@@ -55,7 +55,7 @@ export const startSession = async (req, res) => {
             sessionType,
             testConfig: {
                 selectedParts: parts,
-                timeLimit: timeLimit || test.defaultConfig.timeLimit,
+                timeLimit: timeLimit || 0,
                 allowReview: true
             },
             progress: {
@@ -90,7 +90,7 @@ export const startSession = async (req, res) => {
             totalQuestions
         });
     } catch (err) {
-        return error(res, 'Error starting session', err.message);
+        return error(res, 'Error starting session', 500, err.message);
     }
 };
 
@@ -137,7 +137,7 @@ export const getSessionQuestions = async (req, res) => {
             partNumber: { $in: session.testConfig.selectedParts }
         })
             .sort({ globalQuestionNumber: 1 })
-            .select('content choices questionNumber globalQuestionNumber partNumber');
+            .select('question group choices questionNumber globalQuestionNumber partNumber');
 
         // Get exists answers from UserAnswer
         const userAnswer = await UserAnswer.findOne({
@@ -638,7 +638,7 @@ export const getSessionResults = async (req, res) => {
             userId
         }).populate({
             path: 'questions.questionId',
-            select: 'content choices correctAnswer explanation partNumber questionNumber globalQuestionNumber'
+            select: 'question group choices correctAnswer explanation partNumber questionNumber globalQuestionNumber'
         });
 
         const answersSorted = userAnswer?.questions.sort((a, b) => {
@@ -779,6 +779,23 @@ const calculateSessionResults = async function (sessionId, userId) {
             });
         }
     }
+
+
+    if (session.sessionType === "practice") {
+    return {
+      totalQuestions,
+      answeredCount,
+      correctCount,
+      incorrectCount,
+      skippedCount,
+      accuracy,
+      listeningScore: 0,
+      readingScore: 0,
+      totalScore: 0,
+      partResults,
+    };
+  }
+
 
     // Calculate TOEIC scores if full test
     let listeningScore = 0;

@@ -36,6 +36,7 @@ const testSchema = new mongoose.Schema({
   // Thống kê
   statistics: {
     totalAttempts: { type: Number, default: 0 },
+    totalComments: {type: Number, default: 0},
     completedAttempts: { type: Number, default: 0 },
     averageScore: { type: Number, default: 0 },
     averageAccuracy: { type: Number, default: 0 },
@@ -53,6 +54,7 @@ const testSchema = new mongoose.Schema({
       type: String,
       required: true,
       enum: ["ETS", "Custom", "Imported", "Community"],
+      default: "Custom"
     },
     version: { type: String },
     difficulty: { type: Number, min: 1, max: 10 },

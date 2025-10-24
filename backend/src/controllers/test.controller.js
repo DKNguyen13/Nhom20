@@ -2,15 +2,33 @@ import Test from "../models/test.model.js";
 import Part from "../models/part.model.js";
 import Question from "../models/question.model.js";
 import { success, error } from '../utils/response.js';
+import { uploadToCloudinary } from "../services/cloudinary.service.js";
 
 // [GET] /api/test
 export const getAllTest = async (req, res) => {
     try {
-        const tests = await Test.find();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const tests = await Test.find()
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+        const total = await Test.countDocuments();
         if (!tests) {
             return fail(res, 'Error fetching tests');
         }
-        return success(res, 'Get all test success', { tests });
+        return success(res, 'Get all test success', {
+            tests,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(total / limit),
+                totalTests: total,
+                hasNext: page < Math.ceil(total / limit),
+                hasPrev: page > 1
+            }
+        });
 
     } catch (err) {
         return error(res, 'Get all test error', 500, err.message);
@@ -61,19 +79,57 @@ export const getTestDetail = async (req, res) => {
 // [POST] /api/test/create
 export const createTest = async (req, res) => {
     try {
-        // validate input
-        const testData = {
-            ...req.body,
-            createdBy: req.user._id,
-            publishedAt: req.body.isActive ? new Date() : null,
-        };
+        const userId = req.user.id;
 
-        const test = new Test(testData);
+        const { testData } = req.body;
+
+        // Parse JSON nếu client gửi testData dạng string
+        const parsedData = typeof testData === 'string' ? JSON.parse(testData) : testData;
+
+        // check title
+        if (!parsedData.title || parsedData.title.trim() === "") {
+            return error(res, 'Thiếu tên đề thi', 400);
+        }
+
+        if (parsedData.title.length > 100) {
+            return error(res, 'Tên đề thi không được vượt quá 100 ký tự', 400);
+        }
+
+        // check testCode
+        if (!parsedData.testCode || parsedData.testCode.trim() === "") {
+            return error(res, 'Thiếu mã đề thi', 400);
+        }
+
+        const existingTest = await Test.findOne({ testCode: parsedData.testCode.trim() });
+        if (existingTest) {
+            return error(res, `Mã đề thi '${parsedData.testCode}' đã tồn tại`, 400);
+        }
+
+
+        let audioUrl = parsedData.audio;
+        console.log(audioUrl);
+
+        const audioFile = req.file || (req.files?.audio?.[0]);
+
+        // check if audio is file
+        if (audioFile) {
+            audioUrl = await uploadToCloudinary(audioFile.buffer, 'toeic/tests/audio');
+        }
+
+        if (!audioUrl) {
+            return error(res, 'Chưa có audio cho đề thi');
+        }
+        parsedData.audio = audioUrl;
+
+        const test = new Test({
+            ...parsedData,
+            createdBy: userId,
+        });
         await test.save();
 
         return success(res, 'Create test success', { test });
-    } catch (error) {
-        return error(res, 'error Create Test');
+    } catch (err) {
+        return error(res, 'Error Create Test', 500, err.message);
     }
 };
 

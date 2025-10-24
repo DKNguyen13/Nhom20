@@ -18,7 +18,7 @@ const ForgotPassword: React.FC = () => {
     }
   }, [countdown]);
 
-  // 📩 Gửi OTP
+  // Gửi OTP
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);

@@ -27,32 +27,14 @@ const questionSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    // UPDATED: More flexible content structure
-    content: {
-        question: String, // Main question text
-        
-        // For Part 1 - Photographs
-        image: String,
-        
-        // For Part 5 - Sentence with blank
-        sentence: String, // "The company ____ new employees last month."
-        
-        // For Part 3, 4 - Conversations/Talks with transcript
-        transcript: String,
-        transcriptId: String, // To group questions with same transcript
-        
-        // For Part 6, 7 - Reading passages
-        passage: {
-            title: String,
-            text: String
-        },
-        passageId: String, // To group questions with same passage
-        
-        // Audio info (for all listening parts)
-        audio: String,
-        audioStartTime: Number,
-        audioEndTime: Number
+    group: {
+        groupId: { type: String, index: true },
+        text: { type: String, default: "" },
+        audio: { type: String, default: "" },
+        image: { type: String, default: "" },
     },
+
+    question: { type: String },
     choices: [{
         label: {
             type: String,
@@ -80,7 +62,7 @@ const questionSchema = new mongoose.Schema({
 })
 
 // Indexes
-questionSchema.index({ testId: 1, partNumber: 1, questionNumber: 1 });
+questionSchema.index({ testId: 1, partNumber: 1, questionNumber: 1 }, { unique: false });
 questionSchema.index({ partId: 1, questionNumber: 1 });
 
 export default mongoose.model('Question', questionSchema);

@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import { meiliClient } from '../config/meilisearch.config.js';
 
-
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: {
@@ -81,17 +80,15 @@ userSchema.post("findOneAndDelete", async function (doc) {
     console.error("[Meili] Delete error:", err.message);
   }
 });
+
 userSchema.methods.updateStatistics = async function (results) {
   try {
     const score = results.totalScore || 0;
 
-    // c?p nh?t t?ng s? b�i test
     this.totalTests = (this.totalTests || 0) + 1;
 
-    // t�nh �i?m trung b?nh
     this.avgScore = Math.round(((this.avgScore || 0) * (this.totalTests - 1) + score) / this.totalTests);
 
-    // c?p nh?t �i?m cao nh?t
     if (score > (this.bestScore || 0)) {
       this.bestScore = score;
     }

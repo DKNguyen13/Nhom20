@@ -7,7 +7,11 @@ interface TestHeaderProps {
   isView: boolean;
 }
 
-const TestHeader: React.FC<TestHeaderProps> = ({ session, onGoBack, isView }) => {
+const TestHeader: React.FC<TestHeaderProps> = ({
+  session,
+  onGoBack,
+  isView,
+}) => {
   return (
     <div className="w-full flex items-center justify-between mb-5">
       {/* Return button */}
@@ -16,11 +20,12 @@ const TestHeader: React.FC<TestHeaderProps> = ({ session, onGoBack, isView }) =>
         onClick={onGoBack}
       >
         <IcBreadcrumbGbk />
-        <span>{isView ? "Back" : "Return"}</span>
+        <span>{isView ? "Trở về" : "Thoát"}</span>
       </div>
 
       {/* Audio player */}
-      {session?.sessionType === "full-test" && session.testId?.audio && (
+      {/* session?.sessionType === "full-test" &&  */}
+      {session.testId?.audio && (
         <div className="flex-1 flex justify-center">
           <audio
             controls

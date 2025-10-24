@@ -18,15 +18,27 @@ const LessonDetailPage: React.FC = () => {
   useEffect(() => {
     const fetchLesson = async () => {
       try {
-        const res = await api.get(`/lessons/${id}`);
+        const endpoint = isLoggedIn() ? `/lessons/${id}` : `/lessons/public/${id}`;
+        const res = await api.get(endpoint);
         const data = res.data.data;
         setLesson(data);
 
         // Set favorite từ API
         setIsFavorite(data.isFavorite || false);
         setFavoriteCount(data.favoriteCount || 0);
-      } catch (err) {
-        console.error("Lỗi khi tải lesson:", err);
+      } catch (err : any) {
+        if (err.response?.status === 403) {
+        setLesson({
+          title: "Nâng cấp tài khoản để xem bài học này",
+          content: `<p class='text-center text-red-500 font-semibold'>
+            Bài học này chỉ dành cho tài khoản VIP.<br/>
+            Vui lòng <a href="/payment" class="text-blue-600 underline hover:text-blue-800 transition">
+            nhấn vào đây để nâng cấp </a>🎓
+          </p>`
+        });
+      } else {
+        setLesson(null);
+      }
       } finally {
         setLoading(false);
       }
@@ -67,8 +79,8 @@ const LessonDetailPage: React.FC = () => {
 
         {/* Favorite */}
         <div className="flex items-center gap-2 cursor-pointer select-none"
-          onClick={handleToggleFavorite}>
-          <FaHeart className={isFavorite ? "text-red-500" : "text-gray-400"} />
+          onClick = { handleToggleFavorite }>
+          <FaHeart className = { isFavorite ? "text-red-500" : "text-gray-400"} />
           <span>{favoriteCount} yêu thích</span>
         </div>
 
@@ -91,9 +103,7 @@ const LessonDetailPage: React.FC = () => {
           setTimeout(() => setShowLoginModal(true), 100);
         }}
         onSuccess={() => {
-          setShowLoginModal(false);
-          handleToggleFavorite();
-        }}
+          setShowLoginModal(false);        }}
       />
     )}
     </div>

@@ -9,6 +9,7 @@ interface NavigationProps {
   answers?: (string | null)[]; // ✅ cho phép optional
   onNavigate: (indexInPart: number) => void;
   onSubmit?: () => void;
+  time?: number;
 }
 
 const Navigation: React.FC<NavigationProps> = ({
@@ -19,17 +20,29 @@ const Navigation: React.FC<NavigationProps> = ({
   answers,
   onNavigate,
   onSubmit,
+  time,
 }) => {
-  const [time, setTime] = useState(7200);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const hasTime = typeof time === "number" && time > 0;
+  const [remainingTime, setRemainingTime] = useState(hasTime ? time * 60 : 0);
 
-  // 🔹 Đếm ngược thời gian khi đang thi
+  // 🔹 Đếm ngược thời gian
   useEffect(() => {
-    if (!isView && time > 0) {
-      const timer = setInterval(() => setTime((prev) => prev - 1), 1000);
+    if (!isView && hasTime && remainingTime > 0) {
+      const timer = setInterval(() => {
+        setRemainingTime((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            if (onSubmit) onSubmit();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
       return () => clearInterval(timer);
     }
-  }, [time, isView]);
+  }, [isView, hasTime, remainingTime, onSubmit]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -81,11 +94,11 @@ const Navigation: React.FC<NavigationProps> = ({
     <div className="max-w-xs mx-auto p-4 bg-white h-full bottom-5 w-44">
       <div className="space-y-4">
         {/* 🔹 Đếm giờ chỉ hiện khi đang làm bài */}
-        {!isView && (
+        {!isView && hasTime && (
           <div className="flex justify-between mb-4">
             <span className="text-sm">Thời gian còn lại:</span>
-            <span className="font-semibold text-xl">
-              {time > 0 ? formatTime(time) : "Hết giờ"}
+            <span className="font-semibold text-xl text-blue-600">
+              {remainingTime > 0 ? formatTime(remainingTime) : "Hết giờ"}
             </span>
           </div>
         )}
@@ -111,7 +124,9 @@ const Navigation: React.FC<NavigationProps> = ({
         {!isView && (
           <div className="mt-4 text-center">
             <button
-              onClick={onSubmit}
+              onClick={() => {
+                if (onSubmit) onSubmit();
+              }}
               className="bg-blue-500 text-white p-2 rounded-md w-full hover:bg-blue-600"
             >
               Nộp bài

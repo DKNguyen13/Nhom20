@@ -1,7 +1,7 @@
 import React from "react";
 import api, { setAccessToken } from "../config/axios.js";
 import { Link, useNavigate } from "react-router-dom";
-import { FaHistory, FaCog, FaSignOutAlt, FaShoppingCart, FaClipboardList } from "react-icons/fa";
+import { FaHistory, FaCog, FaSignOutAlt, FaShoppingCart, FaClipboardList, FaUser } from "react-icons/fa";
 
 interface LeftSidebarUserProps {
   customHeight?: string;
@@ -41,8 +41,8 @@ const LeftSidebarUser: React.FC<LeftSidebarUserProps> = ({
   };
 
   const menuItems: MenuItem[] = [
+    { label: "Thông tin cá nhân", icon: <FaUser />, to: "/settings" },
     { label: "Lịch sử làm bài", icon: <FaClipboardList />, to: "/history" },
-    { label: "Cài đặt", icon: <FaCog />, to: "/settings" },
     { label: "Lịch sử mua hàng", icon: <FaHistory />, to: "/purchase-history" },
     { label: "Đăng xuất", icon: <FaSignOutAlt />, textColor: "text-red-500", action: handleLogout },
   ];

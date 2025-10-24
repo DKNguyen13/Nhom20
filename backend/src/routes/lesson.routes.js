@@ -20,8 +20,10 @@ const upload = multer({
 router.post('/', LessonController.createLesson);
 router.post("/upload", authenticate, upload.single("file"), LessonController.uploadLesson);
 
-router.get('/', optionalAuth, LessonController.getLessons);
-router.get('/:id', optionalAuth, LessonController.getLessonById);
+router.get("/public", LessonController.getLessonsPublic);
+router.get('/public/:id', LessonController.getLessonFreeById);
+router.get('/', authenticate, LessonController.getLessons);
+router.get('/:id', authenticate, LessonController.getLessonById);
 
 router.put('/:id', authenticate, LessonController.updateLesson);
 router.put("/:id/upload", authenticate, upload.single("file"), LessonController.reuploadLesson);

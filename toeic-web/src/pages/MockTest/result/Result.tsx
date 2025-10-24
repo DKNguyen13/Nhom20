@@ -31,6 +31,7 @@ type ResultProps = {
   listeningScore: number;
   readingScore: number;
   totalScore: number;
+  isFullTest: boolean;
 };
 
 const Result: React.FC<ResultProps> = ({
@@ -43,6 +44,7 @@ const Result: React.FC<ResultProps> = ({
   listeningScore,
   readingScore,
   totalScore,
+  isFullTest,
 }) => {
   const navigate = useNavigate();
   const handleGoBack = () => {
@@ -72,14 +74,18 @@ const Result: React.FC<ResultProps> = ({
         {testTitle}
       </h2>
 
-      <div className="text-center mb-8">
-        <div className="text-7xl text-yellow-500 mb-8">🏆</div>
-        <h1 className="text-4xl font-bold text-gray-800">{`Your Score: ${totalScore ?? 0}/990`}</h1>
-        <p className="mt-2 text-lg text-gray-500">
-          Đây là trình độ ước tính của bạn. Để cải thiện điểm số, bạn có thể tìm
-          hiểu các tài nguyên học tập của trang web.
-        </p>
-      </div>
+      {isFullTest && (
+        <div className="text-center mb-8">
+          <div className="text-7xl text-yellow-500 mb-8">🏆</div>
+          <h1 className="text-4xl font-bold text-gray-800">{`Your Score: ${
+            totalScore ?? 0
+          }/990`}</h1>
+          <p className="mt-2 text-lg text-gray-500">
+            Đây là trình độ ước tính của bạn. Để cải thiện điểm số, bạn có thể
+            tìm hiểu các tài nguyên học tập của trang web.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4 mb-8">
         <div className="flex justify-between items-center">
@@ -102,20 +108,22 @@ const Result: React.FC<ResultProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 text-center mb-16">
-        <div>
-          <p className="text-gray-600">Listening</p>
-          <p className="text-2xl font-semibold text-gray-800">
-            {listeningScore}/495
-          </p>
+      {isFullTest && (
+        <div className="grid grid-cols-2 text-center mb-16">
+          <div>
+            <p className="text-gray-600">Listening</p>
+            <p className="text-2xl font-semibold text-gray-800">
+              {listeningScore}/495
+            </p>
+          </div>
+          <div>
+            <p className="text-gray-600">Reading</p>
+            <p className="text-2xl font-semibold text-gray-800">
+              {readingScore}/495
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-gray-600">Reading</p>
-          <p className="text-2xl font-semibold text-gray-800">
-            {readingScore}/495
-          </p>
-        </div>
-      </div>
+      )}
 
       <div className="flex justify-center mb-6">
         <div className="w-1/2 text-center">

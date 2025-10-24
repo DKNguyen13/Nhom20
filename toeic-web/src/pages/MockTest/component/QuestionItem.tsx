@@ -5,8 +5,10 @@ interface QuestionItemProps {
   isView: boolean;
   question: {
     _id: string;
+    question: string;
     globalQuestionNumber: number;
-    content: { question?: string; image?: string };
+    partNumber?: number;
+    group: { audio?: string; image?: string, text?: string };
     choices: Choice[];
   };
   questionIndex: number;
@@ -22,6 +24,7 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
   handleAnswer,
 }) => {
   const indexToLetter = ["A", "B", "C", "D"];
+  const partNumber = question.partNumber ?? 0;
 
   // Xác định đáp án người dùng đã chọn (khi đang làm bài)
   const selected =
@@ -29,22 +32,23 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
       ? answers[question.globalQuestionNumber - 1]
       : null;
 
-      // Lấy đáp án đúng (A/B/C/D)
+  // Lấy đáp án đúng (A/B/C/D)
   const correctChoice = question.choices.find((c) => c.isCorrect);
-  console.log('correct choices',correctChoice);
   const correctLetter = correctChoice ? correctChoice.label : null;
 
   // Xác định tình huống người dùng đúng/sai
   const userChoice = question.choices.find((c) => c.isUserChoice);
-  const isUserWrong = isView && userChoice && userChoice.label !== correctLetter;
+  const isUserWrong =
+    isView && userChoice && userChoice.label !== correctLetter;
   const isUserSkipped = isView && !userChoice; // user không chọn gì
   const showCorrectAns = isUserWrong || isUserSkipped;
+
+  // hide nội dung câu hỏi + đáp án Part 1, 2
+  const shouldHideContent = !isView && (partNumber === 1 || partNumber === 2);
 
   // Style hiển thị tùy chế độ
   const getButtonStyle = (option: Choice, optionIndex: number): string => {
     const optionLetter = indexToLetter[optionIndex];
-
-    console.log('optionLetter',optionLetter)
 
     if (!isView) {
       return selected === optionLetter
@@ -70,9 +74,9 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
       id={`question-${question.globalQuestionNumber}`}
       className="mb-4 border-b border-gray-200 pb-4"
     >
-      {question.content.image && (
+      {question.group.image && (
         <img
-          src={question.content.image}
+          src={question.group.image}
           alt={`question-${question.globalQuestionNumber}`}
           className="mb-2 max-w-md w-full h-auto mx-auto rounded-lg"
         />
@@ -82,9 +86,9 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
         <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white font-bold text-sm mt-1">
           {question.globalQuestionNumber}
         </div>
-        {question.content.question && (
+        {!shouldHideContent && question.question && (
           <div className="flex-1 pt-1">
-            <p className="text-gray-800">{question.content.question}</p>
+            <p className="text-gray-800">{question.question}</p>
           </div>
         )}
       </div>
@@ -102,7 +106,10 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
             optionIndex
           )}`}
         >
-          {option.label}. {option.text}
+          {/* Nếu Part 1 & 2 và đang làm bài thì chỉ hiện chữ A/B/C/D */}
+          {shouldHideContent
+            ? `${option.label}`
+            : `${option.label}. ${option.text}`}
         </button>
       ))}
       {showCorrectAns && correctLetter && (

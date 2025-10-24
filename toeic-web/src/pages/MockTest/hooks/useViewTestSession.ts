@@ -14,13 +14,15 @@ export const useViewSession = () => {
   const [userAnswers, setUserAnswers] = useState<Record<string, string | null>>({});
   const [correctAnswers, setCorrectAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   const {id} = useParams();
-  console.log(id);
 
   useEffect(() => {
 
     if (!id) {
+      setError("Không tìm thấy bài thi");
+      setLoading(false);
       return;
     }
 
@@ -28,15 +30,18 @@ export const useViewSession = () => {
       try {
         setLoading(true);
 
-        // ✅ Gọi API duy nhất
         const data = await getSessionResults(id);
-                console.log("Data review",data);
 
+        // ✅ Kiểm tra dữ liệu hợp lệ
+        if (!data || !data.session || !Array.isArray(data.answers) || data.answers.length === 0) {
+          setError("Không tìm thấy dữ liệu cho bài thi này");
+          return;
+        }
 
-        // 1️⃣ Lưu session info
+        // lưu session info
         setSession(data.session);
 
-        // 2️⃣ Chuẩn bị dữ liệu câu hỏi từ UserAnswer[]
+        // Chuẩn bị dữ liệu câu hỏi từ UserAnswer[]
         const qs: Question[] = data.answers.map((ans: UserAnswer) => {
           const q = ans.questionId;
           return {
@@ -44,7 +49,7 @@ export const useViewSession = () => {
             questionNumber: q.questionNumber,
             globalQuestionNumber: ans.questionNumber,
             partNumber: q.partNumber,
-            content: q.content,
+            group: q.group,
             choices: q.choices,
             userAnswer: {
               selectedAnswer: ans.selectedAnswer,
@@ -57,14 +62,14 @@ export const useViewSession = () => {
 
         setQuestions(qs);
 
-        // 3️⃣ Lấy các part có trong câu hỏi
+        // Lấy các part có trong câu hỏi
         const allParts = Array.from(new Set(qs.map((q) => q.partNumber))).sort(
           (a, b) => a - b
         );
         setParts(allParts);
         setCurrentPart(allParts[0] || 1);
 
-        // 4️⃣ Tạo map đáp án người dùng & đáp án đúng
+        // Tạo map đáp án người dùng & đáp án đúng
         const userAns: Record<string, string | null> = {};
         const correctAns: Record<string, string> = {};
 
@@ -78,7 +83,7 @@ export const useViewSession = () => {
         setCorrectAnswers(correctAns);
 
       } catch (err) {
-        console.error("Error loading session result:", err);
+        setError("Không thể tải dữ liệu bài thi");
       } finally {
         setLoading(false);
       }
@@ -87,7 +92,7 @@ export const useViewSession = () => {
     fetchData();
   }, [id]);
 
-  // 🔹 Điều hướng câu hỏi trong part
+  // Điều hướng câu hỏi trong part
   const handleNavigateQuestion = (indexInPart: number) => {
     const questionsInPart = questions.filter((q) => q.partNumber === currentPart);
     setCurrentQuestion(indexInPart);
@@ -97,9 +102,17 @@ export const useViewSession = () => {
     if (element) element.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleNextPart = async () => {
+      const nextPartIndex = parts.indexOf(currentPart) + 1;
+      if (nextPartIndex < parts.length) {
+        setCurrentPart(parts[nextPartIndex]);
+        setCurrentQuestion(0);
+      }
+    };
+
   const handleGoBack = () => navigate(-1);
 
-  // 🔹 Tạo danh sách câu hỏi cho part hiện tại
+  //Tạo danh sách câu hỏi cho part hiện tại
   const questionsInPart = questions
     .filter((q) => q.partNumber === currentPart)
     .map((q) => ({
@@ -113,6 +126,7 @@ export const useViewSession = () => {
 
   return {
     loading,
+    error,
     session,
     parts,
     currentPart,
@@ -122,5 +136,6 @@ export const useViewSession = () => {
     handleGoBack,
     setCurrentPart,
     setCurrentQuestion,
+    handleNextPart
   };
 };
