@@ -54,7 +54,7 @@ function MockDetailTests() {
       </div>
     );
   }
-
+  console.log('Test data: ', testData);
   return (
     <div className="min-h-screen bg-background">
       <DetailToeicTest
@@ -63,7 +63,7 @@ function MockDetailTests() {
         totalParts={7}
         totalQuestions={200}
         practicedCount={totalAttempts}
-        commentsCount={3000}
+        commentsCount={testData.data.test.statistics?.totalComments || 0}
         parts={testData.data.parts}
         defaultActiveTab="practice"
         selectedParts={selectedParts}

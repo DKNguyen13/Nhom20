@@ -72,6 +72,7 @@ const TestList: React.FC<TestListProps> = ({
               questions={200}
               time={120}
               attempts={item.statistics?.totalAttempts || 0}
+              totalComments={item.statistics?.totalComments || 0}
             />
           ))}
         </div>
