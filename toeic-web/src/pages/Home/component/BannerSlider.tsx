@@ -1,7 +1,6 @@
-import { Swiper, SwiperSlide, Swipper } from 'swiper/react';
-import React from "react";
-import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
 import { Link } from 'react-router-dom';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -36,11 +35,11 @@ const BannerSlider = () => {
             <div className="flex-[65%] pt-6 hidden md:block">
               <div className="text-white space-y-6 ml-[12%] mt-[2%] p-6">
                 <h2 className="text-4xl font-bold">
-                  Nền tảng thi thử TOEIC® trực tuyến miễn phí
+                  Nền tảng thi thử TOEIC® trực tuyến miễn phí<br />
                   Kho đề "XỊN" & được cập nhật mới liên tục!
                 </h2>
 
-                <ul className="text-lg list-disc pl-10">
+                <ul className="text-xl list-disc pl-10">
                   <li>Tuyển tập những bộ đề gần với đề thi nhất từ nhiều nguồn</li>
                   <li>Đánh giá đúng thực lực của người học & sát đề thi thật</li>
                   <li>Chatbot hỗ trợ 24/7</li>

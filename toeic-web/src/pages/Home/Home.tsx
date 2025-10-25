@@ -1,12 +1,9 @@
-import React from "react";
-import ExamCard from "./component/ExamCard";
 import IcArrow from "../../assets/icons/IcArrow";
 import { Link } from "react-router-dom";
-import { toeicTest } from "../../data/toeicMockData";
 import { NotepadText, CircleUserRound, NotebookPen } from 'lucide-react';
 import BannerSlider from "./component/BannerSlider";
-
 import TestList from "../MockTest/TestList";
+
 export interface Exam {
   id: number;
   title: string;
