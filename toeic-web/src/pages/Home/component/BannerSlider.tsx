@@ -81,16 +81,23 @@ const BannerSlider = () => {
             {/* Decorative elements - màu vàng/cam để nổi bật trên nền xanh */}
             <div className="flex-[65%] hidden md:block relative z-10 mb-4">
               <div className="text-white space-y-6 ml-[12%] mt-[2%] p-6">
-                {/* Discount Badge */}
-                <div className="inline-flex items-center gap-3 mb-4">
-                  <div className="bg-gradient-to-br from-red-400 to-red-500 rounded-full w-32 h-32 flex flex-col items-center justify-center shadow-2xl animate-pulse">
-                    <span className="text-5xl font-black text-white">50%</span>
-                    <span className="text-lg font-bold text-white">OFF</span>
-                  </div>
-                  <div className="bg-gradient-to-r from-red-400 to-red-500 text-white px-4 py-2 rounded-lg font-bold text-lg shadow-lg">
-                    🔥 HOT DEAL
-                  </div>
+              {/* Discount Badge */}
+              <div className="inline-flex items-center gap-4 mb-6">
+                {/* Vòng tròn 50% OFF */}
+                <div className="relative w-36 h-36 flex flex-col items-center justify-center rounded-full bg-gradient-to-br from-red-500 via-red-600 to-orange-500 shadow-[0_0_30px_rgba(255,0,0,0.6)] animate-[pulse-glow_2s_infinite]">
+                  <span className="text-5xl font-extrabold text-white drop-shadow-lg">50%</span>
+                  <span className="text-lg font-semibold text-yellow-200 drop-shadow-md">OFF</span>
+
+                  {/* Viền ngoài sáng nhẹ */}
+                  <div className="absolute inset-0 rounded-full border-4 border-white/40 blur-sm"></div>
                 </div>
+
+                {/* Nút HOT DEAL */}
+                <div className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white px-5 py-3 rounded-xl font-extrabold text-xl shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-300">
+                  🔥 HOT DEAL
+                </div>
+              </div>
+
 
                 <h2 className="text-4xl font-bold">
                   Khuyến Mãi Đặc Biệt - Giảm Giá Sốc!
