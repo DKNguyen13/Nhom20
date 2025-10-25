@@ -104,7 +104,7 @@ const BannerSlider = () => {
                 </h2>
 
                 <div className="flex items-center gap-4 mt-6">
-                  <Link to={"/pricing"}>
+                  <Link to={"/payment"}>
                     <button className="bg-gradient-to-r from-red-400 to-red-500 text-white font-bold px-8 py-4 rounded-lg hover:from-yellow-500 hover:to-orange-600 transition shadow-xl hover:shadow-2xl transform hover:scale-105 text-lg">
                       🛒 Mua Ngay - Tiết Kiệm 50%
                     </button>
