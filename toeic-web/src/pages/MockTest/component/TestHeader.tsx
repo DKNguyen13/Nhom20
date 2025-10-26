@@ -25,12 +25,12 @@ const TestHeader: React.FC<TestHeaderProps> = ({
 
       {/* Audio player */}
       {/* session?.sessionType === "full-test" &&  */}
-      {session.testId?.audio && (
+      {session?.testId?.audio && (
         <div className="flex-1 flex justify-center">
           <audio
             controls
             className="w-full max-w-2xl rounded-full bg-gray-100"
-            src={session.testId.audio}
+            src={session?.testId?.audio}
           >
             Your browser does not support the audio element.
           </audio>

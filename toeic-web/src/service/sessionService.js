@@ -8,6 +8,7 @@ export const startSession = async (payload) => {
 export const getSession = async (sessionId) => {
     const res = await api.get(`/session/${sessionId}`);
     return res.data.data;
+    
 };
 
 export const getSessionQuestions = async (sessionId) => {
