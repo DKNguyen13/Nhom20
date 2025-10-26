@@ -17,8 +17,8 @@ const questionSchema = new mongoose.Schema({
         ref: 'Part',
         required: true
     },
-    title: { type: String, require: true, trim: true },
-    partNumber: { type: Number, min: 1, max: 7, require: true },
+    title: { type: String, trim: true, },
+    partNumber: { type: Number, min: 1, max: 7, required: true },
     questionNumber: {
         type: Number,
         required: true
@@ -34,7 +34,7 @@ const questionSchema = new mongoose.Schema({
         image: { type: String, default: "" },
     },
 
-    question: { type: String },
+    question: { type: String,  trim: true, default: "" },
     choices: [{
         label: {
             type: String,
@@ -43,7 +43,8 @@ const questionSchema = new mongoose.Schema({
         },
         text: {
             type: String,
-            required: true
+            required: true,
+            trim: true
         },
         isCorrect: {
             type: Boolean,
@@ -55,7 +56,7 @@ const questionSchema = new mongoose.Schema({
         required: true,
         enum: ['A', 'B', 'C', 'D']
     },
-    explanation: String,
+    explanation: { type: String, trim: true, default: "" },
 
 }, {
     timestamps: true

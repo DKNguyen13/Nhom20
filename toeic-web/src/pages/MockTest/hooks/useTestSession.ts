@@ -23,6 +23,8 @@ export const useTestSession = () => {
   const [unsentAnswers, setUnsentAnswers] = useState<
     { questionId: string; selectedAnswer: string | null }[]
   >([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const indexToLetter = ["A", "B", "C", "D"];
 
@@ -59,40 +61,61 @@ export const useTestSession = () => {
   };
 
   const handleNextPart = async () => {
-    const nextPartIndex = parts.indexOf(currentPart) + 1;
-    if (nextPartIndex < parts.length) {
-      // submit answers
-      const questionsInCurrentPart = questions.filter(
-        (q) => q.partNumber === currentPart
-      );
-      const answersToSubmit = unsentAnswers.filter((ans) =>
-        questionsInCurrentPart.some((q) => q._id === ans.questionId)
-      );
-
-      if (answersToSubmit.length) {
-        await submitBulkAnswers(sessionId!, answersToSubmit);
-        setUnsentAnswers((prev) =>
-          prev.filter(
-            (ans) =>
-              !answersToSubmit.some((s) => s.questionId === ans.questionId)
-          )
+    try {
+      setError(null); // reset lỗi cũ
+      setLoading(true);
+      const nextPartIndex = parts.indexOf(currentPart) + 1;
+      if (nextPartIndex < parts.length) {
+        // submit answers
+        const questionsInCurrentPart = questions.filter(
+          (q) => q.partNumber === currentPart
         );
-      }
+        const answersToSubmit = unsentAnswers.filter((ans) =>
+          questionsInCurrentPart.some((q) => q._id === ans.questionId)
+        );
 
-      setCurrentPart(parts[nextPartIndex]);
-      setCurrentQuestion(0);
+        if (answersToSubmit.length) {
+          await submitBulkAnswers(sessionId!, answersToSubmit);
+          setUnsentAnswers((prev) =>
+            prev.filter(
+              (ans) =>
+                !answersToSubmit.some((s) => s.questionId === ans.questionId)
+            )
+          );
+        }
+
+        setCurrentPart(parts[nextPartIndex]);
+        setCurrentQuestion(0);
+      }
+    } catch (err: any) {
+      setError(err.message || "Lỗi khi chuyển phần tiếp theo");
     }
+    finally{
+      setLoading(false);
+    }
+    
   };
 
   const handleSubmitSession = async (noRedirect = false) => {
-    if (unsentAnswers.length) {
+    try {
+      setError(null); // reset lỗi cũ
+      setLoading(true);
+
+      if (unsentAnswers.length) {
       await submitBulkAnswers(sessionId!, unsentAnswers);
       setUnsentAnswers([]);
+      }
+      await submitSession(sessionId!);
+      if (!noRedirect) {
+        navigate(`/session/${sessionId}/results`);
+      }
+    } catch (err: any) {
+      setError(err.message || "Lỗi khi chuyển phần tiếp theo");
     }
-    await submitSession(sessionId!);
-    if (!noRedirect) {
-      navigate(`/session/${sessionId}/results`);
+    finally{
+      setLoading(false);
     }
+    
   };
 
   return {
@@ -101,6 +124,8 @@ export const useTestSession = () => {
     handleAnswer,
     handleNextPart,
     handleSubmitSession,
+    loading,
+    error
   };
 };
 

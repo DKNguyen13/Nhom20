@@ -31,7 +31,8 @@
     "nodemailer": "^7.0.6",
     "redis": "^5.8.2",
     "socket.io": "^4.8.1",
-    "streamifier": "^0.1.1"
+    "streamifier": "^0.1.1",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "mongoose-slug-updater": "^3.3.0",

@@ -8,6 +8,7 @@ import {
   ArcElement,
   CategoryScale,
   LinearScale,
+  type TooltipItem,
 } from "chart.js";
 import { useNavigate } from "react-router-dom";
 
@@ -50,9 +51,9 @@ const Result: React.FC<ResultProps> = ({
   const handleGoBack = () => {
     navigate(`/session/view/${id}`);
   };
-  const correctPercentage = (correctAnswers / totalQuestions) * 100;
-  const wrongPercentage = (wrongAnswers / totalQuestions) * 100;
-  const skippedPercentage = (skippedQuestions / totalQuestions) * 100;
+  const correctPercentage = ((correctAnswers / totalQuestions) * 100).toFixed(1);
+  const wrongPercentage = ((wrongAnswers / totalQuestions) * 100).toFixed(1);
+  const skippedPercentage = ((skippedQuestions / totalQuestions) * 100).toFixed(1);
 
   // Dữ liệu cho biểu đồ hình tròn
   const data = {
@@ -67,6 +68,23 @@ const Result: React.FC<ResultProps> = ({
       },
     ],
   };
+
+  const options = {
+  plugins: {
+    tooltip: {
+      callbacks: {
+        label: function (context: TooltipItem<'pie'>) {
+          const label = context.label || "";
+          const value = context.parsed || 0;
+          return `${label}: ${value}%`;
+        },
+      },
+    },
+    legend: {
+      position: "bottom" as const,
+    },
+  },
+};
 
   return (
     <div className="max-w-4xl min-w-[700px] mx-auto p-6 bg-white rounded-lg shadow-lg">
@@ -129,7 +147,7 @@ const Result: React.FC<ResultProps> = ({
         <div className="w-1/2 text-center">
           <h3 className="text-xl text-gray-700">Thống kê bài làm</h3>
           <div className="mt-4">
-            <Pie data={data} />
+            <Pie data={data} options={options} />
           </div>
         </div>
       </div>
