@@ -7,6 +7,7 @@ import QuestionList from "./component/QuestionList";
 import { useParams } from "react-router-dom";
 import { useViewSession } from "./hooks/useViewTestSession";
 import LoadingSkeleton from "../../components/common/LoadingSpinner/LoadingSkeleton";
+import { useBlockNavigation } from "./hooks/useBlockNavigation";
 
 interface TestProps {
   isView: boolean; // true: review detail result
@@ -35,6 +36,8 @@ export const Test: React.FC<TestProps> = ({ isView }) => {
     answers,
   } = hookData as ReturnType<typeof useTestSession> &
     ReturnType<typeof useViewSession>;
+
+  useBlockNavigation(!isView, handleSubmitSession);
 
   useEffect(() => {
     if (!isView) {

@@ -6,6 +6,7 @@ import Part from "../models/part.model.js";
 import Question from "../models/question.model.js";
 import { success, error } from '../utils/response.js';
 import { uploadToCloudinary } from "../services/cloudinary.service.js";
+import { v4 as uuidv4 } from "uuid";
 
 
 // [GET] /api/test/:slug/questions
@@ -166,110 +167,117 @@ export const getAllQuestionByPart = async (req, res) => {
 // };
 
 export const createQuestions = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-    const session = await mongoose.startSession();
-    session.startTransaction(); // Bắt đầu transaction
-    try {
-        let { slug, partId, questions } = req.body;
+  try {
+    let { slug, partId, questions } = req.body;
 
-        console.log("req.files:", req.files);
-
-        // 1 or many question
-        if (typeof questions === "string") {
-            questions = JSON.parse(questions);
-        }
-
-        if (!Array.isArray(questions)) {
-            questions = [questions];
-        }
-
-        if (!slug || !partId) {
-            return error(res, "Missing Test or Part selected");
-        }
-
-        if (!questions.length) {
-            return error(res, "No questions provided");
-        }
-
-        // Check test & part
-        const test = await Test.findOne({ slug });
-        if (!test) {
-            return error(res, 'Test not found');
-        }
-
-        const part = await Part.findOne({ _id: partId, testId: test._id });
-        if (!part) {
-            return error(res, 'Part not found in this test');
-        }
-
-        // get current question in DB of Part
-        const lastQuestion = await Question.findOne({ partId }).sort({ questionNumber: -1 });
-        let questionNumber = lastQuestion ? lastQuestion.questionNumber : 0;
-        let globalQuestionNumber = await Question.countDocuments({ testId: test._id });
-
-        const processedQuestions = [];
-        console.log('questions', questions);
-
-        for (let i = 0; i < questions.length; i++) {
-            const q = questions[i];
-            questionNumber++;
-            globalQuestionNumber++;
-
-            if (!q.choices || q.choices.length < 2) {
-                console.log("Error in check Choices");
-                return error(res, `Question ${i + 1} must have at least 2 choices.`);
-            }
-
-            const group = q.group || {};
-            const imageFile = Array.isArray(req.files)
-                ? req.files.find(f => f.fieldname === `image_${i}`)
-                : req.files?.[`image_${i}`]?.[0];
-
-            const audioFile = Array.isArray(req.files)
-                ? req.files.find(f => f.fieldname === `audio_${i}`)
-                : req.files?.[`audio_${i}`]?.[0];
-
-            console.log("ImageFile: ", imageFile)
-
-            if (imageFile) {
-                const imgUrl = await uploadToCloudinary(imageFile.buffer, "toeic/questions/images");
-                console.log("IMG URL: ", imgUrl);
-                group.image = imgUrl;
-            } else if (typeof group.image !== "string") {
-                delete group.image; // loại bỏ object rỗng
-            }
-
-            if (audioFile) {
-                const audioUrl = await uploadToCloudinary(audioFile.buffer, "toeic/questions/audio");
-                group.audio = audioUrl;
-            } else if (typeof group.audio !== "string") {
-                delete group.audio; // loại bỏ object rỗng
-            }
-
-            processedQuestions.push({
-                ...q,
-                testId: test._id,
-                partId,
-                partNumber: part.partNumber,
-                questionNumber,
-                globalQuestionNumber,
-                group,
-            });
-        }
-
-        const inserted = await Question.insertMany(processedQuestions);
-        await Part.findByIdAndUpdate(partId, { $inc: { totalQuestion: inserted.length } });
-
-        return success(
-            res,
-            inserted.length === 1
-                ? "1 question created successfully"
-                : `${inserted.length} questions created successfully`,
-            inserted
-        );
-    } catch (err) {
-        await session.abortTransaction();
-        return error(res, err.message);
+    if (typeof questions === "string") {
+      questions = JSON.parse(questions);
     }
-}
+
+    if (!Array.isArray(questions)) {
+      questions = [questions];
+    }
+
+    if (!slug || !partId) {
+      return error(res, "Missing Test or Part selected");
+    }
+
+    if (!questions.length) {
+      return error(res, "No questions provided");
+    }
+
+    // --- Check Test và Part ---
+    const test = await Test.findOne({ slug });
+    if (!test) return error(res, 'Test not found');
+
+    const part = await Part.findOne({ _id: partId, testId: test._id });
+    if (!part) return error(res, 'Part not found in this test');
+
+    // --- Lấy số thứ tự câu hỏi hiện tại ---
+    const lastQuestion = await Question.findOne({ partId }).sort({ questionNumber: -1 });
+    let questionNumber = lastQuestion ? lastQuestion.questionNumber : 0;
+    let globalQuestionNumber = await Question.countDocuments({ testId: test._id });
+
+    const processedQuestions = [];
+
+    // --- Nếu là part có group (3, 4, 6, 7) thì tạo groupId ---
+    let groupId = null;
+    const isGroupedPart = [3, 4, 6, 7].includes(part.partNumber);
+    if (isGroupedPart) {
+      groupId = uuidv4();
+    }
+
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      questionNumber++;
+      globalQuestionNumber++;
+
+      // Kiểm tra số lượng đáp án hợp lệ
+      const expectedChoices = part.partNumber === 2 ? 3 : 4;
+      if (!q.choices || q.choices.length !== expectedChoices) {
+        return error(res, `Part ${part.partNumber} requires ${expectedChoices} choices. (Question ${i + 1})`);
+      }
+
+      const group = q.group || {};
+
+      // Nếu part có group → gán cùng groupId
+      if (isGroupedPart) {
+        group.groupId = groupId;
+      } else {
+        // Nếu không phải part có group → bỏ hết field group
+        delete q.group;
+      }
+
+      // Upload image/audio nếu có
+      const imageFile = Array.isArray(req.files)
+        ? req.files.find(f => f.fieldname === `image_${i}`)
+        : req.files?.[`image_${i}`]?.[0];
+
+      const audioFile = Array.isArray(req.files)
+        ? req.files.find(f => f.fieldname === `audio_${i}`)
+        : req.files?.[`audio_${i}`]?.[0];
+
+      if (imageFile && isGroupedPart) {
+        const imgUrl = await uploadToCloudinary(imageFile.buffer, "toeic/questions/images");
+        group.image = imgUrl;
+      }
+
+      if (audioFile && isGroupedPart) {
+        const audioUrl = await uploadToCloudinary(audioFile.buffer, "toeic/questions/audio");
+        group.audio = audioUrl;
+      }
+
+      processedQuestions.push({
+        ...q,
+        testId: test._id,
+        partId,
+        partNumber: part.partNumber,
+        questionNumber,
+        globalQuestionNumber,
+        ...(isGroupedPart ? { group } : {}), // chỉ thêm group nếu có
+      });
+    }
+
+    const inserted = await Question.insertMany(processedQuestions);
+    await Part.findByIdAndUpdate(partId, { $inc: { totalQuestion: inserted.length } });
+
+    await session.commitTransaction();
+    return success(
+      res,
+      inserted.length === 1
+        ? "1 question created successfully"
+        : `${inserted.length} questions created successfully`,
+      inserted
+    );
+
+  } catch (err) {
+    await session.abortTransaction();
+    return error(res, err.message);
+  } finally {
+    session.endSession();
+  }
+};
 

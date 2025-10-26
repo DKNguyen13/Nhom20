@@ -18,7 +18,7 @@ export const startSession = async (req, res) => {
         const test = await Test.findById(testId);
 
         if (!test || !test.isActive) {
-            return error(res, 'Test not found or not active', 500);
+            return error(res, 'Đề thi không tồn tại hoặc đã bị xóa', 500);
         }
 
         // Check for active sessions
@@ -45,7 +45,7 @@ export const startSession = async (req, res) => {
         });
 
         if (totalQuestions === 0) {
-            return error(res, 'No questions found for selected parts');
+            return error(res, 'Đề thi hiện tại chưa cập nhật câu hỏi, vui lòng chọn đề thi khác để luyện tập');
         }
 
         // Create session
@@ -553,10 +553,7 @@ export const pauseSession = async (req, res) => {
         );
 
         if (!session) {
-            return res.status(404).json({
-                status: 'error',
-                message: 'Active session not found'
-            });
+            return error(res,'Không tìm thấy phiên làm bài');
         }
 
         res.status(200).json({
@@ -564,12 +561,8 @@ export const pauseSession = async (req, res) => {
             message: 'Session paused successfully',
             data: { sessionId, status: 'paused' }
         });
-    } catch (error) {
-        res.status(500).json({
-            status: 'error',
-            message: 'Error pausing session',
-            error: error.message
-        });
+    } catch (err) {
+        return error(res, 'Lỗi xảy ra khi tạm dừng phiên làm bài', 500, err.message);
     }
 };
 
@@ -803,10 +796,10 @@ const calculateSessionResults = async function (sessionId, userId) {
     let totalScore = 0;
 
     const listeningAnswers = answers.filter(a =>
-        a.questionId && a.questionId.partNumber <= 4
+        a.questionId && a.questionId.partNumber <= 4 && a.selectedAnswer !== null
     );
     const readingAnswers = answers.filter(a =>
-        a.questionId && a.questionId.partNumber > 4
+        a.questionId && a.questionId.partNumber > 4 && a.selectedAnswer !== null
     );
 
     // listening and reading

@@ -26,6 +26,12 @@ const Navigation: React.FC<NavigationProps> = ({
   const hasTime = typeof time === "number" && time > 0;
   const [remainingTime, setRemainingTime] = useState(hasTime ? time * 60 : 0);
 
+  useEffect(() => {
+    if (typeof time === "number" && time > 0) {
+      setRemainingTime(time * 60);
+    }
+  }, [time]);
+
   // 🔹 Đếm ngược thời gian
   useEffect(() => {
     if (!isView && hasTime && remainingTime > 0) {

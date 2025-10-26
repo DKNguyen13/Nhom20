@@ -74,8 +74,8 @@ export const useSessionBase = (sessionId: string | null) => {
       const isSimplePart = [1, 2].includes(q.partNumber);
       return {
         ...q,
-        displayContent: isSimplePart ? null : q.content?.question,
-        displayImage: q.content?.image,
+        displayContent: isSimplePart ? null : q.question,
+        displayImage: q.group?.image,
         displayChoices: q.choices.map((c) => ({
           ...c,
           displayText: isSimplePart ? c.label : `${c.label}. ${c.text}`,
