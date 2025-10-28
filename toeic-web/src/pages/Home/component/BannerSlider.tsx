@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
+import React, { useState } from "react";
 
 // Import Swiper styles
 import 'swiper/css';
@@ -22,7 +23,7 @@ const BannerSlider = () => {
           dynamicBullets: true 
         }}
         autoplay={{
-          delay: 50000,
+          delay: 5000,
           disableOnInteraction: false,
         }}
         loop={true}

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { NotepadText, CircleUserRound, NotebookPen } from 'lucide-react';
 import BannerSlider from "./component/BannerSlider";
 import TestList from "../MockTest/TestList";
+import React, { useState } from "react";
 
 export interface Exam {
   id: number;
