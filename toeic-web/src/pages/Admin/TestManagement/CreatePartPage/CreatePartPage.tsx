@@ -1,6 +1,7 @@
 import React, { useEffect, useState, ChangeEvent, FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../../../config/axios";
+import { getTestDetail } from "../../../../service/testService";
 
 interface Test {
   slug: string;
@@ -29,9 +30,9 @@ const questionLimits: Record<number, number> = {
 const CreatePartPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const [tests, setTests] = useState<Test[]>([]);
   const [selectedTestSlug, setSelectedTestSlug] = useState<string>("");
-  const [loadingTests, setLoadingTests] = useState<boolean>(false);
+  const [testDetail, setTestDetail] = useState<Test | null>(null);
+  const [loadingTest, setLoadingTest] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -45,22 +46,24 @@ const CreatePartPage: React.FC = () => {
     tags: [],
   });
 
+  const [searchParams] = useSearchParams();
+  const slug = searchParams.get("slug");
+
   // Fetch danh sách đề thi
   useEffect(() => {
-    const fetchTests = async () => {
-      setLoadingTests(true);
+    const fetchTest = async () => {
+      setLoadingTest(true);
       try {
-        const res = await api.get("/test");
-        const data = res.data.data.tests;
-        if (Array.isArray(data)) setTests(data);
+        const res = await getTestDetail(slug);
+        setTestDetail(res?.data?.test);
       } catch (err) {
-        setError("Không thể tải danh sách đề thi");
+        setError("Không thể tải đề thi");
       } finally {
-        setLoadingTests(false);
+        setLoadingTest(false);
       }
     };
-    fetchTests();
-  }, []);
+    fetchTest();
+  }, [slug]);
 
   // Handle input change
   const handleChange = (
@@ -103,7 +106,7 @@ const CreatePartPage: React.FC = () => {
       // Gắn slug vào partData
       const partDataWithSlug = {
         ...formData,
-        slug: selectedTestSlug,
+        slug: slug,
       };
 
       await api.post(`/part`, {
@@ -132,27 +135,18 @@ const CreatePartPage: React.FC = () => {
           🧩 Tạo mới Part TOEIC
         </h1>
 
-        {/* Chọn đề thi */}
-        <div className="mb-5">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Chọn đề thi
-          </label>
-          <select
-            value={selectedTestSlug}
-            onChange={(e) => setSelectedTestSlug(e.target.value)}
-            className="w-full border rounded-lg px-3 py-2"
-          >
-            <option value="">-- Chọn đề thi --</option>
-            {loadingTests ? (
-              <option disabled>Đang tải...</option>
-            ) : (
-              tests.map((test) => (
-                <option key={test.slug} value={test.slug}>
-                  {test.title}
-                </option>
-              ))
-            )}
-          </select>
+        {/* Hiển thị đề thi */}
+        <div className="mb-5 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          {loadingTest ? (
+            <p>⏳ Đang tải thông tin đề thi...</p>
+          ) : error ? (
+            <p className="text-red-600">{error}</p>
+          ) : testDetail ? (
+            <p className="font-semibold text-blue-700">
+              📝 Đề thi:
+              <span className="text-blue-900 ml-1">{testDetail.title}</span>
+            </p>
+          ) : null}
         </div>
 
         {/* Form tạo Part */}

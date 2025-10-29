@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
 import { FaEllipsisH, FaTimes, FaUpload } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../../../config/axios";
 import { useEffect } from "react";
-
+import { MoreHorizontal, Plus, HelpCircle, Edit2, Trash2 } from "lucide-react";
 
 interface Test {
   title: string;
+  slug: string;
   testCode: string;
   category: string;
   createdAt: Date;
@@ -15,95 +16,105 @@ interface Test {
   statistics: {
     totalAttempts: number;
     averageScore: number;
-  }
+  };
 }
+
+// Dropdown Component
+const ActionDropdown: React.FC<{ test: Test; onNavigate: (path: string) => void }> = ({ test, onNavigate }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const handleAction = (action: string) => {
+    setIsOpen(false);
+    
+    switch (action) {
+      case "add-part":
+        onNavigate(`/admin/create-part?slug=${test.slug}`);
+        break;
+      case "add-questions":
+        onNavigate(`/admin/create-questions?slug=${test.slug}`);
+        break;
+      case "edit":
+        onNavigate(`/admin/edit-test/${test.slug}`);
+        break;
+      case "delete":
+        if (confirm(`Bạn có chắc muốn xóa đề thi "${test.title}"?`)) {
+          console.log("Delete test:", test.slug);
+        }
+        break;
+    }
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="text-gray-500 hover:text-blue-600 transition p-2 rounded-lg hover:bg-gray-100"
+      >
+        <MoreHorizontal size={18} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 animate-fadeIn">
+          <button
+            onClick={() => handleAction("add-part")}
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition text-left text-gray-700 hover:text-blue-600"
+          >
+            <Plus className="text-blue-600" size={16} />
+            <span className="font-medium">Thêm Part mới</span>
+          </button>
+
+          <button
+            onClick={() => handleAction("add-questions")}
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-green-50 transition text-left text-gray-700 hover:text-green-600"
+          >
+            <HelpCircle className="text-green-600" size={16} />
+            <span className="font-medium">Thêm câu hỏi</span>
+          </button>
+
+          <div className="border-t border-gray-200 my-2"></div>
+
+          <button
+            onClick={() => handleAction("edit")}
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-yellow-50 transition text-left text-gray-700 hover:text-yellow-600"
+          >
+            <Edit2 className="text-yellow-600" size={16} />
+            <span className="font-medium">Chỉnh sửa</span>
+          </button>
+
+          <button
+            onClick={() => handleAction("delete")}
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition text-left text-gray-700 hover:text-red-600"
+          >
+            <Trash2 className="text-red-600" size={16} />
+            <span className="font-medium">Xóa đề thi</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const TestManagementPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tests, setTests] = useState<Test[]>([]);
-
-  const testsdata = [
-    {
-      id: "BT1",
-      name: "TOEIC Full Test 1",
-      type: "FULL TEST",
-      questions: 100,
-      time: "2h",
-      date: "20/03/2025",
-    },
-    {
-      id: "BT2",
-      name: "TOEIC Full Test 2",
-      type: "LISTENING",
-      questions: 100,
-      time: "2h",
-      date: "21/03/2025",
-    },
-    {
-      id: "BT3",
-      name: "TOEIC Full Test 3",
-      type: "READING",
-      questions: 100,
-      time: "2h",
-      date: "22/03/2025",
-    },
-    {
-      id: "BT4",
-      name: "TOEIC Full Test 4",
-      type: "FULL TEST",
-      questions: 100,
-      time: "2h",
-      date: "23/03/2025",
-    },
-    {
-      id: "BT5",
-      name: "TOEIC Listening Practice 1",
-      type: "LISTENING",
-      questions: 50,
-      time: "1h",
-      date: "24/03/2025",
-    },
-    {
-      id: "BT6",
-      name: "TOEIC Reading Practice 1",
-      type: "READING",
-      questions: 50,
-      time: "1h",
-      date: "25/03/2025",
-    },
-    {
-      id: "BT7",
-      name: "TOEIC Full Test 5",
-      type: "FULL TEST",
-      questions: 100,
-      time: "2h",
-      date: "26/03/2025",
-    },
-    {
-      id: "BT8",
-      name: "TOEIC Listening Practice 2",
-      type: "LISTENING",
-      questions: 50,
-      time: "1h",
-      date: "27/03/2025",
-    },
-    {
-      id: "BT9",
-      name: "TOEIC Reading Practice 2",
-      type: "READING",
-      questions: 50,
-      time: "1h",
-      date: "28/03/2025",
-    },
-    {
-      id: "BT10",
-      name: "TOEIC Full Test 6",
-      type: "FULL TEST",
-      questions: 100,
-      time: "2h",
-      date: "29/03/2025",
-    },
-  ];
+  const [selectedTestCode, setSelectedTestCode] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTests = async () => {
@@ -117,9 +128,12 @@ const TestManagementPage: React.FC = () => {
       setTests(formattedTests || []);
     };
     fetchTests();
-  },[]);
+  }, []);
 
   const navigate = useNavigate();
+  const handleNavigate = (path: string) => {
+    navigate(path);
+  };
 
   return (
     <div className="min-h-screen flex bg-gray-100">
@@ -128,22 +142,13 @@ const TestManagementPage: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Quản lý Đề thi</h1>
           <button
-            className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition"
-            onClick={() => navigate("/admin/create-test")}
+            onClick={() => handleNavigate("/admin/create-test")}
+            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl 
+                     hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 
+                     font-semibold flex items-center gap-2"
           >
-            Thêm đề thi mới
-          </button>
-          <button
-            className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition"
-            onClick={() => navigate("/admin/create-part")}
-          >
-            Thêm Part mới
-          </button>
-          <button
-            className="bg-orange-600 text-white px-3 py-3 rounded-md hover:bg-orange-700 transition"
-            onClick={() => navigate("/admin/create-questions")}
-          >
-            Thêm dannh sách câu hỏi mới
+            <Plus size={16} />
+            Tạo đề thi mới
           </button>
         </div>
 
@@ -170,13 +175,17 @@ const TestManagementPage: React.FC = () => {
                 >
                   <td className="py-4 px-4">{test.testCode}</td>
                   <td className="py-4 px-4">{test.title}</td>
-                  <td className="py-4 px-4 text-center">{test.statistics.totalAttempts}</td>
-                  <td className="py-4 px-4 text-center">{test.statistics.averageScore}</td>
-                  <td className="py-4 px-4 text-center">{new Date(test.createdAt).toLocaleDateString("vi-VN")}</td>
                   <td className="py-4 px-4 text-center">
-                    <button className="text-gray-500 hover:text-gray-700 transition">
-                      <FaEllipsisH size={18} />
-                    </button>
+                    {test.statistics.totalAttempts}
+                  </td>
+                  <td className="py-4 px-4 text-center">
+                    {test.statistics.averageScore}
+                  </td>
+                  <td className="py-4 px-4 text-center">
+                    {new Date(test.createdAt).toLocaleDateString("vi-VN")}
+                  </td>
+                  <td className="py-4 px-4 text-center relative">
+                    <ActionDropdown test={test} onNavigate={handleNavigate} />
                   </td>
                 </tr>
               ))}

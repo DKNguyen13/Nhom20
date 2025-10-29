@@ -55,7 +55,7 @@ export const getAllQuestionByTest = async (req, res) => {
 export const getAllQuestionByPart = async (req, res) => {
     try {
         const { slug } = req.params;
-        const { partIds } = req.query; // /api/test/:slug/parts/:partId/questions?partIds=123123,xxxxx
+        const { partIds } = req.query;
 
         // Check test exists
         const test = await Test.findOne({ slug });
@@ -104,68 +104,6 @@ export const getAllQuestionByPart = async (req, res) => {
     }
 };
 
-
-// [POST] /api/test/:slug/parts/:partId/questions
-// export const createQuestions = async (req, res) => {
-//     try {
-//         // validate input
-
-//         const { slug, partId } = req.params;
-//         const questionsData = req.body.questions;
-
-//         // Check test exists
-//         const test = await Test.findOne({ slug });
-//         if (!test) {
-//             return error(res, 'Test not found');
-//         }
-
-//         // Check part exists
-//         const part = await Part.findOne({ _id: partId, testId: test._id });
-//         if (!part) {
-//             return error(res, 'Part not found in this test to create Question');
-//         }
-
-//         // Get last question number in part
-//         const lastQuestion = await Question.findOne({ partId })
-//             .sort({ questionNumber: -1 });
-//         let questionNumber = lastQuestion ? lastQuestion.questionNumber : 0;
-
-//         // Get global question count in test
-//         let globalQuestionNumber = await Question.countDocuments({ testId: test._id });
-
-//         // Question data to insert
-//         const questionsToInsert = questionsData.map(q => {
-//             questionNumber++;
-//             globalQuestionNumber++;
-//             return {
-//                 ...q,
-//                 partId,
-//                 testId: part.testId,
-//                 partNumber: part.partNumber,
-//                 questionNumber,
-//                 globalQuestionNumber,
-//             }
-//         })
-
-//         const insertedQuestions = await Question.insertMany(questionsToInsert);
-
-//         // update total question for part
-//         await Part.findByIdAndUpdate(partId, {
-//             $inc: { totalQuestion: questionsToInsert.length }
-//         });
-
-//         return success(
-//             res,
-//             'create Questions success',
-//             {
-//                 questions: insertedQuestions,
-//             }
-//         );
-//     } catch (error) {
-//         return error(res, 'error Create question');
-//     }
-// };
-
 export const createQuestions = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -202,13 +140,10 @@ export const createQuestions = async (req, res) => {
     let globalQuestionNumber = await Question.countDocuments({ testId: test._id });
 
     const processedQuestions = [];
-
-    // --- Nếu là part có group (3, 4, 6, 7) thì tạo groupId ---
-    let groupId = null;
     const isGroupedPart = [3, 4, 6, 7].includes(part.partNumber);
-    if (isGroupedPart) {
-      groupId = uuidv4();
-    }
+
+    // ✅ Map để tracking groupId đã tạo cho mỗi group
+    const groupIdMap = new Map();
 
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
@@ -221,33 +156,76 @@ export const createQuestions = async (req, res) => {
         return error(res, `Part ${part.partNumber} requires ${expectedChoices} choices. (Question ${i + 1})`);
       }
 
-      const group = q.group || {};
+      let group = q.group ? { ...q.group } : null;
 
-      // Nếu part có group → gán cùng groupId
-      if (isGroupedPart) {
-        group.groupId = groupId;
-      } else {
-        // Nếu không phải part có group → bỏ hết field group
-        delete q.group;
-      }
+      // ✅ Xử lý groupId cho part có group
+      if (isGroupedPart && group) {
+        // Nếu group đã có groupId từ FE (từ groups array) → dùng lại
+        if (group.groupId) {
+          // Kiểm tra xem groupId này đã được tạo chưa
+          if (!groupIdMap.has(group.groupId)) {
+            // Lần đầu gặp groupId này → upload files
+            const imageFile = Array.isArray(req.files)
+              ? req.files.find(f => f.fieldname === group.image)
+              : req.files?.[group.image]?.[0];
 
-      // Upload image/audio nếu có
-      const imageFile = Array.isArray(req.files)
-        ? req.files.find(f => f.fieldname === `image_${i}`)
-        : req.files?.[`image_${i}`]?.[0];
+            const audioFile = Array.isArray(req.files)
+              ? req.files.find(f => f.fieldname === group.audio)
+              : req.files?.[group.audio]?.[0];
 
-      const audioFile = Array.isArray(req.files)
-        ? req.files.find(f => f.fieldname === `audio_${i}`)
-        : req.files?.[`audio_${i}`]?.[0];
+            if (imageFile) {
+              const imgUrl = await uploadToCloudinary(imageFile.buffer, "toeic/questions/images");
+              group.image = imgUrl;
+            } else {
+              delete group.image;
+            }
 
-      if (imageFile && isGroupedPart) {
-        const imgUrl = await uploadToCloudinary(imageFile.buffer, "toeic/questions/images");
-        group.image = imgUrl;
-      }
+            if (audioFile) {
+              const audioUrl = await uploadToCloudinary(audioFile.buffer, "toeic/questions/audio");
+              group.audio = audioUrl;
+            } else {
+              delete group.audio;
+            }
 
-      if (audioFile && isGroupedPart) {
-        const audioUrl = await uploadToCloudinary(audioFile.buffer, "toeic/questions/audio");
-        group.audio = audioUrl;
+            // Lưu vào map để tái sử dụng
+            groupIdMap.set(group.groupId, {
+              image: group.image,
+              audio: group.audio,
+              text: group.text
+            });
+          } else {
+            // Đã có groupId này → dùng lại file đã upload
+            const existingGroup = groupIdMap.get(group.groupId);
+            group = { ...existingGroup, groupId: group.groupId };
+          }
+        }
+      } 
+      // ✅ Xử lý file cho part KHÔNG có group (1, 2, 5)
+      else if (!isGroupedPart && group) {
+        const imageFile = Array.isArray(req.files)
+          ? req.files.find(f => f.fieldname === group.image)
+          : req.files?.[group.image]?.[0];
+
+        const audioFile = Array.isArray(req.files)
+          ? req.files.find(f => f.fieldname === group.audio)
+          : req.files?.[group.audio]?.[0];
+
+        if (imageFile) {
+          const imgUrl = await uploadToCloudinary(imageFile.buffer, "toeic/questions/images");
+          group.image = imgUrl;
+        } else {
+          delete group.image;
+        }
+
+        if (audioFile) {
+          const audioUrl = await uploadToCloudinary(audioFile.buffer, "toeic/questions/audio");
+          group.audio = audioUrl;
+        } else {
+          delete group.audio;
+        }
+
+        // ✅ Part không có group → KHÔNG có groupId
+        delete group.groupId;
       }
 
       processedQuestions.push({
@@ -257,7 +235,7 @@ export const createQuestions = async (req, res) => {
         partNumber: part.partNumber,
         questionNumber,
         globalQuestionNumber,
-        ...(isGroupedPart ? { group } : {}), // chỉ thêm group nếu có
+        ...(group ? { group } : {}),
       });
     }
 

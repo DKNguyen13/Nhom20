@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import api from "../../../../config/axios.js";
 import { getAllParts } from "../../../../service/partService";
+import LoadingSkeleton from "../../../../components/common/LoadingSpinner/LoadingSkeleton.js";
+import { getTestDetail } from "../../../../service/testService.js";
+import { useSearchParams } from "react-router-dom";
 
 interface Test {
   slug: string;
@@ -39,33 +42,38 @@ interface Question {
 }
 
 export default function CreateQuestionPage() {
-  const [tests, setTests] = useState<Test[]>([]);
+  const [testDetail, setTestDetail] = useState<Test | null>(null);
   const [parts, setParts] = useState<Part[]>([]);
   const [selectedTestSlug, setSelectedTestSlug] = useState("");
   const [selectedPartId, setSelectedPartId] = useState("");
   const [groups, setGroups] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingTest, setLoadingTest] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [questions, setQuestions] = useState<Question[]>([]);
 
+  const [searchParams] = useSearchParams();
+  const slug = searchParams.get("slug");
   // -------------------- FETCH TESTS --------------------
   useEffect(() => {
-    const fetchTests = async () => {
+    const fetchTest = async () => {
       try {
-        const res = await api.get("/test");
-        setTests(res.data.data?.tests || []);
+        const res = await getTestDetail(slug);
+        setTestDetail(res?.data?.test);
       } catch (err) {
         console.error("Lỗi tải danh sách đề thi:", err);
       }
     };
-    fetchTests();
+    fetchTest();
   }, []);
 
   // -------------------- FETCH PARTS --------------------
   useEffect(() => {
-    if (selectedTestSlug) {
+    if (slug) {
       const fetchParts = async () => {
         try {
-          const data = await getAllParts(selectedTestSlug);
+          const data = await getAllParts(slug);
           setParts(data?.partWithCounts || []);
         } catch (err: any) {
           console.error("Lỗi tải danh sách part:", err.message);
@@ -73,7 +81,7 @@ export default function CreateQuestionPage() {
       };
       fetchParts();
     }
-  }, [selectedTestSlug]);
+  }, [slug]);
 
   // -------------------- UTILS --------------------
   const getDefaultChoices = (partNumber: number): Choice[] => {
@@ -183,55 +191,156 @@ export default function CreateQuestionPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const selectedPart = parts.find((p) => p._id === selectedPartId);
-    if (!selectedPart || !selectedTestSlug) {
-      alert("Vui lòng chọn đề thi và part!");
+    if (!selectedPart) {
+      alert("Vui lòng chọn part!");
       return;
     }
 
     const formData = new FormData();
-    formData.append("slug", selectedTestSlug);
+    formData.append("slug", slug ?? "");
     formData.append("partId", selectedPartId);
 
-    const cleanedQuestions = questions.map((q, index) => ({
-      ...q,
-      group: q.group
-        ? {
-            text: q.group.text,
-            image: q.group.image ? `image_${index}` : "",
-            audio: q.group.audio ? `audio_${index}` : "",
-            groupId: q.group.id,
-          }
-        : null,
-    }));
+    // ✅ Map để tracking file references cho từng group/question
+    const fileReferences = new Map<
+      string,
+      { image?: string; audio?: string }
+    >();
+    let fileCounter = 0;
+
+    const isGroupedPart = [3, 4, 6, 7].includes(selectedPart.partNumber);
+
+    // ✅ Xử lý part có GROUP (3,4,6,7)
+    if (isGroupedPart) {
+      groups.forEach((g) => {
+        if (!g.id) return;
+
+        const refs: { image?: string; audio?: string } = {};
+
+        if (g.image) {
+          const fieldName = `file_${fileCounter}`;
+          formData.append(fieldName, g.image);
+          refs.image = fieldName;
+          fileCounter++;
+        }
+
+        if (g.audio) {
+          const fieldName = `file_${fileCounter}`;
+          formData.append(fieldName, g.audio);
+          refs.audio = fieldName;
+          fileCounter++;
+        }
+
+        fileReferences.set(g.id, refs);
+      });
+    }
+    // ✅ Xử lý part KHÔNG có group (1,2,5)
+    else {
+      questions.forEach((q, qIdx) => {
+        const refs: { image?: string; audio?: string } = {};
+
+        if (q.group?.image) {
+          const fieldName = `file_${fileCounter}`;
+          formData.append(fieldName, q.group.image);
+          refs.image = fieldName;
+          fileCounter++;
+        }
+
+        if (q.group?.audio) {
+          const fieldName = `file_${fileCounter}`;
+          formData.append(fieldName, q.group.audio);
+          refs.audio = fieldName;
+          fileCounter++;
+        }
+
+        fileReferences.set(`q_${qIdx}`, refs);
+      });
+    }
+
+    // ✅ Tạo cleanedQuestions với file references
+    const cleanedQuestions = questions.map((q, index) => {
+      let imageRef = "";
+      let audioRef = "";
+      let groupId = undefined;
+      let text = undefined;
+
+      if (isGroupedPart && q.group?.id) {
+        // Part có group: lấy references từ groupId
+        const refs = fileReferences.get(q.group.id);
+        imageRef = refs?.image || "";
+        audioRef = refs?.audio || "";
+        groupId = q.group.id;
+        text = q.group.text;
+      } else if (!isGroupedPart && q.group) {
+        // Part không có group: lấy references từ question index
+        const refs = fileReferences.get(`q_${index}`);
+        imageRef = refs?.image || "";
+        audioRef = refs?.audio || "";
+      }
+
+      return {
+        title: q.title,
+        partNumber: q.partNumber,
+        questionNumber: q.questionNumber,
+        globalQuestionNumber: q.globalQuestionNumber,
+        question: q.question,
+        choices: q.choices,
+        correctAnswer: q.correctAnswer,
+        explanation: q.explanation,
+        ...(imageRef || audioRef || groupId || text
+          ? {
+              group: {
+                ...(text ? { text } : {}),
+                ...(imageRef ? { image: imageRef } : {}),
+                ...(audioRef ? { audio: audioRef } : {}),
+                ...(groupId ? { groupId } : {}),
+              },
+            }
+          : {}),
+      };
+    });
 
     formData.append("questions", JSON.stringify(cleanedQuestions));
 
-    // ✅ Đổi lại thứ tự tên field để khớp với BE
-    groups.forEach((g, index) => {
-      if (g.image) formData.append(`image_${index}`, g.image);
-      if (g.audio) formData.append(`audio_${index}`, g.audio);
-    });
-
-    questions.forEach((q, index) => {
-      if (q.group?.image) formData.append(`image_${index}`, q.group.image);
-      if (q.group?.audio) formData.append(`audio_${index}`, q.group.audio);
-    });
+    // Debug: Xem FormData đã gửi gì
+    // console.log("=== FormData Debug ===");
+    // console.log("Questions:", cleanedQuestions);
+    // for (let pair of formData.entries()) {
+    //   if (pair[1] instanceof File) {
+    //     console.log(pair[0], "=>", pair[1].name, `(${pair[1].size} bytes)`);
+    //   } else {
+    //     console.log(
+    //       pair[0],
+    //       "=>",
+    //       typeof pair[1] === "string" && pair[1].length > 100
+    //         ? pair[1].substring(0, 100) + "..."
+    //         : pair[1]
+    //     );
+    //   }
+    // }
 
     try {
-      const res = await api.post(`/question`, formData, {
+      setLoading(true);
+      await api.post(`/question`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       alert("✅ Tạo câu hỏi thành công!");
-      console.log(res.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("❌ Lỗi khi tạo câu hỏi!");
+      alert(`❌ Lỗi: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setQuestions([]);
+      setGroups([]);
+      setLoading(false);
     }
   };
 
   // -------------------- RENDER --------------------
   const selectedPart = parts.find((p) => p._id === selectedPartId);
   const partNumber = selectedPart?.partNumber ?? 0;
+
+  if (loading) {
+    return <LoadingSkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-6">
@@ -242,34 +351,30 @@ export default function CreateQuestionPage() {
 
         {/* Test & Part */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Chọn đề thi
-            </label>
-            <select
-              className="w-full border rounded-lg p-2"
-              value={selectedTestSlug}
-              onChange={(e) => setSelectedTestSlug(e.target.value)}
-            >
-              <option value="">-- Chọn test --</option>
-              {tests.map((test) => (
-                <option key={test.slug} value={test.slug}>
-                  {test.title}
-                </option>
-              ))}
-            </select>
+          {/* ✅ Hiển thị thông tin đề thi */}
+          <div className="p-4 bg-blue-50 border border-blue-300 rounded-lg shadow-sm">
+            {loadingTest ? (
+              <p className="text-gray-600">⏳ Đang tải đề thi...</p>
+            ) : error ? (
+              <p className="text-red-600 font-semibold">{error}</p>
+            ) : testDetail ? (
+              <>
+                <p className="text-lg font-bold text-blue-700">
+                  {testDetail.title}
+                </p>
+              </>
+            ) : (
+              <p className="text-gray-500 italic">Chưa có dữ liệu đề thi</p>
+            )}
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Part
-            </label>
             <select
-              className="w-full border rounded-lg p-2"
+              className="w-full border rounded-lg p-3"
               value={selectedPartId}
               onChange={(e) => handleSelectPart(e.target.value)}
             >
-              <option value="">-- Chọn part --</option>
+              <option value="">-- Chọn Part --</option>
               {parts.map((part) => (
                 <option key={part._id} value={part._id}>
                   Part {part.partNumber}
