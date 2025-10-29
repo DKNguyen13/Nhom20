@@ -72,5 +72,10 @@ commentSchema.post("save", async function(doc) {
             $push: { children: doc._id }
         });
     }
+    const testId = doc.exam;
+    const totalComments = await mongoose.model('Comment').countDocuments({ exam: testId });
+    await mongoose.model('Test').findByIdAndUpdate(testId, {
+        'statistics.totalComments': totalComments
+    });
 })
 export default mongoose.model('Comment', commentSchema);

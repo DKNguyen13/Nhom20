@@ -37,6 +37,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId, type: propType }) 
   const type = propType || location.state?.type || "myList";
   const editable = type === "myList";
 
+  // ...existing functions...
   const fetchFlashcards = async () => {
     if (!setId) return;
     try {
@@ -90,7 +91,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId, type: propType }) 
 
   const generateQuiz = () => {
     if (flashcards.length < 4) {
-      setCanQuiz(false); // không đủ dữ liệu
+      setCanQuiz(false);
       return;
     }
 
@@ -107,10 +108,10 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId, type: propType }) 
       }
     }
 
-      if (wrongOptions.length < 3) {
-        setCanQuiz(false);
-        return;
-      }
+    if (wrongOptions.length < 3) {
+      setCanQuiz(false);
+      return;
+    }
 
     const options = [quizDirection === "en2vi" ? correct.meaning : correct.word, ...wrongOptions];
     setQuizOptions(options.sort(() => Math.random() - 0.5));
@@ -143,139 +144,309 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ setId, type: propType }) 
     if (mode === "Trắc nghiệm") generateQuiz();
   }, [mode, flashcards, quizDirection]);
 
-  if (loading) return <p className="text-center mt-4">Đang tải...</p>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto relative">
-      <h1 className="text-2xl font-bold text-center mb-10">📚 Flashcards</h1>
+    <div className="min-h-screen">
+      <div className="p-6 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            📚 Flashcards
+          </h1>
+          <p className="text-gray-600">Học từ vựng hiệu quả với flashcards</p>
+        </div>
 
-      <div className="flex items-center gap-2 mb-6 justify-center">
-        <label htmlFor="mode" className="text-sm font-medium text-gray-700">Chế độ:</label>
-        <select id="mode"
-          value={mode} onChange={(e) => setMode(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-blue-500 focus:border-blue-500">
-          <option value="Xem toàn bộ thẻ">📖 Xem toàn bộ thẻ</option>
-          <option value="Ngẫu nhiên">🔁 Ngẫu nhiên</option>
-          <option value="Trắc nghiệm">📝 Trắc nghiệm</option>
-        </select>
-        {mode === "Trắc nghiệm" && flashcards.length >= 4 && (
-          <select value={quizDirection} onChange={(e) => setQuizDirection(e.target.value as any)}
-            className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-blue-500 focus:border-blue-500">
-            <option value="en2vi">Anh → Việt</option>
-            <option value="vi2en">Việt → Anh</option>
-          </select>
-        )}
-      </div>
-
-        {/* MODE TRẮC NGHIỆM */}
-        {mode === "Trắc nghiệm" ? (
-        canQuiz ? (
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-full max-w-md p-6 border rounded-lg shadow-md text-center">
-              <h2 className="text-lg mb-4 font-semibold">
-                {quizDirection === "en2vi" ? correctCard?.word : correctCard?.meaning}
-              </h2>
-              <div className="grid grid-cols-2 gap-3">
-                {quizOptions.map(opt => (
-                  <button key={opt} onClick={() => handleOptionClick(opt)}
-                    className={`p-2 rounded border ${
-                      selectedOption
-                        ? opt === (quizDirection === "en2vi" ? correctCard?.meaning : correctCard?.word)
-                          ? "bg-green-300 border-green-500"
-                          : opt === selectedOption
-                            ? "bg-red-300 border-red-500"
-                            : "bg-white"
-                        : "bg-white hover:bg-gray-100"
-                    } transition`}>
-                    {opt}
-                  </button>
-                ))}
+        {/* Mode Controls */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <div className="flex items-center gap-2">
+              <label htmlFor="mode" className="text-sm font-semibold text-gray-700">
+                Chế độ học:
+              </label>
+              <select 
+                id="mode"
+                value={mode} 
+                onChange={(e) => setMode(e.target.value)}
+                className="border-2 border-gray-200 rounded-xl px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white hover:border-gray-300"
+              >
+                <option value="Xem toàn bộ thẻ">📖 Xem toàn bộ thẻ</option>
+                <option value="Ngẫu nhiên">� Ngẫu nhiên</option>
+                <option value="Trắc nghiệm">🎯 Trắc nghiệm</option>
+              </select>
+            </div>
+            
+            {mode === "Trắc nghiệm" && flashcards.length >= 4 && (
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-semibold text-gray-700">Hướng dịch:</label>
+                <select 
+                  value={quizDirection} 
+                  onChange={(e) => setQuizDirection(e.target.value as any)}
+                  className="border-2 border-gray-200 rounded-xl px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white hover:border-gray-300"
+                >
+                  <option value="en2vi">🇺🇸 Anh → 🇻🇳 Việt</option>
+                  <option value="vi2en">🇻🇳 Việt → 🇺🇸 Anh</option>
+                </select>
               </div>
-              {selectedOption && (
-                <button onClick={handleNextQuiz} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                  Tiếp
-                </button>
-              )}
-              <p className="mt-2 text-sm text-gray-600">Điểm: {score}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Content Area */}
+        {mode === "Trắc nghiệm" ? (
+          canQuiz ? (
+            <div className="flex justify-center">
+              <div className="w-full max-w-2xl">
+                <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+                  <div className="text-center mb-6">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-4">
+                      <span className="text-2xl text-white">🎯</span>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                      {quizDirection === "en2vi" ? correctCard?.word : correctCard?.meaning}
+                    </h2>
+                    <p className="text-gray-600">Chọn đáp án đúng</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    {quizOptions.map((opt, index) => (
+                      <button 
+                        key={opt} 
+                        onClick={() => handleOptionClick(opt)}
+                        disabled={!!selectedOption}
+                        className={`p-4 rounded-2xl border-2 text-left font-medium transition-all duration-300 transform ${
+                          selectedOption
+                            ? opt === (quizDirection === "en2vi" ? correctCard?.meaning : correctCard?.word)
+                              ? "bg-green-100 border-green-400 text-green-800 scale-105"
+                              : opt === selectedOption
+                                ? "bg-red-100 border-red-400 text-red-800"
+                                : "bg-gray-50 border-gray-200 text-gray-500"
+                            : "bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:scale-105 cursor-pointer"
+                        }`}
+                      >
+                        <div className="flex items-center">
+                          <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold mr-3">
+                            {String.fromCharCode(65 + index)}
+                          </span>
+                          {opt}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {selectedOption && (
+                    <div className="text-center">
+                      <button 
+                        onClick={handleNextQuiz} 
+                        className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-2xl font-semibold hover:from-blue-600 hover:to-purple-600 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                      >
+                        Câu tiếp theo →
+                      </button>
+                    </div>
+                  )}
+                  
+                  <div className="mt-6 text-center">
+                    <div className="inline-flex items-center bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full px-4 py-2">
+                      <span className="text-2xl mr-2">🏆</span>
+                      <span className="font-bold text-gray-800">Điểm: {score}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-4">
+                <span className="text-3xl">😕</span>
+              </div>
+              <p className="text-xl font-semibold text-gray-700 mb-2">Chưa đủ flashcards!</p>
+              <p className="text-gray-500">Cần ít nhất 4 flashcards để chơi trắc nghiệm</p>
+            </div>
+          )
+        ) : mode === "Ngẫu nhiên" && flashcards.length > 0 ? (
+          <div className="flex flex-col items-center">
+            <div className="w-full max-w-md mb-6">
+              <FlashcardItem
+                flashcard={flashcards[randomIndex]}
+                onDelete={editable ? () => handleDelete(flashcards[randomIndex]._id!) : undefined}
+              />
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={prevCard} 
+                disabled={flashcards.length <= 1} 
+                className={`px-6 py-3 rounded-2xl font-semibold transition-all duration-200 ${
+                  flashcards.length > 1 
+                    ? 'bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 shadow-md hover:shadow-lg transform hover:scale-105' 
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-gray-100'
+                }`}
+              >
+                ← Trước
+              </button>
+              
+              <div className="px-4 py-2 bg-blue-100 rounded-full">
+                <span className="text-sm font-semibold text-blue-800">
+                  {randomIndex + 1} / {flashcards.length}
+                </span>
+              </div>
+              
+              <button 
+                onClick={nextCard} 
+                disabled={flashcards.length <= 1} 
+                className={`px-6 py-3 rounded-2xl font-semibold transition-all duration-200 ${
+                  flashcards.length > 1 
+                    ? 'bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 shadow-md hover:shadow-lg transform hover:scale-105' 
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-gray-100'
+                }`}
+              >
+                Tiếp →
+              </button>
             </div>
           </div>
         ) : (
-          <p className="text-center text-red-500">Chưa có đủ flashcards để chơi trắc nghiệm!</p>
-        )
-      ) : mode === "Ngẫu nhiên" && flashcards.length > 0 ? (
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-full max-w-md h-80">
-            <FlashcardItem
-              flashcard={flashcards[randomIndex]}
-              onDelete={editable ? () => handleDelete(flashcards[randomIndex]._id!) : undefined}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {editable && (
+              <div 
+                onClick={() => setShowModal(true)}
+                className="group border-3 border-dashed border-blue-300 rounded-3xl flex flex-col justify-center items-center h-64 text-blue-500 hover:border-blue-400 hover:bg-blue-50 cursor-pointer transition-all duration-300 transform hover:scale-105"
+              >
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
+                  <span className="text-3xl font-bold">+</span>
+                </div>
+                <p className="font-semibold text-lg">Thêm flashcard</p>
+                <p className="text-sm text-blue-400 mt-1">Nhấn để tạo mới</p>
+              </div>
+            )}
+            
+            {flashcards.length > 0 ? (
+              flashcards.map((card) => (
+                <FlashcardItem
+                  key={card._id}
+                  flashcard={card}
+                  onDelete={editable ? handleDelete : undefined}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-20">
+                <div className="inline-flex items-center justify-center w-24 h-24 bg-gray-100 rounded-full mb-6">
+                  <span className="text-4xl">📭</span>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-700 mb-2">
+                  {editable ? "Chưa có flashcard nào" : "Set này chưa có flashcard"}
+                </h3>
+                {editable && (
+                  <p className="text-gray-500 mb-6">Tạo flashcard đầu tiên để bắt đầu học!</p>
+                )}
+                {editable && (
+                  <button
+                    onClick={() => setShowModal(true)}
+                    className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-2xl font-semibold hover:from-blue-600 hover:to-purple-600 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                  >
+                    Tạo flashcard đầu tiên
+                  </button>
+                )}
+              </div>
+            )}
           </div>
-          <div className="flex gap-4 mt-2">
-            <button onClick={prevCard} disabled={flashcards.length <= 1} className={`px-4 py-2 rounded ${flashcards.length > 1 ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
-              ← Trước
-            </button>
-            <button onClick={nextCard} disabled={flashcards.length <= 1} className={`px-4 py-2 rounded ${flashcards.length > 1 ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
-              Tiếp →
-            </button>
+        )}
+
+        {/* Modal */}
+        {editable && showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowModal(false)}>
+            <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl transform transition-all duration-300 scale-100"
+              onClick={(e) => e.stopPropagation()}>
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-4">
+                  <span className="text-2xl text-white">✨</span>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">Tạo Flashcard Mới</h2>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Từ vựng *</label>
+                  <input 
+                    name="word" 
+                    placeholder="Nhập từ vựng..." 
+                    value={form.word}
+                    onChange={(e) => setForm({ ...form, word: e.target.value })}
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" 
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Nghĩa *</label>
+                  <input 
+                    name="meaning" 
+                    placeholder="Nhập nghĩa..." 
+                    value={form.meaning}
+                    onChange={(e) => setForm({ ...form, meaning: e.target.value })}
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" 
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Ví dụ</label>
+                  <input 
+                    name="example" 
+                    placeholder="Nhập ví dụ..." 
+                    value={form.example}
+                    onChange={(e) => setForm({ ...form, example: e.target.value })}
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" 
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Ghi chú</label>
+                  <input 
+                    name="note" 
+                    placeholder="Nhập ghi chú..." 
+                    value={form.note}
+                    onChange={(e) => setForm({ ...form, note: e.target.value })}
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" 
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4 mt-8">
+                <button 
+                  onClick={handleAdd} 
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-purple-600 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                >
+                  Thêm flashcard
+                </button>
+                <button 
+                  onClick={() => setShowModal(false)} 
+                  className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200"
+                >
+                  Hủy
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {editable && (
-            <div onClick={() => setShowModal(true)}
-              className="border-2 border-dashed border-blue-400 rounded-xl flex justify-center items-center h-48 text-blue-500 hover:bg-blue-50 cursor-pointer transition">
-              <span className="text-5xl font-bold">+</span>
-            </div>
-          )}
-          {flashcards.length > 0 ? (
-            flashcards.map((card) => (
-              <FlashcardItem
-                key={card._id}
-                flashcard={card}
-                onDelete={editable ? handleDelete : undefined}
-              />
-            ))
-          ) : (
-            <div className="col-span-full flex flex-col justify-center items-center py-16 text-gray-500">
-              <p className="text-lg font-medium mb-2">
-                📭 {editable ? "Hiện tại bạn chưa có flashcard nào" : "Chưa có flashcard trong set này"}
-              </p>
-              {editable && <p className="text-sm">Nhấn dấu + để tạo flashcard đầu tiên!</p>}
-            </div>
-          )}
-        </div>
-      )}
+        )}
 
-      {/* Modal tạo flashcard */}
-      {editable && showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-          onClick={() => setShowModal(false)}>
-          <div className="bg-white rounded-lg p-6 w-96 shadow-lg scale-95 animate-[fadeIn_0.2s_ease-out_forwards]"
-            onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-semibold text-center mb-4">✨ Tạo Flashcard Mới</h2>
-
-            <input name="word" placeholder="Từ vựng" value={form.word}
-              onChange={(e) => setForm({ ...form, word: e.target.value })}
-              className="border p-2 w-full rounded-md mb-2" />
-            <input name="meaning" placeholder="Nghĩa" value={form.meaning}
-              onChange={(e) => setForm({ ...form, meaning: e.target.value })}
-              className="border p-2 w-full rounded-md mb-2" />
-            <input name="example" placeholder="Ví dụ (tùy chọn)" value={form.example}
-              onChange={(e) => setForm({ ...form, example: e.target.value })}
-              className="border p-2 w-full rounded-md mb-2" />
-            <input name="note" placeholder="Ghi chú (tùy chọn)" value={form.note}
-              onChange={(e) => setForm({ ...form, note: e.target.value })}
-              className="border p-2 w-full rounded-md mb-3" />
-
-            <div className="flex justify-between items-center mt-4">
-              <button onClick={handleAdd} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 active:scale-95 transition">Thêm</button>
-              <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 active:scale-95 transition">Hủy</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <ToastContainer />
+        <ToastContainer 
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+      </div>
     </div>
   );
 };

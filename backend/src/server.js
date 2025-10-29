@@ -20,6 +20,8 @@ import flashcardSetRoutes from './routes/flashcardSet.routes.js';
 import { Server } from "socket.io";
 import { GoogleGenAI } from "@google/genai";
 import { promptPrefix } from "./utils/constant.js";
+import NotificationService from "./services/notification.service.js";
+import notificationRoutes from "./routes/notification.routes.js";
 
 const app = express()
 
@@ -43,6 +45,7 @@ app.use('/api/comments', commentRoute);
 app.use('/api/test', testRoutes);
 app.use('/api/part', partRoutes);
 app.use('/api/question', questionRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api/session', sessionRoutes);
 app.use('/api/flashcard', flashcardRoutes);
 app.use('/api/flashcard-set', flashcardSetRoutes);
@@ -53,18 +56,19 @@ await InitData.seedPackages();
 await InitData.seedLessons();
 
 await InitData.seedFlashcards();
-//await InitData.seedRevenue();
+await InitData.seedRevenue();
 await InitData.syncMeiliUsersOnce();
-//await InitData.seedScoreMappings();
 await InitData.seedScoreMappings();
+await InitData.seedScoreMappings();
+const io = new Server(8081, {
+    cors: {
+        origin: "*",          // Cho phép mọi nguồn truy cập (FE mở file local cũng được)
+        methods: ["GET", "POST"]
+    }
+});
 
-function chat() {
-    const io = new Server(8081, {
-        cors: {
-            origin: "*",          // Cho phép mọi nguồn truy cập (FE mở file local cũng được)
-            methods: ["GET", "POST"]
-        }
-    });
+const onlineUsers = new Map();
+function setUpSocket() {
     const ai = new GoogleGenAI({ apiKey: config.geminiApiKey });
     io.on('connection', socket => {
         const chat = ai.chats.create({
@@ -85,9 +89,53 @@ function chat() {
             console.log(response.text)
             socket.emit('response', response.text);
         });
+
+        // Đăng ký user
+        socket.on('register', (userId) => {
+            onlineUsers.set(userId, socket.id);
+            console.log(`✓ User ${userId} registered with socket ${socket.id}`);
+
+            socket.emit('connected', {
+                userId,
+                message: 'Connected to notification system',
+                onlineUsers: onlineUsers.size
+            });
+        });
+
+        // Đánh dấu notification đã đọc
+        socket.on('mark-as-read', async (notificationId) => {
+            try {
+                const Notification = mongoose.model('Notification');
+                const notification = await Notification.findById(notificationId);
+                if (notification) {
+                    await notification.markAsRead();
+                    console.log(`Notification ${notificationId} marked as read`);
+                }
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        });
+
+        // Disconnect
+        socket.on('disconnect', () => {
+            for (let [userId, socketId] of onlineUsers.entries()) {
+                if (socketId === socket.id) {
+                    onlineUsers.delete(userId);
+                    console.log(`✗ User ${userId} disconnected`);
+                    break;
+                }
+            }
+        });
     })
 }
-chat()
+setUpSocket()
+
+// ==================
+// NOTIFICATION SERVICE
+// ==================
+
+const notificationService = new NotificationService(io, onlineUsers);
+app.set('notificationService', notificationService);
 
 app.listen(config.port, () => {
     console.log(`Server running on port ${config.port}`)

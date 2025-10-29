@@ -2,10 +2,10 @@ import React, { useRef, useState } from "react";
 import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
 import { FaEllipsisH, FaTimes, FaUpload } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import api from "../../../config/axios";
 import { useEffect } from "react";
+import { getAllTest } from "../../../service/testService";
+import Pagination from "../../../components/common/Pagination/Pagination";
 import { MoreHorizontal, Plus, HelpCircle, Edit2, Trash2 } from "lucide-react";
-
 interface Test {
   title: string;
   slug: string;
@@ -17,16 +17,23 @@ interface Test {
     totalAttempts: number;
     averageScore: number;
   };
+  limit?: number; // Giới hạn số test mỗi trang
+  showPagination?: boolean; // Ẩn/hiện phân trang
 }
-
 // Dropdown Component
-const ActionDropdown: React.FC<{ test: Test; onNavigate: (path: string) => void }> = ({ test, onNavigate }) => {
+const ActionDropdown: React.FC<{
+  test: Test;
+  onNavigate: (path: string) => void;
+}> = ({ test, onNavigate }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -42,7 +49,7 @@ const ActionDropdown: React.FC<{ test: Test; onNavigate: (path: string) => void 
 
   const handleAction = (action: string) => {
     setIsOpen(false);
-    
+
     switch (action) {
       case "add-part":
         onNavigate(`/admin/create-part?slug=${test.slug}`);
@@ -110,25 +117,26 @@ const ActionDropdown: React.FC<{ test: Test; onNavigate: (path: string) => void 
     </div>
   );
 };
-
-const TestManagementPage: React.FC = () => {
+const TestManagementPage: React.FC<Test> = ({
+  limit = 10,
+  showPagination = true,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tests, setTests] = useState<Test[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalTests, setTotalTests] = useState<number>(0);
   const [selectedTestCode, setSelectedTestCode] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTests = async () => {
-      const response = await api.get("/test");
-      const tests = response.data.data.tests;
-      const formattedTests = tests.map((test: Test) => ({
-        ...test,
-        formattedDate: new Date(test.createdAt).toLocaleDateString("vi-VN"),
-      }));
+      const response = await getAllTest(currentPage, 10);
+      const tests = response.tests;
+      setTotalTests(response.pagination?.totalTests || 0);
 
-      setTests(formattedTests || []);
+      setTests(tests || []);
     };
     fetchTests();
-  }, []);
+  }, [currentPage]);
 
   const navigate = useNavigate();
   const handleNavigate = (path: string) => {
@@ -173,13 +181,25 @@ const TestManagementPage: React.FC = () => {
                     index % 2 === 0 ? "bg-gray-50" : ""
                   }`}
                 >
-                  <td className="py-4 px-4">{test.testCode}</td>
-                  <td className="py-4 px-4">{test.title}</td>
-                  <td className="py-4 px-4 text-center">
-                    {test.statistics.totalAttempts}
+                  <td className="py-4 px-4">
+                    <span className="font-mono text-blue-600 font-semibold">
+                      {test.testCode}
+                    </span>
+                  </td>
+                  <td className="py-4 px-4">
+                    <span className="font-medium text-gray-800">
+                      {test.title}
+                    </span>
                   </td>
                   <td className="py-4 px-4 text-center">
-                    {test.statistics.averageScore}
+                    <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
+                      {test.statistics.totalAttempts.toLocaleString()}
+                    </span>
+                  </td>
+                  <td className="py-4 px-4 text-center">
+                    <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">
+                      {test.statistics.averageScore}
+                    </span>
                   </td>
                   <td className="py-4 px-4 text-center">
                     {new Date(test.createdAt).toLocaleDateString("vi-VN")}
@@ -191,6 +211,14 @@ const TestManagementPage: React.FC = () => {
               ))}
             </tbody>
           </table>
+          {showPagination && totalTests > limit && (
+            <Pagination
+              totalItems={totalTests}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              itemsPerPage={limit}
+            />
+          )}
         </div>
       </div>
 

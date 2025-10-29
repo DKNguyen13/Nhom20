@@ -21,7 +21,6 @@ import PurchaseHistory from "../pages/Payment/PurchaseHistory";
 import PaymentForm from "../pages/Payment/PaymentForm/PaymentForm";
 import Resource from "../pages/Resource/Resource";
 import History from "../pages/History/History";
-//import { Practice } from "../pages/Practice/Practice";
 import ResourceDetail from "../pages/Resource/ResourceDetail";
 import DashboardPage from "../pages/Admin/Dashboard/Dashboard";
 import UserManagementPage from "../pages/Admin/UserManagement/UserManagement";
@@ -35,10 +34,10 @@ import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 import ResultPage from "../pages/MockTest/result/ResultPage";
 import FlashcardPage from "../pages/FlashCard/FlashcardPage";
 import FlashcardListPage from "../pages/FlashCard/FlashcardListPage";
+import TestList from "../pages/MockTest/TestList";
 import CreateTestPage from "../pages/Admin/TestManagement/CreateTestPage/CreateTestPage";
 import CreatePartPage from "../pages/Admin/TestManagement/CreatePartPage/CreatePartPage";
 import CreateQuestionPage from "../pages/Admin/TestManagement/CreateQuestionPage/CreateQuestionPage";
-import TestList from "../pages/MockTest/TestList";
 
 const RefreshTokenLoader = () => {
   useRefreshTokenOnLoad();
@@ -235,7 +234,7 @@ const routes = [
     ),
   },
   {
-    path: "/practice",
+    path: "/flashcard",
     element: (
       <MainLayout>
         <FlashcardPage />
@@ -268,7 +267,7 @@ const routes = [
       </ProtectedRoute>
     ),
   },
-    {
+  {
     path: "/admin/lessonmanagement",
     element: (
       <ProtectedRoute allowedRoles={["admin"]}>
@@ -301,25 +300,31 @@ const routes = [
   {
     path: "/admin/create-test",
     element: (
+      <ProtectedRoute allowedRoles={["admin"]}>
         <MainLayout>
           <CreateTestPage />
         </MainLayout>
+      </ProtectedRoute>
     ),
   },
   {
     path: "/admin/create-part",
     element: (
+      <ProtectedRoute allowedRoles={["admin"]}>
         <MainLayout>
           <CreatePartPage />
         </MainLayout>
+      </ProtectedRoute>
     ),
   },
   {
     path: "/admin/create-questions",
     element: (
+      <ProtectedRoute allowedRoles={["admin"]}>
         <MainLayout>
           <CreateQuestionPage />
         </MainLayout>
+      </ProtectedRoute>
     ),
   },
   {

@@ -1,4 +1,4 @@
-import api from "../../config/axios";
+import api, { isLoggedIn } from "../../config/axios";
 import React, { useState, useEffect } from "react";
 import ResourceCard from "../../components/ResourceCard";
 import LoadingSkeleton from "../../components/common/LoadingSpinner/LoadingSkeleton";
@@ -23,7 +23,8 @@ const ResourcePage: React.FC = () => {
   useEffect(() => {
     const fetchResources = async () => {
       try {
-        const res = await api.get("/lessons");
+        const endpoint = isLoggedIn() ? "/lessons" : "/lessons/public";
+        const res = await api.get(endpoint);
         setResources(res.data.data);
       } catch (err) {
         console.error("Lỗi load resources:", err);
@@ -50,9 +51,7 @@ const ResourcePage: React.FC = () => {
 
   const handlePageChange = (page: number) => setCurrentPage(page);
 
-  if (loading) {
-    return <LoadingSkeleton />;
-  }
+  if (loading) return <LoadingSkeleton/>;
 
   return (
     <div className="min-h-screen flex flex-col">
