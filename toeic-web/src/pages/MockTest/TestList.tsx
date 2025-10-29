@@ -4,6 +4,7 @@ import TestCard from "./component/TestCard";
 import { getAllTest } from "../../service/testService";
 import Pagination from "../../components/common/Pagination/Pagination";
 import LoadingSkeleton from "../../components/common/LoadingSpinner/LoadingSkeleton";
+import { FileText } from "lucide-react";
 
 interface TestListProps {
   limit?: number; // Giới hạn số test mỗi trang
@@ -11,12 +12,22 @@ interface TestListProps {
   compact?: boolean;
 }
 
+interface Test {
+  slug: string;
+  title: string;
+  description?: string;
+  statistics?: {
+    totalAttempts?: number;
+    totalComments?: number;
+  };
+}
+
 const TestList: React.FC<TestListProps> = ({
   limit = 9,
   showPagination = true,
   compact = false,
 }) => {
-  const [tests, setTests] = useState([]);
+  const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -62,6 +73,19 @@ const TestList: React.FC<TestListProps> = ({
         compact ? "" : "justify-center mt-12"
       }`}
     >
+      {!compact && (
+      <div className="w-full max-w-[1100px] flex flex-col items-center mb-8 text-center">
+        <div className="flex items-center gap-3">
+          <FileText className="w-8 h-8 text-blue-600" />
+          <h2 className="text-3xl font-bold text-gray-900">
+            Danh sách đề thi
+          </h2>
+        </div>
+        <p className="text-gray-600 mt-2 text-base max-w-xl">
+          Lựa chọn đề thi TOEIC phù hợp để ôn luyện và kiểm tra trình độ.
+        </p>
+      </div>
+    )}
       <div>
         <div className={containerClass}>
           {tests.map((item, index) => (
@@ -72,6 +96,7 @@ const TestList: React.FC<TestListProps> = ({
               questions={200}
               time={120}
               attempts={item.statistics?.totalAttempts || 0}
+              totalComments={item.statistics?.totalComments || 0}
             />
           ))}
         </div>
