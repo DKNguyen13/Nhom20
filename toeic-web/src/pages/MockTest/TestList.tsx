@@ -4,6 +4,7 @@ import TestCard from "./component/TestCard";
 import { getAllTest } from "../../service/testService";
 import Pagination from "../../components/common/Pagination/Pagination";
 import LoadingSkeleton from "../../components/common/LoadingSpinner/LoadingSkeleton";
+import Search from "../../components/common/Search/Search";
 
 interface TestListProps {
   limit?: number; // Giới hạn số test mỗi trang
@@ -11,16 +12,33 @@ interface TestListProps {
   compact?: boolean;
 }
 
+interface Test {
+  slug: string;
+  title: string;
+  description?: string;
+  statistics?: {
+    totalAttempts?: number;
+    totalComments?: number;
+  };
+}
+
 const TestList: React.FC<TestListProps> = ({
   limit = 9,
   showPagination = true,
   compact = false,
 }) => {
-  const [tests, setTests] = useState([]);
+  const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalTests, setTotalTests] = useState<number>(0);
+  const [totalTests, setTotalTests] = useState<number>(0); 
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1); // Reset về trang 1
+    // Call API search với query
+  };
 
   useEffect(() => {
     const fetchTests = async () => {
@@ -62,6 +80,16 @@ const TestList: React.FC<TestListProps> = ({
         compact ? "" : "justify-center mt-12"
       }`}
     >
+      {/* Thêm Search component */}
+      <div className="max-w-[1000px] mx-auto mb-6">
+        <Search 
+          placeholder="Tìm kiếm đề thi..."
+          onSearch={handleSearch}
+          debounceTime={500}
+          variant="outlined"
+          size="lg"
+        />
+      </div>
       <div>
         <div className={containerClass}>
           {tests.map((item, index) => (
@@ -72,6 +100,7 @@ const TestList: React.FC<TestListProps> = ({
               questions={200}
               time={120}
               attempts={item.statistics?.totalAttempts || 0}
+              totalComments={item.statistics?.totalComments || 0}
             />
           ))}
         </div>

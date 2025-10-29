@@ -4,6 +4,10 @@ import Question from "../models/question.model.js";
 import { success, error } from '../utils/response.js';
 import { uploadToCloudinary } from "../services/cloudinary.service.js";
 
+export const getTestByTitle = async (req, res) => {
+
+};
+
 // [GET] /api/test
 export const getAllTest = async (req, res) => {
     try {
