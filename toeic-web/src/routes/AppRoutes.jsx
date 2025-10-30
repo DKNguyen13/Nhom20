@@ -188,17 +188,21 @@ const routes = [
   {
     path: "/payment/success",
     element: (
+    <ProtectedRoute allowedRoles={["admin", "user"]}>
       <MainLayout>
         <PaymentSuccess />
       </MainLayout>
+    </ProtectedRoute>
     ),
   },
   {
     path: "/payment/fail",
     element: (
-      <MainLayout>
-        <PaymentFail />
-      </MainLayout>
+      <ProtectedRoute allowedRoles={["admin", "user"]}>
+        <MainLayout>
+          <PaymentFail />
+        </MainLayout>
+      </ProtectedRoute>
     ),
   },
   {
