@@ -1,155 +1,350 @@
-import React, { useState } from "react";
+import { format } from "date-fns";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../../config/axios.js";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState("");
+  const [dob, setDob] = useState<Date | null>(null);
+  const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState(""); // State for confirm password
-  const [name, setName] = useState(""); // State for name
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [fullname, setFullname] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [serverError, setServerError] = useState("");
+  const [dobError, setDobError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // State for showing confirm password
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [countdown, setCountdown] = useState(0);
+  const [otpMessage, setOtpMessage] = useState<{
+    type: "error" | "success";
+    text: string;
+  } | null>(null);
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Check tuổi >= 16
+  const isValidAge = (date: Date | null) => {
+    if (!date) return false;
+    const today = new Date();
+    let age = today.getFullYear() - date.getFullYear();
+    const m = today.getMonth() - date.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < date.getDate())) {
+      age--;
+    }
+    return age >= 16;
+  };
 
-    // Check if password and confirm password match
-    if (password !== confirmPassword) {
-      alert("Mật khẩu không khớp!");
+  // Countdown logic
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
+
+  const handleSendOTP = async () => {
+    if (!email) {
+      setOtpMessage({ type: "error", text: "Vui lòng nhập email trước khi gửi OTP" });
       return;
     }
+    try {
+      const res = await api.post("/auth/send-register-otp", { email });
+      setOtpMessage({ type: "success", text: res.data.message || "OTP đã gửi" });
+      setCountdown(res.data.cooldown || 60); // set countdown dựa theo backend
+    } catch (err: any) {
+      setOtpMessage({ type: "error", text: err.response?.data?.message || "Lỗi hệ thống!" });
+      const cooldown = err.response?.data?.errors?.cooldown || 0;
+      if (cooldown > 0) setCountdown(cooldown);
+    }
+  };
 
-    // Handle registration logic here
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let hasError = false;
+
+    // Validate tên
+    if (!/^[\p{L}\s]+$/u.test(fullname.trim())) {
+      setNameError("Tên chỉ được chứa chữ cái và khoảng trắng");
+      hasError = true;
+    } else {
+      setNameError("");
+    }
+
+    // Validate mật khẩu
+    if (password.length < 6) {
+      setPasswordError("Mật khẩu phải ít nhất 6 ký tự");
+      hasError = true;
+    } else if (password !== confirmPassword) {
+      setPasswordError("Mật khẩu không khớp");
+      hasError = true;
+    } else {
+      setPasswordError("");
+    }
+
+    // Validate ngày sinh
+    if (!isValidAge(dob)) {
+      setDobError("Bạn phải từ 16 tuổi trở lên để đăng ký");
+      hasError = true;
+    } else {
+      setDobError("");
+    }
+
+    // Validate số điện thoại
+    if (phone.length < 10 || phone.length > 11) {
+      setPhoneError("Số điện thoại phải từ 10 đến 11 chữ số");
+      hasError = true;
+    } else {
+      setPhoneError("");
+    }
+
+    if (hasError) return;
+
+    try {
+      const res = await api.post("/auth/register", {
+        fullname: fullname,
+        email,
+        password,
+        phone,
+        dob: dob ? format(dob, "dd/MM/yyyy") : null,
+        otp,
+      });
+
+      if (res.data.success) {
+        setOtpMessage({ type: "success", text: "Đăng ký thành công!" });
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 1000);
+      } else {
+        setPasswordError(res.data.message || "Có lỗi xảy ra");
+      }
+    } catch (error: any) {
+      setServerError(error.response?.data?.message || "Lỗi hệ thống! Vui lòng thử lại sau.");
+    }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="flex max-w-4xl bg-white rounded-lg w-full overflow-hidden items-center">
-        {/* Left Side - Welcome message and image */}
-        <div className="flex-1 p-8 items-center ">
-          <h2 className="text-xl font-bold text-gray-800">
-            Welcome, Looks like you’re new here!
-          </h2>
-          <div className="mt-4">
+    <div className="flex items-center justify-center min-h-screen p-4">
+      <div className="flex flex-col md:flex-row max-w-5xl bg-white shadow-2xl rounded-xl overflow-hidden w-full">
+
+        {/* Left Side */}
+        <div className="hidden md:flex flex-1 bg-gradient-to-br from-blue-400 to-blue-700 items-center justify-center p-8">
+          <div className="text-white text-center">
+            <h2 className="text-3xl font-bold mb-6">Chào mừng bạn!</h2>
+            <p className="mb-4">
+              Hãy đăng ký ngay và khám phá các tính năng tuyệt vời!
+            </p>
             <img
-              src="src/assets/images/login-image.png"
+              src="src/assets/images/personalization-image.png"
               alt="illustration"
-              className="w-full"
+              className="mx-auto w-3/4 rounded-lg shadow-lg"
             />
           </div>
         </div>
 
-        {/* Right Side - Registration Form */}
-        <div className="flex-1 p-8 bg-blue-100">
-          <h2 className="text-3xl font-bold mb-6">Đăng ký</h2>
-          <form onSubmit={handleRegister} className="space-y-4">
-            {/* Name Field */}
+        {/* Right Side - Form */}
+        <div className="flex-1 p-8 md:p-12">
+          <h2 className="text-3xl text-center font-bold mb-6 text-gray-800">
+            Đăng ký
+          </h2>
+          {serverError && (<p className="text-red-500 text-sm text-center mt-1">{serverError}</p>)}
+          <form onSubmit={handleRegister} className="space-y-5">
+            {/* Name */}
             <div>
-              <label htmlFor="name" className="text-gray-700 text-sm font-medium">
-                Tên
-              </label>
+              <label className="block text-gray-700 font-medium mb-1">Tên</label>
               <input
                 type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={fullname}
+                onChange={(e) => {
+                  setFullname(e.target.value);
+                  if (!/^[\p{L}\s]*$/u.test(e.target.value)) {
+                    setNameError("Tên chỉ được chứa chữ cái và khoảng trắng");
+                  } else {
+                    setNameError("");
+                  }
+                }}
                 placeholder="Nhập tên của bạn"
-                className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                maxLength={60}
+                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 shadow-sm ${
+                  nameError
+                    ? "border-red-500 focus:ring-red-400"
+                    : "border-gray-300 focus:ring-blue-500"
+                }`}
                 required
               />
+              {nameError && <p className="text-red-500 text-sm mt-1">{nameError}</p>}
             </div>
 
-            {/* Email Field */}
+            {/* Email */}
             <div>
-              <label htmlFor="email" className="text-gray-700 text-sm font-medium">
-                Email
-              </label>
+              <label className="block text-gray-700 font-medium mb-1">Email</label>
               <input
                 type="email"
-                id="email"
+                maxLength={80}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Nhập email của bạn"
-                className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
                 required
               />
             </div>
 
-            {/* Password Field */}
+           {/* Phone & DOB in one row */}
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Phone */}
+              <div className="flex-1">
+                <label className="block text-gray-700 font-medium mb-1">Số điện thoại</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "");
+                    setPhone(value);
+                    setPhoneError(
+                      value.length < 10 || value.length > 11
+                        ? "Số điện thoại phải từ 10 đến 11 chữ số"
+                        : ""
+                    );
+                  }}
+                  placeholder="Nhập số điện thoại"
+                  maxLength={11}
+                  className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 shadow-sm ${
+                    phoneError
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-blue-500"
+                  }`}
+                  required
+                />
+                {phoneError && <p className="text-red-500 text-sm mt-1">{phoneError}</p>}
+              </div>
+
+              {/* DOB */}
+              <div className="flex-1">
+                <label className="block text-gray-700 font-medium mb-1">Ngày sinh</label>
+                <DatePicker
+                  selected={dob}
+                  onChange={(date) => setDob(date)}
+                  maxDate={new Date()}
+                  showYearDropdown
+                  showMonthDropdown
+                  placeholderText="Chọn ngày sinh"
+                  className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 shadow-sm ${
+                    dobError
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-blue-500"
+                  }`}
+                  dateFormat="dd/MM/yyyy"
+                />
+                {dobError && <p className="text-red-500 text-sm mt-1">{dobError}</p>}
+              </div>
+            </div>
+
+            {/* Password & Confirm Password */}
             <div>
-              <label htmlFor="password" className="text-gray-700 text-sm font-medium">
-                Mật khẩu
-              </label>
+              <label className="block text-gray-700 font-medium mb-1">Mật khẩu</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  id="password"
                   value={password}
+                  maxLength={30}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Nhập mật khẩu"
-                  className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  minLength={6}
+                  className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 shadow-sm ${
+                    passwordError
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-blue-500"
+                  }`}
                   required
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
                 >
-                  {showPassword ? "Ẩn" : "Hiện"}
+                  {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
                 </button>
               </div>
             </div>
 
-            {/* Confirm Password Field */}
             <div>
-              <label htmlFor="confirmPassword" className="text-gray-700 text-sm font-medium">
-                Xác nhận mật khẩu
-              </label>
+              <label className="block text-gray-700 font-medium mb-1">Xác nhận mật khẩu</label>
               <div className="relative">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
-                  id="confirmPassword"
                   value={confirmPassword}
+                  maxLength={30}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Nhập lại mật khẩu"
-                  className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  minLength={6}
+                  className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 shadow-sm ${
+                    passwordError
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-blue-500"
+                  }`}
                   required
                 />
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
                 >
-                  {showConfirmPassword ? "Ẩn" : "Hiện"}
+                  {showConfirmPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
                 </button>
               </div>
+              {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
             </div>
 
-            {/* Remember me checkbox */}
-            <div className="flex items-center justify-between mt-4">
-              <label className="flex items-center text-sm text-gray-600">
-                <input type="checkbox" className="mr-2" />
-                Nhớ mật khẩu
-              </label>
+            {/* OTP Section */}
+            <div>
+              <label className="block text-gray-600 font-medium mb-1">OTP</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                  placeholder="Nhập mã OTP"
+                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                  maxLength={6}
+                  required
+                />
+                <button type="button"
+                  onClick={handleSendOTP}
+                  disabled={countdown > 0}
+                  className={`px-4 rounded-lg text-white font-medium transition ${
+                    countdown > 0
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-200 flex items-center justify-center"
+                  }`}>
+                  {countdown > 0 ? `Gửi lại (${countdown}s)` : "Gửi OTP"}
+                </button>
+
+              </div>
+              {otpMessage && (
+                <p className={`text-sm mt-1 ${ otpMessage.type === "error" ? "text-red-500" : "text-green-600"
+                  }`}>
+                  {otpMessage.text}
+                </p>
+              )}
             </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              className="w-full py-3 mt-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
+            {/* Submit */}
+            <button type="submit"
+              className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-200 flex items-center justify-center">
               Đăng ký
             </button>
           </form>
 
-          {/* Already have an account? Link */}
-          <div className="mt-4 text-center">
-            <p className="text-sm">
-              Bạn đã có tài khoản?{" "}
-              <Link className="text-blue-600 hover:underline" to={"/login"}>
-                Đăng nhập
-              </Link>
-            </p>
-          </div>
+          <p className="mt-6 text-center text-sm text-gray-600">
+            Bạn đã có tài khoản?{" "}
+            <Link className="text-blue-500 font-medium hover:underline" to="/login">
+              Đăng nhập
+            </Link>
+          </p>
         </div>
       </div>
     </div>

@@ -22,7 +22,7 @@ const ExamCard: React.FC<ExamCardProps> = ({
   const navigate = useNavigate(); // useNavigate hook to navigate between routes
 
   const handleStart = () => {
-    navigate(`/mock-test/${id}`); // Redirect to the mock-test page with the specific id
+    navigate(`/tests/${id}`); // Redirect to the mock-test page with the specific id
   };
 
   return (
