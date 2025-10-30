@@ -113,7 +113,7 @@ const LoadingSkeleton: React.FC = () => {
           <motion.div
             className="h-full bg-gradient-to-r from-blue-400 via-blue-500 to-blue-700 rounded-full shadow-lg"
             initial={{ width: 0 }}
-            animate={{ width: "75%" }}
+            animate={{ width: "99%" }}
             transition={{ duration: 2.5, ease: "easeInOut" }}
           />
         </div>
