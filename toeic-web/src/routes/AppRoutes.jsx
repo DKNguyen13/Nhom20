@@ -224,9 +224,11 @@ const routes = [
   {
     path: "/history",
     element: (
-      <MainLayout>
-        <History />
-      </MainLayout>
+      <ProtectedRoute allowedRoles={["admin", "user"]}>
+        <MainLayout>
+          <History />
+        </MainLayout>
+      </ProtectedRoute>
     ),
   },
   {
