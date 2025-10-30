@@ -3,6 +3,7 @@ import { FaSearch, FaEllipsisH } from "react-icons/fa";
 import React, { useEffect, useState } from "react";
 import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
 import { toast, ToastContainer } from "react-toastify";
+import LoadingSkeleton from "../../../components/common/LoadingSpinner/LoadingSkeleton";
 
 interface User {
   id: number;
@@ -131,7 +132,7 @@ const UserManagementPage: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="p-8">Đang tải dữ liệu...</div>;
+  if (loading) return <LoadingSkeleton />;
 
   return (
     <>
