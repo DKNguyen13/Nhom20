@@ -228,9 +228,11 @@ const routes = [
   {
     path: "/purchase-history",
     element: (
-      <MainLayout>
-        <PurchaseHistory />
-      </MainLayout>
+      <ProtectedRoute allowedRoles={["admin", "user"]}>
+        <MainLayout>
+          <PurchaseHistory />
+        </MainLayout>
+      </ProtectedRoute>
     ),
   },
   {
@@ -252,9 +254,11 @@ const routes = [
   {
     path: "/admin/dashboard",
     element: (
-      <MainLayout>
-        <DashboardPage />
-      </MainLayout>
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <MainLayout>
+          <DashboardPage />
+        </MainLayout>
+      </ProtectedRoute>
     ),
   },
   {
