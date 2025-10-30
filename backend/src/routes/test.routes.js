@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get('/', getAllTest);
 router.get('/:slug', getTestDetail);
-router.post('/', authenticate, isAdmin , upload.any(), createTest);
+router.post('/', authenticate, isAdmin , upload.single("audio"), createTest);
 router.put('/:slug', updateTest);
 router.delete('/:slug', deleteTest);
 

@@ -11,7 +11,7 @@ export const getAllTest = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
-        const tests = await Test.find()
+        const tests = await Test.find({isActive: true})
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -107,7 +107,6 @@ export const createTest = async (req, res) => {
 
 
         let audioUrl = parsedData.audio;
-        console.log(audioUrl);
 
         const audioFile = req.file || (req.files?.audio?.[0]);
 
@@ -176,3 +175,4 @@ export const deleteTest = async (req, res) => {
         return error(res, 'Delete test error');
     }
 };
+
