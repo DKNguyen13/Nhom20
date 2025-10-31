@@ -72,7 +72,7 @@ function setUpSocket() {
     const ai = new GoogleGenAI({ apiKey: config.geminiApiKey });
     io.on('connection', socket => {
         const chat = ai.chats.create({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.0-flash-lite',
             config: {
                 temperature: 0.5,
                 maxOutputTokens: 1024,

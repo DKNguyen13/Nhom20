@@ -1,79 +1,102 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { FaRegClock } from "react-icons/fa";
 import LeftSidebarUser from "../../components/LeftSidebarUser";
 import HistoryTestCard from "../../components/HistoryTestCard";
-import { Line } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
 import ProgressCard from "./components/ProgressCard";
 import { useSessionsUser } from "../MockTest/hooks/useTestSession";
+import { getUserStatistics } from "../../service/sessionService";
 
 // Đăng ký các thành phần cần thiết của ChartJS
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend
 );
 
 const HistoryPage: React.FC = () => {
+  const [statistics, setStatistics] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      try {
+        setStatsLoading(true);
+        const data = await getUserStatistics();
+        setStatistics(data);
+      } catch (error) {
+        console.error('Error fetching statistics:', error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    fetchStatistics();
+  }, []);
+
   const chartData = {
-    labels: ["Test 01", "Test 02", "Test 03", "Test 04", "Test 05", "Test 06"],
+    labels: ["Listening", "Reading"],
     datasets: [
       {
-        label: "Reading",
-        data: [25, 30, 20, 50, 70, 80],
-        borderColor: "rgb(37, 99, 235)",
-        backgroundColor: "rgba(37, 99, 235, 0.5)",
-        tension: 0.4,
-      },
-      {
-        label: "Listening",
-        data: [10, 20, 50, 60, 50, 40],
-        borderColor: "rgb(249, 115, 22)",
-        backgroundColor: "rgba(249, 115, 22, 0.5)",
-        tension: 0.4,
+        label: "Điểm trung bình",
+        data: [
+          statistics?.averageListeningScore || 0,
+          statistics?.averageReadingScore || 0
+        ],
+        backgroundColor: [
+          "rgba(249, 115, 22, 0.8)",
+          "rgba(37, 99, 235, 0.8)"
+        ],
+        borderColor: [
+          "rgb(249, 115, 22)",
+          "rgb(37, 99, 235)"
+        ],
+        borderWidth: 2,
       },
     ],
   };
 
-  // Tùy chọn cho biểu đồ
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "bottom" as const,
+        display: false,
       },
       title: {
         display: true,
-        text: "Tiến độ điểm số",
+        text: "Điểm trung bình theo kỹ năng",
+        font: {
+          size: 16,
+          weight: 'bold' as const,
+        },
       },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            return `${context.parsed.y} điểm`;
+          }
+        }
+      }
     },
     scales: {
       y: {
         beginAtZero: true,
-        max: 100,
+        max: 495,
         title: {
           display: true,
           text: "Điểm số",
-        },
-      },
-      x: {
-        title: {
-          display: true,
-          text: "Bài kiểm tra",
         },
       },
     },
@@ -98,24 +121,60 @@ const HistoryPage: React.FC = () => {
             Lịch sử làm bài
           </h1>
 
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col md:flex-row gap-4">
-            {/* Placeholder Biểu đồ */}
-            <div className="flex-1 flex flex-col items-center justify-center border-r border-gray-200 pr-4">
-              <h2 className="text-xl font-semibold mb-2">Tổng quan</h2>
-              <div className="w-full h-40 bg-blue-50 flex items-center justify-center text-blue-400">
-                <Line data={chartData} options={chartOptions} />
+          <div className="bg-white rounded-lg shadow p-6 flex flex-col md:flex-row gap-6">
+            {/* Biểu đồ điểm trung bình */}
+            <div className="flex-1 flex flex-col items-center justify-center border-r border-gray-200 pr-6">
+              <h2 className="text-xl font-semibold mb-4">Thống kê điểm số</h2>
+              {statsLoading ? (
+                <div className="w-full h-64 flex items-center justify-center">
+                  <p className="text-gray-400">Đang tải...</p>
+                </div>
+              ) : statistics?.totalSessions === 0 ? (
+                <div className="w-full h-64 flex items-center justify-center">
+                  <p className="text-gray-400">Chưa có dữ liệu thống kê</p>
+                </div>
+              ) : (
+                <div className="w-full h-64">
+                  <Bar data={chartData} options={chartOptions} />
+                </div>
+              )}
+              <div className="flex space-x-6 mt-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-orange-500 rounded"></div>
+                  <span>Listening: {statistics?.averageListeningScore || 0}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-blue-600 rounded"></div>
+                  <span>Reading: {statistics?.averageReadingScore || 0}</span>
+                </div>
               </div>
-              <div className="flex space-x-4 mt-3 text-sm"></div>
             </div>
 
             {/* Thông tin thống kê */}
-            <div className="flex-1 flex flex-col items-center justify-center md:justify-around">
-              <ProgressCard
-                progress={32} // Tiến độ
-                level="A1" // Cấp độ hiện tại
-                totalTests={10} // Số bài thi đã thực hiện
-                averageScore={75} // Điểm trung bình
-              />
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <div className="text-center space-y-4">
+                <div className="bg-gradient-to-r from-blue-50 to-orange-50 p-6 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-2">Tổng điểm trung bình</p>
+                  <p className="text-4xl font-bold text-gray-800">
+                    {statistics?.averageTotalScore || 0}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">/ 990 điểm</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-xs text-gray-600">Số bài đã làm</p>
+                    <p className="text-2xl font-semibold text-gray-800 mt-1">
+                      {statistics?.totalSessions || 0}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-xs text-gray-600">Loại bài thi</p>
+                    <p className="text-sm font-medium text-gray-800 mt-1">
+                      Full Test
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

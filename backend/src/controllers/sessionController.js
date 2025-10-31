@@ -704,6 +704,56 @@ export const getUserSessions = async (req, res) => {
     }
 };
 
+// [GET] /api/session/user/statistics -- Get user average scores statistics
+export const getUserStatistics = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        console.log(userId)
+        const completedSessions = await UserTestSession.find({
+            userId,
+            status: 'completed',
+            sessionType: 'full-test',
+            'results.listeningScore': { $exists: true, $gt: 0 },
+            'results.readingScore': { $exists: true, $gt: 0 }
+        }).select('results.listeningScore results.readingScore results.totalScore createdAt');
+
+        if (completedSessions.length === 0) {
+            return success(
+                res,
+                'No completed full-test sessions found',
+                {
+                    totalSessions: 0,
+                    averageListeningScore: 0,
+                    averageReadingScore: 0,
+                    averageTotalScore: 0
+                }
+            );
+        }
+
+        const totalListening = completedSessions.reduce((sum, session) => sum + (session.results.listeningScore || 0), 0);
+        const totalReading = completedSessions.reduce((sum, session) => sum + (session.results.readingScore || 0), 0);
+        const totalScore = completedSessions.reduce((sum, session) => sum + (session.results.totalScore || 0), 0);
+
+        const averageListeningScore = Math.round(totalListening / completedSessions.length);
+        const averageReadingScore = Math.round(totalReading / completedSessions.length);
+        const averageTotalScore = Math.round(totalScore / completedSessions.length);
+
+        return success(
+            res,
+            'Get user statistics successfully',
+            {
+                totalSessions: completedSessions.length,
+                averageListeningScore,
+                averageReadingScore,
+                averageTotalScore
+            }
+        );
+
+    } catch (err) {
+        return error(res, 'Error fetching user statistics', 500, err.message);
+    }
+};
+
 
 // calculate session results
 const calculateSessionResults = async function (sessionId, userId) {

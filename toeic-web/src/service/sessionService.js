@@ -35,3 +35,8 @@ export const getSessionsUser = async (page, limit) => {
     const res = await api.get(`/session/user?page=${page}&limit=${limit}`);
     return res.data.data;
 };
+
+export const getUserStatistics = async () => {
+    const res = await api.get('/session/user/statistics');
+    return res.data.data;
+};
