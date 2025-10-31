@@ -95,7 +95,7 @@ const ActionDropdown: React.FC<{
             <span className="font-medium">Thêm câu hỏi</span>
           </button>
 
-          <div className="border-t border-gray-200 my-2"></div>
+          {/* <div className="border-t border-gray-200 my-2"></div>
 
           <button
             onClick={() => handleAction("edit")}
@@ -111,7 +111,7 @@ const ActionDropdown: React.FC<{
           >
             <Trash2 className="text-red-600" size={16} />
             <span className="font-medium">Xóa đề thi</span>
-          </button>
+          </button> */}
         </div>
       )}
     </div>

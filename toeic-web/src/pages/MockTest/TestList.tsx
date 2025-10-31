@@ -4,6 +4,7 @@ import TestCard from "./component/TestCard";
 import { getAllTest } from "../../service/testService";
 import Pagination from "../../components/common/Pagination/Pagination";
 import LoadingSkeleton from "../../components/common/LoadingSpinner/LoadingSkeleton";
+import { FileText } from "lucide-react";
 import Search from "../../components/common/Search/Search";
 
 interface TestListProps {
@@ -27,6 +28,7 @@ const TestList: React.FC<TestListProps> = ({
   showPagination = true,
   compact = false,
 }) => {
+
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
@@ -80,7 +82,20 @@ const TestList: React.FC<TestListProps> = ({
         compact ? "" : "justify-center mt-12"
       }`}
     >
-      {/* Thêm Search component */}
+      {!compact && (
+      <div className="w-full max-w-[1100px] flex flex-col items-center mb-8 text-center">
+        <div className="flex items-center gap-3">
+          <FileText className="w-8 h-8 text-blue-600" />
+          <h2 className="text-3xl font-bold text-gray-900">
+            Danh sách đề thi
+          </h2>
+        </div>
+        <p className="text-gray-600 mt-2 text-base max-w-xl">
+          Lựa chọn đề thi TOEIC phù hợp để ôn luyện và kiểm tra trình độ.
+        </p>
+      </div>
+    )}
+{/* Thêm Search component */}
       <div className="max-w-[1000px] mx-auto mb-6">
         <Search 
           placeholder="Tìm kiếm đề thi..."

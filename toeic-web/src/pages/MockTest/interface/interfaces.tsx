@@ -63,6 +63,7 @@ export interface UserAnswer {
   questionId: {
     _id: string;
     questionNumber: number;
+    question: string;
     partNumber: number;
     group: Group;
     choices: Choice[];

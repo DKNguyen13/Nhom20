@@ -188,17 +188,21 @@ const routes = [
   {
     path: "/payment/success",
     element: (
+    <ProtectedRoute allowedRoles={["admin", "user"]}>
       <MainLayout>
         <PaymentSuccess />
       </MainLayout>
+    </ProtectedRoute>
     ),
   },
   {
     path: "/payment/fail",
     element: (
-      <MainLayout>
-        <PaymentFail />
-      </MainLayout>
+      <ProtectedRoute allowedRoles={["admin", "user"]}>
+        <MainLayout>
+          <PaymentFail />
+        </MainLayout>
+      </ProtectedRoute>
     ),
   },
   {
@@ -220,17 +224,21 @@ const routes = [
   {
     path: "/history",
     element: (
-      <MainLayout>
-        <History />
-      </MainLayout>
+      <ProtectedRoute allowedRoles={["admin", "user"]}>
+        <MainLayout>
+          <History />
+        </MainLayout>
+      </ProtectedRoute>
     ),
   },
   {
     path: "/purchase-history",
     element: (
-      <MainLayout>
-        <PurchaseHistory />
-      </MainLayout>
+      <ProtectedRoute allowedRoles={["admin", "user"]}>
+        <MainLayout>
+          <PurchaseHistory />
+        </MainLayout>
+      </ProtectedRoute>
     ),
   },
   {
@@ -252,9 +260,11 @@ const routes = [
   {
     path: "/admin/dashboard",
     element: (
-      <MainLayout>
-        <DashboardPage />
-      </MainLayout>
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <MainLayout>
+          <DashboardPage />
+        </MainLayout>
+      </ProtectedRoute>
     ),
   },
   {

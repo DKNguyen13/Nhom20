@@ -4,6 +4,7 @@ import { getAllParts } from "../../../../service/partService";
 import LoadingSkeleton from "../../../../components/common/LoadingSpinner/LoadingSkeleton.js";
 import { getTestDetail } from "../../../../service/testService.js";
 import { useSearchParams } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
 
 interface Test {
   slug: string;
@@ -44,7 +45,6 @@ interface Question {
 export default function CreateQuestionPage() {
   const [testDetail, setTestDetail] = useState<Test | null>(null);
   const [parts, setParts] = useState<Part[]>([]);
-  const [selectedTestSlug, setSelectedTestSlug] = useState("");
   const [selectedPartId, setSelectedPartId] = useState("");
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,8 +61,8 @@ export default function CreateQuestionPage() {
       try {
         const res = await getTestDetail(slug);
         setTestDetail(res?.data?.test);
-      } catch (err) {
-        console.error("Lỗi tải danh sách đề thi:", err);
+      } catch (err: any) {
+        toast.error(`Lỗi tải đề thi: ${err.message}`);
       }
     };
     fetchTest();
@@ -76,7 +76,7 @@ export default function CreateQuestionPage() {
           const data = await getAllParts(slug);
           setParts(data?.partWithCounts || []);
         } catch (err: any) {
-          console.error("Lỗi tải danh sách part:", err.message);
+          toast.error(`Lỗi tải danh sách part: ${err.message}`);
         }
       };
       fetchParts();
@@ -101,9 +101,10 @@ export default function CreateQuestionPage() {
   const handleSelectPart = (partId: string) => {
     setSelectedPartId(partId);
     const selectedPart = parts.find((p) => p._id === partId);
-    if (!selectedPart) return;
-
-    const partNumber = selectedPart.partNumber;
+    if (!selectedPart) {
+      toast.error("Vui lòng chọn part để tạo câu hỏi");
+      return;
+    }
     setGroups([]);
     setQuestions([]);
   };
@@ -192,7 +193,14 @@ export default function CreateQuestionPage() {
     e.preventDefault();
     const selectedPart = parts.find((p) => p._id === selectedPartId);
     if (!selectedPart) {
-      alert("Vui lòng chọn part!");
+      toast.warn("Vui lòng chọn part!");
+      return;
+    }
+
+    if (questions.length === 0) {
+      toast.error(
+        "Bạn chưa thêm câu hỏi nào! Vui lòng thêm ít nhất 1 câu hỏi."
+      );
       return;
     }
 
@@ -200,7 +208,7 @@ export default function CreateQuestionPage() {
     formData.append("slug", slug ?? "");
     formData.append("partId", selectedPartId);
 
-    // ✅ Map để tracking file references cho từng group/question
+    // Map để tracking file references cho từng group/question
     const fileReferences = new Map<
       string,
       { image?: string; audio?: string }
@@ -209,8 +217,18 @@ export default function CreateQuestionPage() {
 
     const isGroupedPart = [3, 4, 6, 7].includes(selectedPart.partNumber);
 
-    // ✅ Xử lý part có GROUP (3,4,6,7)
+    // part có GROUP (3,4,6,7)
     if (isGroupedPart) {
+      const hasEmptyGroup = groups.some(
+        (group) => !questions.some((q) => q.group?.id === group.id)
+      );
+
+      if (hasEmptyGroup) {
+        toast.error(
+          "Nhóm đang trống! Vui lòng thêm ít nhất 1 câu hỏi cho mỗi nhóm."
+        );
+        return;
+      }
       groups.forEach((g) => {
         if (!g.id) return;
 
@@ -233,7 +251,7 @@ export default function CreateQuestionPage() {
         fileReferences.set(g.id, refs);
       });
     }
-    // ✅ Xử lý part KHÔNG có group (1,2,5)
+    //part KHÔNG có group (1,2,5)
     else {
       questions.forEach((q, qIdx) => {
         const refs: { image?: string; audio?: string } = {};
@@ -256,7 +274,7 @@ export default function CreateQuestionPage() {
       });
     }
 
-    // ✅ Tạo cleanedQuestions với file references
+    //Tạo cleanedQuestions với file references
     const cleanedQuestions = questions.map((q, index) => {
       let imageRef = "";
       let audioRef = "";
@@ -323,10 +341,9 @@ export default function CreateQuestionPage() {
       await api.post(`/question`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      alert("✅ Tạo câu hỏi thành công!");
+      toast.success("Tạo câu hỏi thành công!");
     } catch (error: any) {
-      console.error(error);
-      alert(`❌ Lỗi: ${error.response?.data?.message || error.message}`);
+      toast.error(`Lỗi: ${error.response?.data?.message || error.message}`);
     } finally {
       setQuestions([]);
       setGroups([]);
@@ -338,295 +355,312 @@ export default function CreateQuestionPage() {
   const selectedPart = parts.find((p) => p._id === selectedPartId);
   const partNumber = selectedPart?.partNumber ?? 0;
 
-  if (loading) {
-    return <LoadingSkeleton />;
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-6">
-      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">
-          📝 Tạo danh sách câu hỏi
-        </h1>
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-6">
+        <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+          <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">
+            📝 Tạo danh sách câu hỏi
+          </h1>
 
-        {/* Test & Part */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {/* ✅ Hiển thị thông tin đề thi */}
-          <div className="p-4 bg-blue-50 border border-blue-300 rounded-lg shadow-sm">
-            {loadingTest ? (
-              <p className="text-gray-600">⏳ Đang tải đề thi...</p>
-            ) : error ? (
-              <p className="text-red-600 font-semibold">{error}</p>
-            ) : testDetail ? (
+          {/* Test & Part */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            {/* ✅ Hiển thị thông tin đề thi */}
+            <div className="p-4 bg-blue-50 border border-blue-300 rounded-lg shadow-sm">
+              {loadingTest ? (
+                <p className="text-gray-600">⏳ Đang tải đề thi...</p>
+              ) : error ? (
+                <p className="text-red-600 font-semibold">{error}</p>
+              ) : testDetail ? (
+                <>
+                  <p className="text-lg font-bold text-blue-700">
+                    {testDetail.title}
+                  </p>
+                </>
+              ) : (
+                <p className="text-gray-500 italic">Chưa có dữ liệu đề thi</p>
+              )}
+            </div>
+
+            <div>
+              <select
+                className="w-full border rounded-lg p-3"
+                value={selectedPartId}
+                onChange={(e) => handleSelectPart(e.target.value)}
+              >
+                <option value="">-- Chọn Part --</option>
+                {parts.map((part) => (
+                  <option key={part._id} value={part._id}>
+                    Part {part.partNumber}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-10">
+            {/* Nếu part có group */}
+            {isGroupedPart(partNumber) ? (
               <>
-                <p className="text-lg font-bold text-blue-700">
-                  {testDetail.title}
-                </p>
-              </>
-            ) : (
-              <p className="text-gray-500 italic">Chưa có dữ liệu đề thi</p>
-            )}
-          </div>
-
-          <div>
-            <select
-              className="w-full border rounded-lg p-3"
-              value={selectedPartId}
-              onChange={(e) => handleSelectPart(e.target.value)}
-            >
-              <option value="">-- Chọn Part --</option>
-              {parts.map((part) => (
-                <option key={part._id} value={part._id}>
-                  Part {part.partNumber}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-10">
-          {/* Nếu part có group */}
-          {isGroupedPart(partNumber) ? (
-            <>
-              {groups.map((group, gi) => (
-                <div
-                  key={group.id}
-                  className="border border-blue-300 rounded-2xl p-6 bg-blue-50 shadow-sm"
-                >
-                  <div className="flex justify-between items-center mb-3">
-                    <h2 className="text-lg font-bold text-blue-700">
-                      Group #{gi + 1}
-                    </h2>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveGroup(group.id!)}
-                      className="text-red-500 hover:underline"
-                    >
-                      Xóa nhóm
-                    </button>
-                  </div>
-
-                  <textarea
-                    className="w-full border rounded-lg p-2 mb-3"
-                    placeholder="Nội dung đoạn văn hoặc mô tả"
-                    value={group.text}
-                    onChange={(e) =>
-                      handleGroupChange(group.id!, "text", e.target.value)
-                    }
-                  />
-
-                  <div className="flex gap-4 mb-3">
-                    <div>
-                      <label className="text-sm text-gray-600">Ảnh</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                          handleGroupChange(
-                            group.id!,
-                            "image",
-                            e.target.files?.[0] || null
-                          )
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-600">Âm thanh</label>
-                      <input
-                        type="file"
-                        accept="audio/*"
-                        onChange={(e) =>
-                          handleGroupChange(
-                            group.id!,
-                            "audio",
-                            e.target.files?.[0] || null
-                          )
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  {questions
-                    .filter((q) => q.group?.id === group.id)
-                    .map((q, qi) => (
-                      <div
-                        key={qi}
-                        className="border border-blue-200 rounded-xl bg-white p-4 mb-4"
+                {groups.map((group, gi) => (
+                  <div
+                    key={group.id}
+                    className="border border-blue-300 rounded-2xl p-6 bg-blue-50 shadow-sm"
+                  >
+                    <div className="flex justify-between items-center mb-3">
+                      <h2 className="text-lg font-bold text-blue-700">
+                        Group #{gi + 1}
+                      </h2>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveGroup(group.id!)}
+                        className="text-red-500 hover:underline"
                       >
+                        Xóa nhóm
+                      </button>
+                    </div>
+
+                    <textarea
+                      className="w-full border rounded-lg p-2 mb-3"
+                      placeholder="Nội dung đoạn văn hoặc mô tả"
+                      value={group.text}
+                      onChange={(e) =>
+                        handleGroupChange(group.id!, "text", e.target.value)
+                      }
+                    />
+
+                    <div className="flex gap-4 mb-3">
+                      <div>
+                        <label className="text-sm text-gray-600">Ảnh</label>
                         <input
-                          type="text"
-                          placeholder="Câu hỏi"
-                          className="border rounded-lg p-2 w-full"
-                          value={q.question}
+                          type="file"
+                          accept="image/*"
                           onChange={(e) =>
-                            handleInputChange(
-                              questions.indexOf(q),
-                              "question",
-                              e.target.value
+                            handleGroupChange(
+                              group.id!,
+                              "image",
+                              e.target.files?.[0] || null
                             )
                           }
                         />
-
-                        {q.choices.map((c, ci) => (
-                          <div
-                            key={ci}
-                            className="flex items-center gap-2 mt-2 bg-blue-50 p-2 rounded-lg"
-                          >
-                            <span className="font-bold">{c.label}.</span>
-                            <input
-                              type="text"
-                              className="flex-1 border rounded-lg p-1"
-                              value={c.text}
-                              onChange={(e) =>
-                                handleChoiceChange(
-                                  questions.indexOf(q),
-                                  ci,
-                                  "text",
-                                  e.target.value
-                                )
-                              }
-                            />
-                            <input
-                              type="radio"
-                              name={`correct-${q.globalQuestionNumber}`}
-                              checked={q.correctAnswer === c.label}
-                              onChange={() =>
-                                handleInputChange(
-                                  questions.indexOf(q),
-                                  "correctAnswer",
-                                  c.label
-                                )
-                              }
-                            />
-                            <span className="text-sm">Đúng</span>
-                          </div>
-                        ))}
                       </div>
-                    ))}
+                      <div>
+                        <label className="text-sm text-gray-600">
+                          Âm thanh
+                        </label>
+                        <input
+                          type="file"
+                          accept="audio/*"
+                          onChange={(e) =>
+                            handleGroupChange(
+                              group.id!,
+                              "audio",
+                              e.target.files?.[0] || null
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleAddQuestion(group.id!)}
-                    className="mt-2 px-3 py-1 bg-blue-500 text-white rounded-lg"
-                  >
-                    ➕ Thêm câu hỏi vào nhóm này
-                  </button>
-                </div>
-              ))}
+                    {questions
+                      .filter((q) => q.group?.id === group.id)
+                      .map((q, qi) => (
+                        <div
+                          key={qi}
+                          className="border border-blue-200 rounded-xl bg-white p-4 mb-4"
+                        >
+                          <input
+                            type="text"
+                            placeholder="Câu hỏi"
+                            className="border rounded-lg p-2 w-full"
+                            value={q.question}
+                            onChange={(e) =>
+                              handleInputChange(
+                                questions.indexOf(q),
+                                "question",
+                                e.target.value
+                              )
+                            }
+                          />
 
-              <button
-                type="button"
-                onClick={handleAddGroup}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg"
-              >
-                ➕ Thêm nhóm mới
-              </button>
-            </>
-          ) : (
-            <>
-              {questions.map((q, i) => (
-                <div
-                  key={i}
-                  className="border border-blue-200 rounded-2xl p-6 shadow-sm bg-blue-50"
-                >
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-bold text-blue-700">
-                      Câu hỏi #{i + 1} (Part {q.partNumber})
-                    </h2>
+                          {q.choices.map((c, ci) => (
+                            <div
+                              key={ci}
+                              className="flex items-center gap-2 mt-2 bg-blue-50 p-2 rounded-lg"
+                            >
+                              <span className="font-bold">{c.label}.</span>
+                              <input
+                                type="text"
+                                className="flex-1 border rounded-lg p-1"
+                                value={c.text}
+                                onChange={(e) =>
+                                  handleChoiceChange(
+                                    questions.indexOf(q),
+                                    ci,
+                                    "text",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                              <input
+                                type="radio"
+                                name={`correct-${q.globalQuestionNumber}`}
+                                checked={q.correctAnswer === c.label}
+                                onChange={() =>
+                                  handleInputChange(
+                                    questions.indexOf(q),
+                                    "correctAnswer",
+                                    c.label
+                                  )
+                                }
+                              />
+                              <span className="text-sm">Đúng</span>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+
                     <button
                       type="button"
-                      onClick={() => handleRemoveQuestion(i)}
-                      className="text-red-500 hover:underline"
+                      onClick={() => handleAddQuestion(group.id!)}
+                      className="mt-2 px-3 py-1 bg-blue-500 text-white rounded-lg"
                     >
-                      Xóa
+                      ➕ Thêm câu hỏi vào nhóm này
                     </button>
                   </div>
+                ))}
 
-                  <input
-                    type="text"
-                    placeholder="Câu hỏi"
-                    className="border rounded-lg p-2 w-full"
-                    value={q.question}
-                    onChange={(e) =>
-                      handleInputChange(i, "question", e.target.value)
-                    }
-                  />
-                  {/* --- Upload files --- */}
-                  <div className="flex gap-4 mt-3">
-                    <div>
-                      <label className="text-sm text-gray-600">Ảnh</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                          handleInputChange(i, "group", {
-                            ...(q.group || {}),
-                            image: e.target.files?.[0] || null,
-                          })
-                        }
-                      />
+                <button
+                  type="button"
+                  onClick={handleAddGroup}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg"
+                >
+                  ➕ Thêm nhóm mới
+                </button>
+              </>
+            ) : (
+              <>
+                {questions.map((q, i) => (
+                  <div
+                    key={i}
+                    className="border border-blue-200 rounded-2xl p-6 shadow-sm bg-blue-50"
+                  >
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-lg font-bold text-blue-700">
+                        Câu hỏi #{i + 1} (Part {q.partNumber})
+                      </h2>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveQuestion(i)}
+                        className="text-red-500 hover:underline"
+                      >
+                        Xóa
+                      </button>
                     </div>
-                    <div>
-                      <label className="text-sm text-gray-600">Âm thanh</label>
-                      <input
-                        type="file"
-                        accept="audio/*"
-                        onChange={(e) =>
-                          handleInputChange(i, "group", {
-                            ...(q.group || {}),
-                            audio: e.target.files?.[0] || null,
-                          })
-                        }
-                      />
+
+                    <input
+                      type="text"
+                      placeholder="Câu hỏi"
+                      className="border rounded-lg p-2 w-full"
+                      value={q.question}
+                      onChange={(e) =>
+                        handleInputChange(i, "question", e.target.value)
+                      }
+                    />
+                    {/* --- Upload files --- */}
+                    <div className="flex gap-4 mt-3">
+                      <div>
+                        <label className="text-sm text-gray-600">Ảnh</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleInputChange(i, "group", {
+                              ...(q.group || {}),
+                              image: e.target.files?.[0] || null,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-600">
+                          Âm thanh
+                        </label>
+                        <input
+                          type="file"
+                          accept="audio/*"
+                          onChange={(e) =>
+                            handleInputChange(i, "group", {
+                              ...(q.group || {}),
+                              audio: e.target.files?.[0] || null,
+                            })
+                          }
+                        />
+                      </div>
                     </div>
+
+                    {q.choices.map((c, ci) => (
+                      <div
+                        key={ci}
+                        className="flex items-center gap-2 mt-2 bg-white p-2 rounded-lg"
+                      >
+                        <span className="font-bold">{c.label}.</span>
+                        <input
+                          type="text"
+                          className="flex-1 border rounded-lg p-1"
+                          value={c.text}
+                          onChange={(e) =>
+                            handleChoiceChange(i, ci, "text", e.target.value)
+                          }
+                        />
+                        <input
+                          type="radio"
+                          name={`correct-${i}`}
+                          checked={q.correctAnswer === c.label}
+                          onChange={() =>
+                            handleInputChange(i, "correctAnswer", c.label)
+                          }
+                        />
+                        <span className="text-sm text-gray-500">Đúng</span>
+                      </div>
+                    ))}
                   </div>
+                ))}
 
-                  {q.choices.map((c, ci) => (
-                    <div
-                      key={ci}
-                      className="flex items-center gap-2 mt-2 bg-white p-2 rounded-lg"
-                    >
-                      <span className="font-bold">{c.label}.</span>
-                      <input
-                        type="text"
-                        className="flex-1 border rounded-lg p-1"
-                        value={c.text}
-                        onChange={(e) =>
-                          handleChoiceChange(i, ci, "text", e.target.value)
-                        }
-                      />
-                      <input
-                        type="radio"
-                        name={`correct-${i}`}
-                        checked={q.correctAnswer === c.label}
-                        onChange={() =>
-                          handleInputChange(i, "correctAnswer", c.label)
-                        }
-                      />
-                      <span className="text-sm text-gray-500">Đúng</span>
-                    </div>
-                  ))}
-                </div>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => handleAddQuestion()}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600"
+                >
+                  ➕ Thêm câu hỏi
+                </button>
+              </>
+            )}
 
-              <button
-                type="button"
-                onClick={() => handleAddQuestion()}
-                className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600"
-              >
-                ➕ Thêm câu hỏi
-              </button>
-            </>
-          )}
-
-          <button
-            type="submit"
-            className="block w-full bg-blue-600 text-white py-3 rounded-2xl font-semibold hover:bg-blue-700 mt-6"
-          >
-            🚀 Lưu danh sách câu hỏi
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="block w-full bg-blue-600 text-white py-3 rounded-2xl font-semibold hover:bg-blue-700 mt-6"
+            >
+              🚀 Lưu danh sách câu hỏi
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+      {loading && (
+        <div className="fixed inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <LoadingSkeleton />
+        </div>
+      )}
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="colored"
+      />
+    </>
   );
 }
