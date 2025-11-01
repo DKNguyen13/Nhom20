@@ -12,7 +12,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     match: [/^\d{10,11}$/, 'phone number just 10 num'],
     required: function () { return this.authType === 'normal'; },
-    unique: true
+    unique: true,
+    sparse: true
   },
   dob: { type: Date },
   avatarUrl: { type: String, default: '' },
