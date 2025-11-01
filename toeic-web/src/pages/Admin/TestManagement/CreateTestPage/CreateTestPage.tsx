@@ -113,16 +113,16 @@ const CreateTestPage: React.FC = () => {
             {/* Audio input (file hoặc URL) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                File Audio hoặc URL Audio
+                 URL Audio
               </label>
 
-              {/* File upload */}
+              {/* File upload
               <input
                 type="file"
                 accept="audio/*"
                 onChange={handleFileChange}
                 className="block w-full border rounded-lg px-3 py-2 mb-2"
-              />
+              /> */}
 
               {/* Nếu không upload file thì cho nhập URL */}
               {!audioFile && (

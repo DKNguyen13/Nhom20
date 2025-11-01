@@ -204,6 +204,30 @@ export default function CreateQuestionPage() {
       return;
     }
 
+    // Validate đáp án
+    for (const q of questions) {
+      const emptyChoice = q.choices.some((choice) => !choice.text.trim());
+      if (emptyChoice) {
+        toast.error("Vui lòng điền đầy đủ nội dung tất cả đáp án!");
+        return;
+      }
+
+      // Kiểm tra phải có đáp án đúng (phòng trường hợp bug radio)
+      const correctExists = q.choices.some((c) => c.label === q.correctAnswer);
+      if (!correctExists) {
+        toast.error("Vui lòng chọn đáp án đúng cho tất cả câu hỏi!");
+        return;
+      }
+
+      // Đảm bảo nội dung câu hỏi không trống
+      const requiresQuestionText = ![1, 6].includes(q.partNumber);
+
+      if (requiresQuestionText && !q.question.trim()) {
+        toast.error("Vui lòng nhập nội dung câu hỏi!");
+        return;
+      }
+    }
+
     const formData = new FormData();
     formData.append("slug", slug ?? "");
     formData.append("partId", selectedPartId);
@@ -444,7 +468,7 @@ export default function CreateQuestionPage() {
                           }
                         />
                       </div>
-                      <div>
+                      {/* <div>
                         <label className="text-sm text-gray-600">
                           Âm thanh
                         </label>
@@ -459,7 +483,7 @@ export default function CreateQuestionPage() {
                             )
                           }
                         />
-                      </div>
+                      </div> */}
                     </div>
 
                     {questions
@@ -582,7 +606,7 @@ export default function CreateQuestionPage() {
                           }
                         />
                       </div>
-                      <div>
+                      {/* <div>
                         <label className="text-sm text-gray-600">
                           Âm thanh
                         </label>
@@ -596,7 +620,7 @@ export default function CreateQuestionPage() {
                             })
                           }
                         />
-                      </div>
+                      </div> */}
                     </div>
 
                     {q.choices.map((c, ci) => (
