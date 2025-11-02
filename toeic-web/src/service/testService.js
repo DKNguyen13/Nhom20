@@ -6,7 +6,7 @@ export const getTestDetail = async (slug) => {
     return response.data;
 }
 
-// Get all Tests
+// Get all Tests for user
 export const getAllTest = async (page, limit) => {
     const response = await api.get(`/test`, {
       params: {
@@ -15,4 +15,21 @@ export const getAllTest = async (page, limit) => {
       },
     });
     return response.data.data;
+}
+
+// Get all Tests
+export const getAllTestForAdmin = async (page, limit) => {
+    const response = await api.get(`/test/admin`, {
+      params: {
+        page,
+        limit
+      },
+    });
+    return response.data.data;
+}
+
+// Delete test
+export const modifyTest = async(slug) => {
+  const response =  await api.patch(`/test/${slug}`);
+  console.log('delete test',response);
 }

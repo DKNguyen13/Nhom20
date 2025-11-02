@@ -3,15 +3,16 @@ import LeftSidebarAdmin from "../../../components/LeftSidebarAdmin";
 import { FaEllipsisH, FaTimes, FaUpload } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { getAllTest } from "../../../service/testService";
+import { getAllTest, getAllTestForAdmin, modifyTest } from "../../../service/testService";
 import Pagination from "../../../components/common/Pagination/Pagination";
-import { MoreHorizontal, Plus, HelpCircle, Edit2, Trash2 } from "lucide-react";
+import { MoreHorizontal, Plus, HelpCircle, Edit2, Trash2, CheckCircle } from "lucide-react";
 interface Test {
   title: string;
   slug: string;
   testCode: string;
   category: string;
   createdAt: Date;
+  updatedAt: Date;
   isActive: boolean;
   statistics: {
     totalAttempts: number;
@@ -24,7 +25,8 @@ interface Test {
 const ActionDropdown: React.FC<{
   test: Test;
   onNavigate: (path: string) => void;
-}> = ({ test, onNavigate }) => {
+  onDeleteSuccess: () => void;
+}> = ({ test, onNavigate, onDeleteSuccess }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -47,7 +49,7 @@ const ActionDropdown: React.FC<{
     };
   }, [isOpen]);
 
-  const handleAction = (action: string) => {
+  const handleAction = async (action: string) => {
     setIsOpen(false);
 
     switch (action) {
@@ -60,9 +62,17 @@ const ActionDropdown: React.FC<{
       case "edit":
         onNavigate(`/admin/edit-test/${test.slug}`);
         break;
-      case "delete":
-        if (confirm(`Bạn có chắc muốn xóa đề thi "${test.title}"?`)) {
+      case "toggle-status":
+        if (
+          confirm(
+            `Bạn có chắc muốn ${
+              test.isActive ? "vô hiệu hóa" : "kích hoạt"
+            } đề thi "${test.title}"?`
+          )
+        ) {
           console.log("Delete test:", test.slug);
+          await modifyTest(test.slug);
+          onDeleteSuccess();
         }
         break;
     }
@@ -95,23 +105,37 @@ const ActionDropdown: React.FC<{
             <span className="font-medium">Thêm câu hỏi</span>
           </button>
 
-          {/* <div className="border-t border-gray-200 my-2"></div>
+          <div className="border-t border-gray-200 my-2"></div>
 
-          <button
+          {/* <button
             onClick={() => handleAction("edit")}
             className="w-full flex items-center gap-3 px-4 py-3 hover:bg-yellow-50 transition text-left text-gray-700 hover:text-yellow-600"
           >
             <Edit2 className="text-yellow-600" size={16} />
             <span className="font-medium">Chỉnh sửa</span>
-          </button>
+          </button> */}
 
           <button
-            onClick={() => handleAction("delete")}
-            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition text-left text-gray-700 hover:text-red-600"
+            onClick={() => handleAction("toggle-status")}
+            className={`w-full flex items-center gap-3 px-4 py-3 transition text-left font-medium
+            ${
+              test.isActive
+                ? "hover:bg-red-50 text-gray-700 hover:text-red-600"
+                : "hover:bg-green-50 text-gray-700 hover:text-green-600"
+            }`}
           >
-            <Trash2 className="text-red-600" size={16} />
-            <span className="font-medium">Xóa đề thi</span>
-          </button> */}
+            {test.isActive ? (
+              <>
+                <Trash2 className="text-red-600" size={16} />
+                <span>Vô hiệu hóa</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle className="text-green-600" size={16} />
+                <span>Kích hoạt</span>
+              </>
+            )}
+          </button>
         </div>
       )}
     </div>
@@ -127,14 +151,13 @@ const TestManagementPage: React.FC<Test> = ({
   const [totalTests, setTotalTests] = useState<number>(0);
   const [selectedTestCode, setSelectedTestCode] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchTests = async () => {
-      const response = await getAllTest(currentPage, 10);
-      const tests = response.tests;
-      setTotalTests(response.pagination?.totalTests || 0);
+  const fetchTests = async () => {
+    const response = await getAllTestForAdmin(currentPage, 10);
+    setTests(response.tests || []);
+    setTotalTests(response.pagination?.totalTests || 0);
+  };
 
-      setTests(tests || []);
-    };
+  useEffect(() => {
     fetchTests();
   }, [currentPage]);
 
@@ -168,8 +191,10 @@ const TestManagementPage: React.FC<Test> = ({
                 <th className="py-3 px-4 text-left">ID</th>
                 <th className="py-3 px-4 text-left">Tên đề thi</th>
                 <th className="py-3 px-4 text-center">Lượt làm</th>
-                <th className="py-3 px-4 text-center">Điểm trung bình</th>
+                {/* <th className="py-3 px-4 text-center">Điểm trung bình</th> */}
                 <th className="py-3 px-4 text-center">Ngày tạo</th>
+                <th className="py-3 px-4 text-center">Ngày cập nhật</th>
+                <th className="py-3 px-4 text-center">Trạng thái</th>
                 <th className="py-3 px-4 text-center">Hành động</th>
               </tr>
             </thead>
@@ -196,16 +221,35 @@ const TestManagementPage: React.FC<Test> = ({
                       {test.statistics.totalAttempts.toLocaleString()}
                     </span>
                   </td>
-                  <td className="py-4 px-4 text-center">
+                  {/* <td className="py-4 px-4 text-center">
                     <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">
                       {test.statistics.averageScore}
                     </span>
-                  </td>
+                  </td> */}
                   <td className="py-4 px-4 text-center">
                     {new Date(test.createdAt).toLocaleDateString("vi-VN")}
                   </td>
+                  <td className="py-4 px-4 text-center">
+                    {new Date(test.updatedAt).toLocaleDateString("vi-VN")}
+                  </td>
+                  <td className="py-4 px-4 text-center">
+                    <span
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold
+                              ${
+                                test.isActive
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-red-100 text-red-700"
+                              }`}
+                    >
+                      {test.isActive === true ? "Active" : "Inactive"}
+                    </span>
+                  </td>
                   <td className="py-4 px-4 text-center relative">
-                    <ActionDropdown test={test} onNavigate={handleNavigate} />
+                    <ActionDropdown
+                      test={test}
+                      onNavigate={handleNavigate}
+                      onDeleteSuccess={fetchTests}
+                    />
                   </td>
                 </tr>
               ))}

@@ -35,6 +35,37 @@ export const getAllTest = async (req, res) => {
     }
 };
 
+// [GET] /api/test
+export const getAllTestbyAdmin = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const tests = await Test.find()
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+        const total = await Test.countDocuments();
+        if (!tests) {
+            return fail(res, 'Error fetching tests');
+        }
+        return success(res, 'Get all test success', {
+            tests,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(total / limit),
+                totalTests: total,
+                hasNext: page < Math.ceil(total / limit),
+                hasPrev: page > 1
+            }
+        });
+
+    } catch (err) {
+        return error(res, 'Get all test error', 500, err.message);
+    }
+};
+
 // [GET] /api/test/:slug
 export const getTestDetail = async (req, res) => {
     try {
@@ -155,20 +186,21 @@ export const updateTest = async (req, res) => {
     }
 };
 
-// [DELETE] /api/test/:slug
-export const deleteTest = async (req, res) => {
+// [DELETE] /api/test
+export const modifyStatus = async (req, res) => {
     try {
         // Soft delete
         const { slug } = req.params;
-        const test = await Test.findOneAndUpdate(
-            { slug },
-            { isActive: false },
-            { new: true }
-        );
-
+        const test = await Test.findOne({ slug });
         if (!test) {
             return error(res, 'Test not found');
         }
+
+        await Test.findOneAndUpdate(
+            { slug },
+            { isActive: !test.isActive },
+            { new: true }
+        );
 
         return success(res, 'Delete test success');
     } catch (error) {
